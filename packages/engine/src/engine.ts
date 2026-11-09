@@ -3,7 +3,7 @@ import CameraControls from "camera-controls";
 import { gsap } from "gsap";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { installedThrough, sortByAssembly, type Procedure, type ProcedureItem, type ProcedureKind } from "./planner";
-import { parseProduct, type Keyframe, type Part, type Product, type Step } from "./schema";
+import { parseProduct, type BoxShape, type Keyframe, type Part, type Product, type Step } from "./schema";
 
 export type HighlightMode = "focus" | "ghost" | "error" | "ok" | "none";
 export const HIGHLIGHT_MODES: readonly HighlightMode[] = ["focus", "ghost", "error", "ok", "none"];
@@ -288,7 +288,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     root.add(exploded);
     exploded.add(anim);
     anim.add(body);
-    const meshes: MeshRec[] = def.shapes.map((s) => {
+    const boxes: BoxShape[] =
+      def.geometry.kind === "boxes"
+        ? def.geometry.boxes
+        : (console.warn(`[engine] gltf geometry is not implemented yet; "${def.id}" is drawn as a placeholder`),
+          [{ size: [50, 50, 50], position: [0, 0, 0], color: "#d946ef", opacity: 0.5 }]);
+    const meshes: MeshRec[] = boxes.map((s) => {
       const geo = new THREE.BoxGeometry(...s.size);
       const base = new THREE.Color(s.color);
       const baseOpacity = s.opacity ?? 1;

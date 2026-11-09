@@ -11,8 +11,24 @@ const summary = (items: { kind: string; stepId: string }[]) => items.map((i) => 
 
 describe("schema", () => {
   it("parses the fixture", () => {
-    expect(product.parts).toHaveLength(6);
+    expect(product.parts).toHaveLength(8);
     expect(product.units).toBe("mm");
+  });
+
+  it("rejects a non-consumable part without an assembly step, accepts a consumable one", () => {
+    const bad = structuredClone(sample) as typeof sample;
+    bad.parts.find((x) => x.id === "thermal_pad")!.consumable = false;
+    expect(ProductSchema.safeParse(bad).error!.issues[0]!.message).toContain('part "thermal_pad" has no assembly step');
+  });
+
+  it("checks mistakes and attachedTo references", () => {
+    const bad = structuredClone(sample) as typeof sample;
+    const cable = bad.assembly.find((x) => x.id === "s_gpu_cable")!;
+    cable.attachedTo = "ghost";
+    cable.mistakes![0]!.violates = ["nope"];
+    const msgs = ProductSchema.safeParse(bad).error!.issues.map((i) => i.message).join("\n");
+    expect(msgs).toContain('unknown attachedTo part "ghost"');
+    expect(msgs).toContain('mistake "cable_yank": unknown feature "nope"');
   });
 
   it("rejects broken references", () => {
@@ -33,16 +49,25 @@ describe("planService", () => {
     const p = planService(product, all, "m2_ssd", guide);
     expect(summary(p.items)).toEqual([
       "remove:s_panel",
+      "remove:s_gpu_cable",
       "remove:s_gpu",
       "remove:s_heatsink",
       "remove:s_m2",
       "extra:x_check_slot",
       "extra:x_reseat",
+      "extra:x_thermal_pad",
       "install:s_m2",
       "install:s_heatsink",
       "install:s_gpu",
+      "install:s_gpu_cable",
       "install:s_panel",
     ]);
+    expect(p.extraSteps.map((e) => e.id)).toEqual(["x_check_slot", "x_reseat", "x_thermal_pad"]);
+    const pad = p.items.find((i) => i.stepId === "x_thermal_pad")!;
+    expect(pad).toMatchObject({ partId: "thermal_pad", action: "apply" });
+    expect(pad.appliedExtras).toEqual(["x_check_slot", "x_reseat", "x_thermal_pad"]);
+    expect(p.items[0]!.appliedExtras).toEqual([]);
+    expect(p.items.at(-1)!.appliedExtras).toEqual(["x_check_slot", "x_reseat", "x_thermal_pad"]);
     expect(p.guideId).toBe("ssd_not_detected");
     expect(p.initialInstalled).toEqual(all);
     expect(p.items.at(-1)!.installed).toEqual(all);
@@ -56,19 +81,31 @@ describe("planService", () => {
     expect(p.items[0]!.checks).toEqual(["panel_screw"]);
   });
 
-  it("only removes what actually covers the target", () => {
+  it("unplugs the power cable before the GPU comes out (attachedTo)", () => {
     const p = planService(product, all, "gpu");
-    expect(summary(p.items)).toEqual(["remove:s_panel", "remove:s_gpu", "install:s_gpu", "install:s_panel"]);
+    expect(summary(p.items)).toEqual([
+      "remove:s_panel",
+      "remove:s_gpu_cable",
+      "remove:s_gpu",
+      "install:s_gpu",
+      "install:s_gpu_cable",
+      "install:s_panel",
+    ]);
+  });
+
+  it("only removes what is in the way of the target", () => {
+    const p = planService(product, all, "gpu_power_cable");
+    expect(summary(p.items)).toEqual(["remove:s_panel", "remove:s_gpu_cable", "install:s_gpu_cable", "install:s_panel"]);
   });
 
   it("works without a guide", () => {
     const p = planService(product, all, "m2_ssd");
     expect(p.items.some((i) => i.kind === "extra")).toBe(false);
-    expect(p.items).toHaveLength(8);
+    expect(p.items).toHaveLength(10);
   });
 
   it("skips covers that are already out and does not reinstall them", () => {
-    const installed = all.filter((id) => id !== "s_panel" && id !== "s_gpu");
+    const installed = all.filter((id) => !["s_panel", "s_gpu", "s_gpu_cable"].includes(id));
     const p = planService(product, installed, "m2_ssd");
     expect(summary(p.items)).toEqual([
       "remove:s_heatsink",
@@ -116,9 +153,12 @@ describe("planService", () => {
       ...sample,
       parts: [
         ...sample.parts,
-        { ...sample.parts[5]!, id: "side_panel_b", position: [0, 0, -10] },
+        { ...sample.parts.find((x) => x.id === "side_panel")!, id: "side_panel_b", position: [0, 0, -10] },
       ],
-      assembly: [...sample.assembly, { ...sample.assembly[5]!, id: "s_panel_b", partId: "side_panel_b" }],
+      assembly: [
+        ...sample.assembly,
+        { ...sample.assembly.find((x) => x.id === "s_panel")!, id: "s_panel_b", partId: "side_panel_b" },
+      ],
     });
     const ids = twoPanels.assembly.map((s) => s.id);
     expect(summary(planService(twoPanels, ids, "side_panel").items)).toEqual([

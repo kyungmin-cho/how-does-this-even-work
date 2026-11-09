@@ -18,16 +18,28 @@ export const BoxShapeSchema = z.object({
 });
 export type BoxShape = z.infer<typeof BoxShapeSchema>;
 
+/** Part geometry. Only "boxes" is rendered today; "gltf" is a reserved slot (drawn as a placeholder). */
+export const GeometrySchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("boxes"), boxes: z.array(BoxShapeSchema).min(1) }),
+  z.object({ kind: z.literal("gltf"), url: z.string().min(1), node: z.string().optional() }),
+]);
+export type Geometry = z.infer<typeof GeometrySchema>;
+
 export const PartSchema = z.object({
   id: Id,
   label: z.string(),
   /** One line describing the part. */
   description: z.string().default(""),
-  shapes: z.array(BoxShapeSchema).min(1),
+  geometry: GeometrySchema,
   /** Final (installed) position of the part origin in product space. */
   position: Vec3Schema,
   /** Final rotation in degrees. */
   rotation: Vec3Schema.default([0, 0, 0]),
+  /**
+   * Consumable (thermal paste, cable tie...): may have no assembly step and only appear
+   * through a guide's extra step.
+   */
+  consumable: z.boolean().default(false),
 });
 export type Part = z.infer<typeof PartSchema>;
 
@@ -64,6 +76,8 @@ export const StepActionSchema = z.enum([
   "latch",
   "press",
   "lift",
+  "apply",
+  "inspect",
 ]);
 export type StepAction = z.infer<typeof StepActionSchema>;
 
@@ -75,6 +89,21 @@ export const KeyframeSchema = z.object({
   duration: z.number().positive().optional(),
 });
 export type Keyframe = z.infer<typeof KeyframeSchema>;
+
+/** A common wrong way to do a step, shown next to the right one. */
+export const MistakeSchema = z.object({
+  id: Id,
+  label: z.string(),
+  description: z.string().default(""),
+  /**
+   * Wrong motion, same relative format as Step.path. Played forward; the last keyframe is
+   * the wrong resting pose (e.g. RAM flipped: rotation [0, 180, 0]; wrong slot: offset to slot 3).
+   */
+  path: z.array(KeyframeSchema).min(1),
+  /** Feature IDs this mistake violates (pinned while shown). */
+  violates: z.array(z.string()).default([]),
+});
+export type Mistake = z.infer<typeof MistakeSchema>;
 
 export const StepSchema = z.object({
   id: Id,
@@ -88,14 +117,24 @@ export const StepSchema = z.object({
    * (offset 0, rotation 0) is appended automatically if the last keyframe is not it.
    */
   path: z.array(KeyframeSchema).min(1),
-  /** Part IDs this step's part covers (must be removed first). "*" means every other part. */
+  /**
+   * Part IDs this step must be undone before (the part covers them or is in the way, not only
+   * visually). "*" means every part assembled before this step.
+   */
   blocks: z.array(z.string()).default([]),
+  /**
+   * The part this step's part is attached to (a cable plugged into the GPU, a fan cable on the
+   * cooler). Removing that part first removes this step. Same effect as listing it in blocks.
+   */
+  attachedTo: z.string().optional(),
   /** Feature IDs to check during this step. */
   checks: z.array(z.string()).default([]),
   /** Feature IDs (screw holes) in tightening order. */
   screwOrder: z.array(z.string()).optional(),
   /** View name to use for this step. */
   camera: z.string().optional(),
+  /** Common wrong ways to do this step. */
+  mistakes: z.array(MistakeSchema).default([]),
 });
 export type Step = z.infer<typeof StepSchema>;
 
@@ -108,16 +147,20 @@ export const ViewSchema = z.object({
 });
 export type View = z.infer<typeof ViewSchema>;
 
-export const ExtraStepSchema = z.object({
-  id: Id,
+/**
+ * A guide's extra step: a full step object plus where it goes in the procedure.
+ * - partId defaults to the guide's targetPartId.
+ * - action defaults to "inspect", path defaults to [] (no motion).
+ * - If partId is a consumable part, the part animates in along `path` and stays until the
+ *   procedure ends (e.g. thermal paste).
+ */
+export const ExtraStepSchema = StepSchema.extend({
   /** afterRemoval: right after the target part comes out. beforeReinstall: right before it goes back. */
   at: z.enum(["afterRemoval", "beforeReinstall"]),
   label: z.string(),
-  description: z.string().default(""),
-  /** Defaults to the guide's targetPartId. */
   partId: z.string().optional(),
-  checks: z.array(z.string()).default([]),
-  camera: z.string().optional(),
+  action: StepActionSchema.default("inspect"),
+  path: z.array(KeyframeSchema).default([]),
 });
 export type ExtraStep = z.infer<typeof ExtraStepSchema>;
 
@@ -151,11 +194,34 @@ function dupes(ids: string[]): string[] {
   return [...out];
 }
 
+type Refs = Pick<Product, "parts" | "features" | "views">;
+
+/** Reference problems shared by assembly steps and extra steps. */
+function stepIssues(p: Refs, s: Step | ExtraStep, where: string, partIdRequired = true): string[] {
+  const out: string[] = [];
+  const partIds = new Set(p.parts.map((x) => x.id));
+  const featureIds = new Set(p.features.map((x) => x.id));
+  if ((partIdRequired || s.partId) && !partIds.has(s.partId!)) out.push(`${where}: unknown partId "${s.partId}"`);
+  for (const b of s.blocks) if (b !== "*" && !partIds.has(b)) out.push(`${where}: unknown blocked part "${b}"`);
+  if (s.attachedTo !== undefined) {
+    if (!partIds.has(s.attachedTo)) out.push(`${where}: unknown attachedTo part "${s.attachedTo}"`);
+    if (s.attachedTo === s.partId) out.push(`${where}: attachedTo is its own part`);
+  }
+  for (const c of [...s.checks, ...(s.screwOrder ?? [])]) {
+    if (!featureIds.has(c)) out.push(`${where}: unknown feature "${c}"`);
+  }
+  if (s.camera && !(s.camera in p.views)) out.push(`${where}: unknown view "${s.camera}"`);
+  for (const d of dupes(s.mistakes.map((m) => m.id))) out.push(`${where}: duplicate mistake id "${d}"`);
+  for (const m of s.mistakes) {
+    for (const v of m.violates) if (!featureIds.has(v)) out.push(`${where} mistake "${m.id}": unknown feature "${v}"`);
+  }
+  return out;
+}
+
 export const ProductSchema = ProductBaseSchema.superRefine((p, ctx) => {
   const err = (message: string, path: (string | number)[]) =>
     ctx.addIssue({ code: "custom", message, path });
   const partIds = new Set(p.parts.map((x) => x.id));
-  const featureIds = new Set(p.features.map((x) => x.id));
   const viewNames = new Set(Object.keys(p.views));
 
   for (const d of dupes(p.parts.map((x) => x.id))) err(`duplicate part id "${d}"`, ["parts"]);
@@ -172,22 +238,16 @@ export const ProductSchema = ProductBaseSchema.superRefine((p, ctx) => {
     if (!partIds.has(f.partId)) err(`unknown partId "${f.partId}"`, ["features", i, "partId"]);
   });
   p.assembly.forEach((s, i) => {
-    if (!partIds.has(s.partId)) err(`unknown partId "${s.partId}"`, ["assembly", i, "partId"]);
-    s.blocks.forEach((b, j) => {
-      if (b !== "*" && !partIds.has(b)) err(`unknown blocked part "${b}"`, ["assembly", i, "blocks", j]);
-    });
-    [...s.checks, ...(s.screwOrder ?? [])].forEach((c) => {
-      if (!featureIds.has(c)) err(`unknown feature "${c}"`, ["assembly", i]);
-    });
-    if (s.camera && !viewNames.has(s.camera)) err(`unknown view "${s.camera}"`, ["assembly", i, "camera"]);
+    for (const m of stepIssues(p, s, `step "${s.id}"`)) err(m, ["assembly", i]);
   });
   const installedParts = new Set(p.assembly.map((s) => s.partId));
-  for (const id of partIds) {
-    if (!installedParts.has(id)) err(`part "${id}" has no assembly step`, ["parts"]);
+  for (const part of p.parts) {
+    if (!part.consumable && !installedParts.has(part.id)) {
+      err(`part "${part.id}" has no assembly step (mark it consumable if it only appears in guides)`, ["parts"]);
+    }
   }
   p.guides.forEach((g, i) => {
-    const issues = guideIssues(p, g);
-    for (const m of issues) err(m, ["guides", i]);
+    for (const m of guideIssues(p, g)) err(m, ["guides", i]);
   });
 });
 
@@ -196,21 +256,11 @@ export type ProductInput = z.input<typeof ProductSchema>;
 export type GuideInput = z.input<typeof GuideSchema>;
 
 /** Reference problems of a guide against a product (empty when valid). */
-export function guideIssues(
-  p: Pick<Product, "parts" | "features" | "views">,
-  g: Guide,
-): string[] {
+export function guideIssues(p: Refs, g: Guide): string[] {
   const out: string[] = [];
   const partIds = new Set(p.parts.map((x) => x.id));
-  const featureIds = new Set(p.features.map((x) => x.id));
   if (!partIds.has(g.targetPartId)) out.push(`guide "${g.id}": unknown targetPartId "${g.targetPartId}"`);
-  for (const e of g.extraSteps) {
-    if (e.partId && !partIds.has(e.partId)) out.push(`guide "${g.id}" step "${e.id}": unknown partId "${e.partId}"`);
-    for (const c of e.checks) {
-      if (!featureIds.has(c)) out.push(`guide "${g.id}" step "${e.id}": unknown feature "${c}"`);
-    }
-    if (e.camera && !(e.camera in p.views)) out.push(`guide "${g.id}" step "${e.id}": unknown view "${e.camera}"`);
-  }
+  for (const e of g.extraSteps) out.push(...stepIssues(p, e, `guide "${g.id}" step "${e.id}"`, false));
   return out;
 }
 
@@ -221,24 +271,4 @@ export function parseProduct(data: unknown): Product {
 
 export function parseGuide(data: unknown): Guide {
   return GuideSchema.parse(data);
-}
-
-/** Compact, coordinate-free summary for an AI agent's context (IDs and labels only). */
-export function describeProduct(p: Product) {
-  return {
-    id: p.id,
-    name: p.name,
-    parts: p.parts.map((x) => ({ id: x.id, label: x.label, description: x.description })),
-    features: p.features.map((f) => ({ id: f.id, partId: f.partId, kind: f.kind, label: f.label })),
-    assembly: p.assembly.map((s) => ({
-      id: s.id,
-      partId: s.partId,
-      action: s.action,
-      label: s.label,
-      blocks: s.blocks,
-      checks: s.checks,
-    })),
-    views: Object.entries(p.views).map(([name, v]) => ({ name, label: v.label ?? name })),
-    guides: p.guides.map((g) => ({ id: g.id, title: g.title, symptoms: g.symptoms, targetPartId: g.targetPartId })),
-  };
 }

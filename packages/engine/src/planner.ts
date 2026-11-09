@@ -1,4 +1,4 @@
-import { guideIssues, type Guide, type Product, type Step, type StepAction } from "./schema";
+import { guideIssues, type ExtraStep, type Guide, type Product, type Step, type StepAction } from "./schema";
 
 export type ProcedureKind = "remove" | "install" | "extra";
 
@@ -13,9 +13,11 @@ export interface ProcedureItem {
   camera: string | null;
   label: string;
   description: string;
-  action: StepAction | "inspect";
+  action: StepAction;
   /** Installed assembly step IDs (assembly order) after this item is done. */
   installed: string[];
+  /** Extra step IDs applied so far (consumable parts from these stay visible). */
+  appliedExtras: string[];
 }
 
 export interface Procedure {
@@ -25,6 +27,8 @@ export interface Procedure {
   /** Installed assembly step IDs before the first item. */
   initialInstalled: string[];
   items: ProcedureItem[];
+  /** The guide's extra steps (full step objects), so the engine can animate them. */
+  extraSteps: ExtraStep[];
 }
 
 export type PlannerErrorCode =
@@ -58,12 +62,13 @@ export function installedThrough(product: Product, stepId: string): string[] {
 }
 
 /**
- * Does `step` cover `partId`? Explicit IDs always count. "*" covers every part whose
+ * Must `step` be undone before `partId` can come out? True when the step's part is attached to
+ * `partId` (attachedTo) or lists it in blocks. Explicit IDs always count. "*" covers every part whose
  * first assembly step comes earlier than this step (so two "*" covers never block each other).
  */
 function blocksPart(product: Product, step: Step, partId: string): boolean {
   if (step.partId === partId) return false;
-  if (step.blocks.includes(partId)) return true;
+  if (step.attachedTo === partId || step.blocks.includes(partId)) return true;
   if (!step.blocks.includes("*")) return false;
   const first = product.assembly.findIndex((s) => s.partId === partId);
   const self = product.assembly.findIndex((s) => s.id === step.id);
@@ -132,6 +137,7 @@ export function planService(
   const reinstallOrder = [...removeSteps].sort((a, b) => index.get(a.id)! - index.get(b.id)!);
 
   const current = new Set(installed);
+  const applied: string[] = [];
   const snapshot = () => sortByAssembly(product, current);
   const items: ProcedureItem[] = [];
   const pushStep = (kind: "remove" | "install", s: Step) => {
@@ -147,22 +153,25 @@ export function planService(
       description: s.description,
       action: s.action,
       installed: snapshot(),
+      appliedExtras: [...applied],
     });
   };
   const targetCamera = targetSteps[0]!.camera ?? null;
   const pushExtras = (at: "afterRemoval" | "beforeReinstall") => {
     for (const e of guide?.extraSteps ?? []) {
       if (e.at !== at) continue;
+      applied.push(e.id);
       items.push({
         kind: "extra",
         stepId: e.id,
         partId: e.partId ?? targetPartId,
-        checks: [...e.checks],
+        checks: [...e.checks, ...(e.screwOrder ?? []).filter((c) => !e.checks.includes(c))],
         camera: e.camera ?? targetCamera,
         label: e.label,
         description: e.description,
-        action: "inspect",
+        action: e.action,
         installed: snapshot(),
+        appliedExtras: [...applied],
       });
     }
   };
@@ -178,5 +187,6 @@ export function planService(
     guideId: guide?.id ?? null,
     initialInstalled: installed,
     items,
+    extraSteps: structuredClone(guide?.extraSteps ?? []),
   };
 }
