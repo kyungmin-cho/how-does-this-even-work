@@ -1,0 +1,16 @@
+{
+  "name": "assembly",
+  "private": true,
+  "packageManager": "pnpm@12.5.1",
+  "scripts": {
+    "dev": "pnpm --filter @assembly/web dev",
+    "build": "pnpm --filter @assembly/web build",
+    "start": "pnpm --filter @assembly/web start",
+    "lint": "pnpm --filter @assembly/web lint",
+    "typecheck": "pnpm -r --parallel typecheck",
+    "test:e2e": "pnpm --filter @assembly/web test:e2e"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
