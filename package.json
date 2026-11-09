@@ -8,7 +8,8 @@
     "start": "pnpm --filter @assembly/web start",
     "lint": "pnpm --filter @assembly/web lint",
     "typecheck": "pnpm -r --parallel typecheck",
-    "test:e2e": "pnpm --filter @assembly/web test:e2e"
+    "test:e2e": "pnpm --filter @assembly/web test:e2e",
+    "deploy:gcp": "sh scripts/deploy.sh"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
