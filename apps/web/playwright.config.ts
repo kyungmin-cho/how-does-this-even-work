@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.PORT ?? 3100);
 const baseURL = `http://localhost:${PORT}`;
+/** LIVE_AGENT=1 talks to the real model; otherwise /api/chat returns a fixed reply. */
+const live = process.env.LIVE_AGENT === "1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -14,11 +16,20 @@ export default defineConfig({
     headless: true,
     trace: "on-first-retry",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], headless: true } }],
+  projects: [
+    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, headless: true } },
+    {
+      name: "phone",
+      use: { ...devices["Pixel 7"], headless: true },
+      // The engine dev page is a desktop tool.
+      testIgnore: /engine\.spec\.ts/,
+    },
+  ],
   webServer: {
     command: `pnpm exec next dev --port ${PORT}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    env: { AGENT_MOCK: live ? "0" : "1" },
   },
 });
