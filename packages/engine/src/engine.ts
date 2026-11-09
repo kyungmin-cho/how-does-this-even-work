@@ -3,7 +3,7 @@ import CameraControls from "camera-controls";
 import { gsap } from "gsap";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { installedThrough, sortByAssembly, type Procedure, type ProcedureItem, type ProcedureKind } from "./planner";
-import { parseProduct, type BoxShape, type Keyframe, type Part, type Product, type Step } from "./schema";
+import { parseProduct, type BoxShape, type ExtraStep, type Keyframe, type Mistake, type Part, type Product, type Step } from "./schema";
 
 export type HighlightMode = "focus" | "ghost" | "error" | "ok" | "none";
 export const HIGHLIGHT_MODES: readonly HighlightMode[] = ["focus", "ghost", "error", "ok", "none"];
@@ -30,6 +30,12 @@ export interface EngineState {
     item: ProcedureItem | null;
     autoplay: boolean;
   } | null;
+  /** Extra step IDs applied in the current procedure (consumable parts from these are shown). */
+  appliedExtraStepIds: string[];
+  /** A side look (peek) that temporarily replaced the step's highlight and camera. */
+  peek: { partIds: string[]; featureId: string | null } | null;
+  /** A wrong way being shown next to the right one. */
+  mistake: { stepId: string; mistakeId: string } | null;
   animating: boolean;
   paused: boolean;
 }
@@ -83,6 +89,13 @@ export interface Engine {
   setView(viewOrPartId: string): void;
   resumeGuide(): void;
   explode(amount: number): void;
+  /** Overlay the wrong pose of a step (red, translucent) next to the right one (green). */
+  showMistake(stepId: string, mistakeId: string): void;
+  clearMistake(): void;
+  /** Look at other parts (or one feature) without leaving the current step. */
+  peek(target: string[] | string): void;
+  /** Drop peek/mistake and restore the current step's highlight, marks and camera. */
+  resumeProcedure(): void;
   getState(): EngineState;
   on<K extends EngineEventName>(event: K, cb: (payload: EngineEvents[K]) => void): () => void;
   off<K extends EngineEventName>(event: K, cb: (payload: EngineEvents[K]) => void): void;
@@ -115,7 +128,10 @@ interface PartRec {
   meshes: MeshRec[];
   steps: Step[];
   explodeVec: THREE.Vector3;
+  boxes: BoxShape[];
 }
+
+type AnyStep = Step | ExtraStep;
 
 type Style = "normal" | "dim" | "ghost" | "focus" | "error" | "ok";
 
@@ -196,6 +212,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   let explodeTween: gsap.core.Tween | null = null;
   let autoplayTimer: ReturnType<typeof setTimeout> | null = null;
   let disposed = false;
+  let applied = new Set<string>();
+  let extraById = new Map<string, ExtraStep>();
+  let peekState: { partIds: string[]; featureId: string | null } | null = null;
+  let mistakeState: { stepId: string; mistakeId: string; partId: string } | null = null;
+  let mistakeGroup: THREE.Group | null = null;
+  let mistakeTl: gsap.core.Timeline | null = null;
 
   const listeners = new Map<EngineEventName, Set<(p: never) => void>>();
   function emit<K extends EngineEventName>(event: K, payload: EngineEvents[K]) {
@@ -259,6 +281,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     explodeTween?.kill();
     explodeTween = null;
     clearMarksInternal();
+    clearMistakeInternal();
     for (const p of parts.values()) {
       for (const m of p.meshes) {
         m.mesh.geometry.dispose();
@@ -320,7 +343,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     const len = v.length();
     const explodeVec = len > 0 ? v.multiplyScalar(Math.min(len, 260) / len) : new THREE.Vector3();
     productRoot.add(root);
-    return { def, root, exploded, anim, body, meshes, steps, explodeVec };
+    return { def, root, exploded, anim, body, meshes, steps, explodeVec, boxes };
   }
 
   function loadProduct(data: unknown, opts: { installedStepIds?: string[] } = {}): Product {
@@ -345,6 +368,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     procIndex = -1;
     autoplay = false;
     cameraOwner = "agent";
+    applied = new Set();
+    extraById = new Map();
+    peekState = null;
 
     // Ground grid under the product.
     const box = new THREE.Box3().setFromObject(productRoot);
@@ -369,8 +395,20 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   // ---------- visuals ----------
-  function partInstalled(partId: string) {
-    return parts.get(partId)!.steps.some((s) => installed.has(s.id));
+  function partInstalled(partId: string, inst = installed, app = applied) {
+    if (parts.get(partId)!.steps.some((s) => inst.has(s.id))) return true;
+    for (const id of app) {
+      const e = extraById.get(id);
+      if (e && (e.partId ?? procedure?.targetPartId) === partId && parts.get(partId)!.def.consumable) return true;
+    }
+    return false;
+  }
+
+  /** Parts drawn even when not installed: ghost highlight, peek, mistake target. */
+  function forcedVisible(partId: string) {
+    if (highlightState.mode === "ghost" && highlightState.partIds.includes(partId)) return true;
+    if (peekState?.partIds.includes(partId)) return true;
+    return mistakeState?.partId === partId;
   }
 
   /** Put every part exactly where the logical state says (no animation). */
@@ -379,13 +417,14 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       p.anim.position.set(0, 0, 0);
       p.anim.rotation.set(0, 0, 0);
       p.exploded.position.copy(p.explodeVec).multiplyScalar(explodeAmount);
-      const ghost = highlightState.mode === "ghost" && highlightState.partIds.includes(id);
-      p.root.visible = partInstalled(id) || ghost;
+      p.root.visible = partInstalled(id) || forcedVisible(id);
     }
     applyHighlight();
   }
 
   function styleFor(partId: string): Style {
+    if (mistakeState) return partId === mistakeState.partId ? "ok" : "dim";
+    if (peekState && peekState.partIds.includes(partId) && !partInstalled(partId)) return "ghost";
     const { mode, partIds } = highlightState;
     const hit = partIds.includes(partId);
     switch (mode) {
@@ -462,6 +501,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   function pulse(t: number) {
+    if (mistakeState) return;
     const { mode, partIds } = highlightState;
     if (mode === "none" || mode === "ghost") return;
     const k = 0.5 + 0.5 * Math.sin(t * 4);
@@ -482,36 +522,37 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     tl.kill();
     tl = null;
     snap();
-    if (notify) emit("animationend", { installedStepIds: sortByAssembly(product!, installed), interrupted: true });
+    if (notify && product) emit("animationend", { installedStepIds: sortByAssembly(product!, installed), interrupted: true });
   }
 
-  function poseList(step: Step): { kf: Keyframe | null; pos: THREE.Vector3; rot: THREE.Euler }[] {
-    const list: { kf: Keyframe | null; pos: THREE.Vector3; rot: THREE.Euler }[] = step.path.map((kf) => ({
+  function poseList(path: Keyframe[], appendRest = true): { kf: Keyframe | null; pos: THREE.Vector3; rot: THREE.Euler }[] {
+    const list: { kf: Keyframe | null; pos: THREE.Vector3; rot: THREE.Euler }[] = path.map((kf) => ({
       kf,
       pos: new THREE.Vector3(...kf.offset),
       rot: new THREE.Euler(kf.rotation[0] * DEG, kf.rotation[1] * DEG, kf.rotation[2] * DEG),
     }));
-    const lastKf = step.path[step.path.length - 1]!;
-    const atRest = lastKf.offset.every((v) => v === 0) && lastKf.rotation.every((v) => v === 0);
-    if (!atRest) list.push({ kf: null, pos: new THREE.Vector3(), rot: new THREE.Euler() });
+    const lastKf = path[path.length - 1];
+    const atRest = !lastKf || (lastKf.offset.every((v) => v === 0) && lastKf.rotation.every((v) => v === 0));
+    if (appendRest && !atRest) list.push({ kf: null, pos: new THREE.Vector3(), rot: new THREE.Euler() });
     return list;
   }
 
-  function addPoseTween(t: gsap.core.Timeline, p: PartRec, pos: THREE.Vector3, rot: THREE.Euler, duration: number) {
+  function addPoseTween(t: gsap.core.Timeline, p: { anim: THREE.Object3D }, pos: THREE.Vector3, rot: THREE.Euler, duration: number) {
     const at = t.duration();
     t.to(p.anim.position, { x: pos.x, y: pos.y, z: pos.z, duration, ease: "power2.inOut" }, at);
     t.to(p.anim.rotation, { x: rot.x, y: rot.y, z: rot.z, duration, ease: "power2.inOut" }, at);
   }
 
-  function addStepMotion(t: gsap.core.Timeline, step: Step, kind: "install" | "remove", visibleBefore: boolean, visibleAfter: boolean) {
-    const p = parts.get(step.partId)!;
+  function addStepMotion(t: gsap.core.Timeline, step: AnyStep, partId: string, kind: "install" | "remove", visibleBefore: boolean, visibleAfter: boolean) {
+    const p = parts.get(partId)!;
+    if (!visibleBefore && !visibleAfter) return;
     if (visibleBefore && visibleAfter) {
       // The part stays in place (e.g. a second screw step): nudge it to show something happened.
       const at = t.duration();
       t.to(p.anim.position, { z: 6, duration: 0.15, yoyo: true, repeat: 1, ease: "sine.inOut" }, at);
       return;
     }
-    const poses = poseList(step);
+    const poses = poseList(step.path);
     if (kind === "install") {
       const start = poses[0]!;
       t.call(() => {
@@ -536,12 +577,14 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     t.to({}, { duration: 0.1 });
   }
 
-  /** Move from the current logical state to `next`, animating the difference. */
-  function transition(next: Set<string>, animate: boolean) {
+  /** Move from the current logical state to `next` (+ applied extras), animating the difference. */
+  function transition(next: Set<string>, animate: boolean, nextApplied: Set<string> = applied) {
     const prod = requireProduct();
     interrupt();
     const prev = installed;
+    const prevApplied = applied;
     installed = next;
+    applied = nextApplied;
     if (!animate) {
       snap();
       queueMicrotask(() => {
@@ -552,23 +595,35 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     const removing = prod.assembly.filter((s) => prev.has(s.id) && !next.has(s.id)).reverse();
     const adding = prod.assembly.filter((s) => !prev.has(s.id) && next.has(s.id));
+    const extraPart = (e: ExtraStep) => e.partId ?? procedure?.targetPartId ?? "";
+    const extrasOff = [...prevApplied].filter((id) => !nextApplied.has(id)).reverse().map((id) => extraById.get(id)).filter((e) => e && parts.has(extraPart(e))) as ExtraStep[];
+    const extrasOn = [...nextApplied].filter((id) => !prevApplied.has(id)).map((id) => extraById.get(id)).filter((e) => e && parts.has(extraPart(e))) as ExtraStep[];
     // Restore the previous visual state; the timeline moves it to `next`.
     installed = prev;
+    applied = prevApplied;
     snap();
     installed = next;
+    applied = nextApplied;
     applyHighlight();
-    const working = new Set(prev);
-    const visible = (partId: string) => parts.get(partId)!.steps.some((s) => working.has(s.id));
+    const wInst = new Set(prev);
+    const wApp = new Set(prevApplied);
+    const visible = (partId: string) => partInstalled(partId, wInst, wApp) || forcedVisible(partId);
     const t = gsap.timeline({ paused: true });
-    for (const s of removing) {
-      const before = visible(s.partId);
-      working.delete(s.id);
-      addStepMotion(t, s, "remove", before, visible(s.partId));
+    const move = (s: AnyStep, partId: string, kind: "install" | "remove", change: () => void) => {
+      const before = visible(partId);
+      change();
+      addStepMotion(t, s, partId, kind, before, visible(partId));
+    };
+    for (const e of extrasOff) {
+      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), "remove", () => wApp.delete(e.id));
+      else wApp.delete(e.id);
     }
-    for (const s of adding) {
-      const before = visible(s.partId);
-      working.add(s.id);
-      addStepMotion(t, s, "install", before, visible(s.partId));
+    for (const s of removing) move(s, s.partId, "remove", () => wInst.delete(s.id));
+    for (const s of adding) move(s, s.partId, "install", () => wInst.add(s.id));
+    for (const e of extrasOn) {
+      // Only consumable parts move for an extra step; other extras are highlight-only.
+      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), "install", () => wApp.add(e.id));
+      else wApp.add(e.id);
     }
     if (t.duration() === 0) {
       t.kill();
@@ -615,7 +670,10 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   function fitObject(obj: THREE.Object3D, smooth: boolean) {
-    const box = new THREE.Box3().setFromObject(obj);
+    fitBox(new THREE.Box3().setFromObject(obj), smooth);
+  }
+
+  function fitBox(box: THREE.Box3, smooth: boolean) {
     if (box.isEmpty()) return;
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     const target = controls.getTarget(new THREE.Vector3(), true);
@@ -737,12 +795,15 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       if (i >= 0) return goTo(i);
       throw new Error(`unknown step "${stepId}"`);
     }
+    clearMistakeInternal();
+    peekState = null;
     procedure = null;
     procIndex = -1;
     autoplay = false;
     currentStepId = stepId;
     highlightState = { mode: "focus", partIds: [step.partId] };
-    transition(new Set(installedThrough(prod, stepId)), true);
+    transition(new Set(installedThrough(prod, stepId)), true, new Set());
+    extraById = new Map();
     setMarks([...step.checks, ...(step.screwOrder ?? []).filter((c) => !step.checks.includes(c))]);
     guideCamera(step.camera);
     stepEvent("assembly", stepId, step.partId, null);
@@ -753,19 +814,29 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     const prod = requireProduct();
     if (proc.productId !== prod.id) throw new Error(`procedure is for "${proc.productId}", loaded "${prod.id}"`);
     validateSteps(proc.initialInstalled);
+    const extras = new Map((proc.extraSteps ?? []).map((e) => [e.id, e]));
+    for (const e of extras.values()) {
+      const pid = e.partId ?? proc.targetPartId;
+      if (!parts.has(pid)) throw new Error(`extra step "${e.id}": unknown part "${pid}"`);
+    }
     for (const it of proc.items) {
       validateSteps(it.installed);
+      for (const id of it.appliedExtras ?? []) if (!extras.has(id)) throw new Error(`unknown extra step "${id}"`);
       if (it.kind !== "extra" && !stepById.has(it.stepId)) throw new Error(`unknown step "${it.stepId}"`);
       if (!parts.has(it.partId)) throw new Error(`unknown part "${it.partId}"`);
       for (const c of it.checks) if (!featureById.has(c)) throw new Error(`unknown feature "${c}"`);
     }
     interrupt();
+    clearMistakeInternal();
+    peekState = null;
     procedure = structuredClone(proc);
+    extraById = extras;
     autoplay = opts.autoplay ?? false;
     const same =
       installed.size === proc.initialInstalled.length && proc.initialInstalled.every((id) => installed.has(id));
-    if (!same) {
+    if (!same || applied.size) {
       installed = new Set(proc.initialInstalled);
+      applied = new Set();
       snap();
     }
     procIndex = -1;
@@ -779,10 +850,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       throw new RangeError(`index ${index} out of range -1..${procedure.items.length - 1}`);
     }
     procIndex = index;
+    clearMistakeInternal();
+    peekState = null;
     if (index === -1) {
       currentStepId = null;
       highlightState = { mode: "none", partIds: [] };
-      transition(new Set(procedure.initialInstalled), true);
+      transition(new Set(procedure.initialInstalled), true, new Set());
       clearMarksInternal();
       stepEvent(null, null, null, null);
       emitState();
@@ -791,7 +864,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     const item = procedure.items[index]!;
     currentStepId = item.stepId;
     highlightState = { mode: "focus", partIds: [item.partId] };
-    transition(new Set(item.installed), true);
+    transition(new Set(item.installed), true, new Set(item.appliedExtras ?? []));
     setMarks(item.checks);
     guideCamera(item.camera);
     stepEvent(item.kind, item.stepId, item.partId, item);
@@ -872,6 +945,169 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     emitState();
   }
 
+  // ---------- side looks: peek and mistakes ----------
+  function findStep(stepId: string): { step: AnyStep; partId: string } | null {
+    const s = stepById.get(stepId);
+    if (s) return { step: s, partId: s.partId };
+    const e = extraById.get(stepId);
+    if (e) return { step: e, partId: e.partId ?? procedure!.targetPartId };
+    return null;
+  }
+
+  function clearMistakeInternal() {
+    mistakeTl?.kill();
+    mistakeTl = null;
+    if (mistakeGroup) {
+      mistakeGroup.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.geometry) m.geometry.dispose();
+        if (m.material) (m.material as THREE.Material).dispose();
+      });
+      mistakeGroup.removeFromParent();
+      mistakeGroup = null;
+    }
+    mistakeState = null;
+  }
+
+  /** Refresh styles/visibility without breaking a running step animation. */
+  function refreshLook() {
+    if (!tl) return snap();
+    applyHighlight();
+    for (const [id, p] of parts) if (forcedVisible(id)) p.root.visible = true;
+  }
+
+  function showMistake(stepId: string, mistakeId: string) {
+    requireProduct();
+    const found = findStep(stepId);
+    if (!found) throw new Error(`unknown step "${stepId}"`);
+    const { step, partId } = found;
+    const mistake: Mistake | undefined = step.mistakes.find((m) => m.id === mistakeId);
+    if (!mistake) {
+      throw new Error(
+        `unknown mistake "${mistakeId}" for step "${stepId}" (has: ${step.mistakes.map((m) => m.id).join(", ") || "none"})`,
+      );
+    }
+    clearMistakeInternal();
+    peekState = null;
+    mistakeState = { stepId, mistakeId, partId };
+    const part = parts.get(partId)!;
+
+    // Red translucent copy at the wrong pose; the real part stays in place, green.
+    const root = new THREE.Group();
+    root.position.copy(part.root.position).add(part.exploded.position);
+    const anim = new THREE.Group();
+    const body = new THREE.Group();
+    body.rotation.copy(part.body.rotation);
+    root.add(anim);
+    anim.add(body);
+    for (const b of part.boxes) {
+      const geo = new THREE.BoxGeometry(...b.size);
+      const mesh = new THREE.Mesh(
+        geo,
+        new THREE.MeshStandardMaterial({
+          color: RED,
+          emissive: RED,
+          emissiveIntensity: 0.35,
+          transparent: true,
+          opacity: 0.45,
+          depthWrite: false,
+        }),
+      );
+      mesh.position.set(...b.position);
+      mesh.renderOrder = 2;
+      mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color: 0x991b1b })));
+      body.add(mesh);
+    }
+    root.userData.mistake = mistakeId;
+    productRoot.add(root);
+    mistakeGroup = root;
+
+    const poses = poseList(mistake.path, false);
+    anim.position.copy(poses[0]!.pos);
+    anim.rotation.copy(poses[0]!.rot);
+    if (poses.length > 1) {
+      const t = gsap.timeline({ repeat: -1, repeatDelay: 1.2 });
+      for (let i = 1; i < poses.length; i++) {
+        const target = poses[i]!;
+        addPoseTween(t, { anim }, target.pos, target.rot, (target.kf?.duration ?? DEFAULT_SEGMENT) / timeScale);
+      }
+      mistakeTl = t;
+    }
+
+    refreshLook();
+    clearMarksInternal();
+    for (const f of mistake.violates) addMark(f, `✕ ${featureById.get(f)!.label}`);
+    if (cameraOwner === "agent" && step.camera) goToView(step.camera);
+    emitState();
+  }
+
+  function peek(target: string[] | string) {
+    requireProduct();
+    let partIds: string[];
+    let featureId: string | null = null;
+    if (Array.isArray(target)) {
+      if (target.length === 0) throw new Error("peek needs at least one part id");
+      for (const id of target) if (!parts.has(id)) throw new Error(`unknown part "${id}"`);
+      partIds = [...new Set(target)];
+    } else if (featureById.has(target)) {
+      featureId = target;
+      partIds = [featureById.get(target)!.partId];
+    } else if (parts.has(target)) {
+      partIds = [target];
+    } else {
+      throw new Error(`unknown part or feature "${target}"`);
+    }
+    clearMistakeInternal();
+    peekState = { partIds, featureId };
+    highlightState = { mode: "focus", partIds };
+    refreshLook();
+    setMarks(featureId ? [featureId] : []);
+    cameraOwner = "agent";
+    const box = new THREE.Box3();
+    for (const id of partIds) box.union(new THREE.Box3().setFromObject(parts.get(id)!.root));
+    fitBox(box, true);
+    emitState();
+  }
+
+  /** Put back the current step's highlight and marks (and camera). Keeps the procedure position. */
+  function restoreCurrent(moveCamera: boolean) {
+    clearMistakeInternal();
+    peekState = null;
+    let partId: string | null = null;
+    let checks: string[] = [];
+    let cam: string | null = null;
+    if (procedure && procIndex >= 0) {
+      const it = procedure.items[procIndex]!;
+      ({ partId, checks, camera: cam } = it);
+    } else if (currentStepId && stepById.has(currentStepId)) {
+      const st = stepById.get(currentStepId)!;
+      partId = st.partId;
+      checks = [...st.checks, ...(st.screwOrder ?? []).filter((c) => !st.checks.includes(c))];
+      cam = st.camera ?? null;
+    }
+    highlightState = partId ? { mode: "focus", partIds: [partId] } : { mode: "none", partIds: [] };
+    refreshLook();
+    setMarks(checks);
+    if (moveCamera) {
+      cameraOwner = "agent";
+      if (cam) view = cam;
+      if (view) goToView(view);
+    }
+  }
+
+  function clearMistake() {
+    requireProduct();
+    if (!mistakeState) return;
+    restoreCurrent(false);
+    emitState();
+  }
+
+  function resumeProcedure() {
+    requireProduct();
+    restoreCurrent(true);
+    emitState();
+  }
+
   function getState(): EngineState {
     return {
       productId: product?.id ?? null,
@@ -892,6 +1128,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
             autoplay,
           }
         : null,
+      appliedExtraStepIds: [...applied],
+      peek: peekState && { partIds: [...peekState.partIds], featureId: peekState.featureId },
+      mistake: mistakeState && { stepId: mistakeState.stepId, mistakeId: mistakeState.mistakeId },
       animating: tl !== null,
       paused: tl?.paused() ?? false,
     };
@@ -943,6 +1182,10 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     setView,
     resumeGuide,
     explode,
+    showMistake,
+    clearMistake,
+    peek,
+    resumeProcedure,
     getState,
     on,
     off,

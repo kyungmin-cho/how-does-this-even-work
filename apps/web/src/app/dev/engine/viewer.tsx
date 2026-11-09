@@ -149,6 +149,33 @@ export default function EngineViewer() {
         </section>
 
         <section>
+          <h2 className="mb-1 text-xs font-medium text-neutral-500">잠깐 보기, 실수 예시</h2>
+          <div className="flex flex-wrap gap-1">
+            <button className={btn} onClick={() => run((e) => e.peek(partId))}>
+              선택 부품 잠깐 보기
+            </button>
+            <button className={btn} onClick={() => run((e) => e.peek("gpu_power"))}>
+              보조 전원 단자 보기
+            </button>
+            <button className={btn} onClick={() => run((e) => e.resumeProcedure())}>
+              원래 단계로
+            </button>
+            {product.assembly.flatMap((s) =>
+              s.mistakes.map((m) => (
+                <button
+                  key={`${s.id}/${m.id}`}
+                  className={btn}
+                  data-mistake={m.id}
+                  onClick={() => run((e) => e.showMistake(s.id, m.id))}
+                >
+                  ✕ {m.label}
+                </button>
+              )),
+            )}
+          </div>
+        </section>
+
+        <section>
           <h2 className="mb-1 text-xs font-medium text-neutral-500">분해도</h2>
           <input
             type="range"

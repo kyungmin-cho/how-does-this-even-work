@@ -23,6 +23,11 @@ export const EngineCommandSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("setView"), view: z.string() }),
   z.object({ type: z.literal("resumeGuide") }),
   z.object({ type: z.literal("explode"), amount: z.number().min(0).max(1) }),
+  z.object({ type: z.literal("showMistake"), stepId: z.string(), mistakeId: z.string() }),
+  z.object({ type: z.literal("clearMistake") }),
+  z.object({ type: z.literal("peek"), partIds: z.array(z.string()).min(1).optional(), featureId: z.string().optional() })
+    .refine((c) => (c.partIds ? 1 : 0) + (c.featureId ? 1 : 0) === 1, "peek needs exactly one of partIds or featureId"),
+  z.object({ type: z.literal("resumeProcedure") }),
 ]);
 export type EngineCommand = z.infer<typeof EngineCommandSchema>;
 
@@ -65,6 +70,18 @@ export function runCommand(engine: Engine, input: unknown): EngineState {
       break;
     case "explode":
       engine.explode(cmd.amount);
+      break;
+    case "showMistake":
+      engine.showMistake(cmd.stepId, cmd.mistakeId);
+      break;
+    case "clearMistake":
+      engine.clearMistake();
+      break;
+    case "peek":
+      engine.peek(cmd.partIds ?? cmd.featureId!);
+      break;
+    case "resumeProcedure":
+      engine.resumeProcedure();
       break;
   }
   return engine.getState();

@@ -12,7 +12,7 @@
 | import | 내용 | three 의존 |
 | --- | --- | --- |
 | `@assembly/engine` | 아래 전부 | 있음 |
-| `@assembly/engine/schema` | zod 스키마, 타입, `parseProduct`, `describeProduct` | 없음 (서버에서 사용 가능) |
+| `@assembly/engine/schema` | zod 스키마, 타입, `parseProduct`, `parseGuide` | 없음 (서버에서 사용 가능) |
 | `@assembly/engine/planner` | `planService`, `installedThrough` | 없음 |
 | `@assembly/engine/commands` | 에이전트용 JSON 명령 스키마와 `runCommand` | 없음 (타입만) |
 | `@assembly/engine/fixtures/sample.json` | 테스트용 작은 제품 | - |
@@ -54,6 +54,9 @@ const off = engine.on("statechange", (s) => store.setState({ engine: s }));
 | `setView(viewOrPartId)` | 시점 이름이면 그 프리셋, 부품 ID면 그 부품에 맞춰 부드럽게 이동. `cameraOwner = agent` |
 | `resumeGuide()` | `cameraOwner = agent`, 안내 시점(state.view)으로 복귀 |
 | `explode(0..1)` | 분해도. 각 부품이 첫 조립 경로의 시작 방향으로 벌어진다(최대 260mm) |
+| `showMistake(stepId, mistakeId)` / `clearMistake()` | 틀린 방법을 빨간 반투명 복제본으로 겹쳐 보여 준다(mistake.path를 반복 재생). 진짜 부품은 초록, 나머지는 흐리게, violates 지점에 ✕ 핀. 설치 상태와 절차 위치는 그대로 |
+| `peek(partIds[] ｜ featureId)` | 곁가지 질문용 잠깐 보기. 강조와 카메라만 바꾸고 절차 위치, 설치 상태, `view`는 그대로. 빠진 부품이면 유령으로 보인다 |
+| `resumeProcedure()` | 잠깐 보기와 실수 표시를 지우고 현재 단계(절차 항목 또는 showStep 단계)의 강조, 핀, 시점으로 돌아온다 |
 | `getState()` | 아래 `EngineState` |
 | `on(event, cb)` → 해제 함수, `off(event, cb)` | 이벤트 |
 
@@ -76,7 +79,10 @@ interface EngineState {
   cameraOwner: "agent" | "user";
   explode: number;
   currentStepId: string | null;
-  procedure: { targetPartId; guideId; index; length; item; autoplay } | null;
+  procedure: { targetPartId; guideId; index; length; item; autoplay } | null;  // 절차 위치
+  appliedExtraStepIds: string[];       // 지금까지 한 지침서 추가 단계
+  peek: { partIds: string[]; featureId: string | null } | null;   // 잠깐 보기 (절차 위치와 별개)
+  mistake: { stepId: string; mistakeId: string } | null;
   animating: boolean;
   paused: boolean;
 }
@@ -90,9 +96,10 @@ interface EngineState {
 runCommand(engine, { type: "highlight", partIds: ["gpu"], mode: "focus" });
 runCommand(engine, { type: "setView", view: "m2_area" });
 // type: showStep | next | prev | goTo | pause | play | highlight | mark | clearMarks | setView | resumeGuide | explode
+//       | showMistake | clearMistake | peek({partIds} 또는 {featureId}) | resumeProcedure
 ```
 
-에이전트 문맥에는 좌표 없는 요약 `describeProduct(product)`(부품, 기능 지점, 단계, 시점, 지침서의 ID와 이름)를 넣는다.
+모델에게 보여 줄 요약(직렬화, zod enum)은 apps/web 쪽에서 만든다.
 
 ## 제품 데이터 형식 (`src/schema.ts`)
 
@@ -105,7 +112,9 @@ runCommand(engine, { type: "setView", view: "m2_area" });
     "id": "gpu", "label": "그래픽카드", "description": "한 줄 설명",
     "position": [-22, 5, 88],            // 최종(설치) 위치
     "rotation": [0, 0, 0],               // 최종 회전, 기본 0
-    "shapes": [{ "size": [280, 40, 132], "position": [0, 0, 0], "color": "#2b2b2b", "opacity": 1 }]
+    "consumable": false,                 // 써멀 페이스트 같은 소모품이면 true (조립 단계 없어도 됨)
+    "geometry": { "kind": "boxes", "boxes": [{ "size": [280, 40, 132], "position": [0, 0, 0], "color": "#2b2b2b", "opacity": 1 }] }
+    // 또는 { "kind": "gltf", "url": "...", "node": "..." } — 자리만 있음, 지금은 자홍색 자리표시 상자로 그림
   }],
   "features": [{ "id": "pcie_slot", "partId": "motherboard", "position": [-40, -20, 11], "kind": "slot", "label": "PCIe x16 슬롯" }],
   // kind: slot | header | latch | notch | marker | screw_hole | connector | port | button | indicator
@@ -114,7 +123,11 @@ runCommand(engine, { type: "setView", view: "m2_area" });
     "action": "insert",                  // place | insert | slide | screw_down | plug | latch | press | lift
     "label": "그래픽카드 꽂기", "description": "",
     "path": [{ "offset": [0, 0, 220] }, { "offset": [0, 0, 30], "rotation": [0, 0, 0], "duration": 0.4 }],
-    "blocks": ["m2_ssd", "m2_heatsink"], // 이 부품이 가리는 부품. "*"는 이 단계보다 먼저 조립된 모든 부품
+    "blocks": ["m2_ssd", "m2_heatsink"], // 이 단계를 먼저 빼야 꺼낼 수 있는 부품(가림만이 아님). "*"는 이 단계보다 먼저 조립된 모든 부품
+    "attachedTo": "gpu",                 // 선택, 이 단계 부품이 붙는 부품(케이블 등). 그 부품을 빼기 전에 이 단계를 먼저 뺀다
+    "mistakes": [{ "id": "gpu_tilted", "label": "비스듬히 꽂기", "description": "...",
+                   "path": [{ "offset": [0, 0, 60] }, { "offset": [0, 0, 8], "rotation": [0, 6, 0] }],  // 마지막 키프레임이 틀린 자리
+                   "violates": ["pcie_latch"] }],
     "checks": ["pcie_slot", "pcie_latch"],
     "screwOrder": ["..."],               // 선택, 나사 구멍 feature ID 순서
     "camera": "gpu_area"                 // 선택, views의 이름
@@ -123,22 +136,27 @@ runCommand(engine, { type: "setView", view: "m2_area" });
   "guides": [{                           // 선택, GuideSchema와 같음
     "id": "ssd_not_detected", "title": "SSD가 인식되지 않음", "symptoms": ["..."],
     "targetPartId": "m2_ssd",
-    "extraSteps": [{ "id": "x_check_slot", "at": "afterRemoval", "label": "...", "description": "...",
-                     "partId": "motherboard", "checks": ["m2_slot"], "camera": "m2_area" }]
+    "extraSteps": [                     // 완전한 step 객체 + at
+      { "id": "x_check_slot", "at": "afterRemoval", "label": "...", "partId": "motherboard", "checks": ["m2_slot"] },
+      { "id": "x_thermal_pad", "at": "beforeReinstall", "label": "써멀 패드 붙이기", "partId": "thermal_pad",
+        "action": "apply", "path": [{ "offset": [0, 0, 50] }] }
+    ]
   }]
 }
 ```
 
 - `path`: 최종 포즈 기준 상대 포즈(위치 오프셋은 제품 축 기준, 회전은 부품 원점 기준). 첫 키프레임이 출발점이고, 마지막이 0이 아니면 최종 포즈(0, 0)가 자동으로 붙는다. 설치는 앞으로, 제거는 거꾸로 재생한다.
-- 모든 부품은 조립 단계가 하나 이상 있어야 한다. 한 부품에 단계가 여럿이면 첫 단계에서 나타나고 마지막 단계가 빠질 때 사라진다(중간 단계는 살짝 움직이는 표시만).
-- `parseProduct`가 참조를 모두 검사한다: 중복 ID, 없는 partId, blocks, checks, screwOrder, camera, 지침서 참조. 시점 이름이 부품 ID와 겹치면 오류(`setView`가 둘 다 받기 때문).
+- 모든 부품은 조립 단계가 하나 이상 있어야 한다(`consumable: true`는 예외). 한 부품에 단계가 여럿이면 첫 단계에서 나타나고 마지막 단계가 빠질 때 사라진다(중간 단계는 살짝 움직이는 표시만).
+- extra step은 step과 같은 필드에 `at`이 더해진다. partId 기본은 지침서 targetPartId, action 기본 `inspect`, path 기본 `[]`. partId가 소모품이면 path대로 나타나 절차가 끝날 때까지 남고, 아니면 강조와 핀만 한다.
+- `parseProduct`가 참조를 모두 검사한다: 중복 ID, 없는 partId, blocks, attachedTo, checks, screwOrder, camera, mistakes.violates, 지침서 참조. 시점 이름이 부품 ID와 겹치면 오류(`setView`가 둘 다 받기 때문).
 - `"default"` 시점이 있으면 처음에 그 시점으로 시작한다.
 
 ## 절차 계산 (`src/planner.ts`, three 의존 없음)
 
 `planService(product, installedStepIds, targetPartId, guide?) → Procedure`
 
-1. 설치된 단계 중 목표 부품을 가리는(`blocks`) 단계를 찾고, 그 부품을 가리는 단계를 다시 재귀로 찾는다.
+1. 설치된 단계 중 목표 부품보다 먼저 빼야 하는 단계를 찾고, 그 부품보다 먼저 빼야 하는 단계를 다시 재귀로 찾는다.
+   **규칙: 단계 S는 부품 P보다 먼저 뺀다 ⇔ S.attachedTo가 P이거나, S.blocks에 P가 있거나, S.blocks에 "*"가 있고 P가 S보다 먼저 조립된 경우.**
 2. 가리는 부품의 단계를 조립 역순으로 제거, 그다음 목표 부품의 단계 제거.
 3. 지침서 extraSteps 중 `afterRemoval`, 그다음 `beforeReinstall`.
 4. 뺐던 단계를 조립 순서대로 다시 설치.
@@ -149,10 +167,11 @@ interface ProcedureItem {
   stepId: string; partId: string;
   checks: string[];        // 단계 checks + screwOrder
   camera: string | null;   // extra에 camera가 없으면 목표 단계의 camera
-  label: string; description: string; action: StepAction | "inspect";
+  label: string; description: string; action: StepAction;
   installed: string[];     // 이 항목을 마친 뒤의 설치 단계 집합 (엔진은 이걸로 결정적으로 이동)
+  appliedExtras: string[]; // 이 항목까지 한 extra step ID
 }
-interface Procedure { productId; targetPartId; guideId; initialInstalled: string[]; items: ProcedureItem[] }
+interface Procedure { productId; targetPartId; guideId; initialInstalled: string[]; items: ProcedureItem[]; extraSteps: ExtraStep[] }
 ```
 
 - 이미 빠진 가림 부품은 건너뛰고 다시 설치하지도 않는다.
