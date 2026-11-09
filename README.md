@@ -11,9 +11,9 @@ assembly/
   tsconfig.base.json      패키지 공통 TS 설정
   .env.example            OPENROUTER_API_KEY
   apps/
-    web/                  Next.js 16 App Router 앱 (Turbopack, Tailwind 4, shadcn Base UI, AI Elements)
+    web/                  Next.js 16 App Router 앱 (Turbopack, Tailwind 4, shadcn Radix, AI Elements)
       src/app/            라우트, src/app/api/ 는 API 라우트 자리
-      src/components/ui/  shadcn 프리미티브 (Base UI)
+      src/components/ui/  shadcn 프리미티브 (Radix, radix-nova)
       src/components/ai-elements/  AI Elements 컴포넌트
       src/store/          zustand 단일 저장소 자리
       e2e/                Playwright 테스트 (headless)
@@ -42,4 +42,5 @@ assembly/
 ## 참고
 
 - `src/components/ui`, `src/components/ai-elements`, `src/hooks`는 CLI가 만든 코드다. ESLint에서 React Compiler 규칙 일부를 경고로 낮췄다.
-- AI Elements는 Radix 기준으로 작성돼 Base UI판과 타입이 맞지 않는 곳이 있어 최소한으로 고쳤다 (HoverCard 지연 속성 제거, DropdownMenuItem `onSelect`를 `onClick`으로, ai v7 usage 필드 이름 등).
+- AI Elements는 ai v7과 usage 필드 이름이 달라 `context.tsx`, `agent.tsx`를 조금 고쳤다.
+- shadcn의 `combobox`는 Radix판도 Base UI 기반이라 뺐다. 필요하면 Command와 Popover로 만든다.
