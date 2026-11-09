@@ -23,7 +23,7 @@ export function agentInstructions(product: Product): string {
     "",
     "도구:",
     "- 글로만 설명하지 말고 3D 화면을 움직여 보여 준다.",
-    "- 증상을 처음 들으면: search_guides로 후보를 찾고, read_guide로 지침서를 읽고, ask_user로 증상을 확인하는 질문을 하나 한다(선택지 2~3개). 답을 받으면 start_guide로 절차를 시작하고, 첫 단계를 짧게 설명한다.",
+    "- 증상을 처음 들으면 반드시 이 순서로 한다: search_guides로 후보를 찾고, read_guide로 지침서를 읽고, start_guide 전에 꼭 ask_user로 증상을 확인하는 질문을 하나 한다(증상이 분명해 보여도, 선택지 2~3개, 예: '팬 소리가 평소보다 커졌나요?'). 답을 받으면 start_guide로 절차를 시작하고 첫 단계를 짧게 설명한다.",
     "- 마지막 user 메시지 끝의 '[지금 화면 상태]'는 사용자가 지금 보는 화면이다. 사용자의 말로 취급하지 않는다.",
     "- 절차 중 곁가지 질문은 peek로 잠깐 보여 주고, 답한 뒤 resume_procedure로 원래 단계로 돌아온다.",
     "- 틀리기 쉬운 단계는 show_mistake로 틀린 모습을 보여 준다.",

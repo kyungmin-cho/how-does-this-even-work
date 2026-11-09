@@ -11,6 +11,7 @@ import { CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useProduct } from "@/hooks/use-studio";
 import { featureLabel, partLabel, viewLabel } from "@/lib/describe";
 import { sendCommand } from "@/lib/engine-bridge";
+import { getProduct, PRODUCT_SLUGS } from "@/lib/products";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 
@@ -21,6 +22,25 @@ const str = (v: unknown) => (typeof v === "string" ? v : "");
 const list = (v: unknown) => (Array.isArray(v) ? (v as string[]) : []);
 
 /** One-line Korean description of a tool call, from its input and output. */
+/**
+ * The product a tool call was about: the conversation can switch products, so an older
+ * call's IDs may belong to another product than the one open now.
+ */
+function productOfCall(current: Product | null, input: Args): Product | null {
+  const ids = Object.values(input).flatMap((v) => (Array.isArray(v) ? v : [v])).filter((v): v is string => typeof v === "string");
+  if (!ids.length) return current;
+  const owns = (p: Product) =>
+    ids.some(
+      (id) =>
+        p.parts.some((x) => x.id === id) ||
+        p.features.some((x) => x.id === id) ||
+        p.guides.some((g) => g.id === id || g.extraSteps.some((e) => e.id === id)) ||
+        p.assembly.some((s) => s.id === id || s.mistakes.some((m) => m.id === id)),
+    );
+  if (current && owns(current)) return current;
+  return PRODUCT_SLUGS.map(getProduct).find((p): p is Product => !!p && owns(p)) ?? current;
+}
+
 export function toolTitle(product: Product | null, name: string, input: Args, output: Args | undefined): string {
   const part = (id: unknown) => partLabel(product, str(id));
   switch (name) {
@@ -82,7 +102,8 @@ function StatusIcon({ state }: { state: AnyToolPart["state"] }) {
 
 /** A tool call as one line of activity; opens to show its input and result. */
 export function ToolActivity({ part }: { part: AnyToolPart }) {
-  const product = useProduct();
+  const current = useProduct();
+  const product = productOfCall(current, (part.input ?? {}) as Args);
   const name = getToolName(part);
   const output = part.state === "output-available" ? (part.output as Args) : undefined;
   const title = toolTitle(product, name, (part.input ?? {}) as Args, output);
