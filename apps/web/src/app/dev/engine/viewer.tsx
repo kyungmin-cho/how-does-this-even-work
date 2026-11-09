@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createEngine,
   parseProduct,
@@ -11,6 +11,7 @@ import {
   type HighlightMode,
 } from "@assembly/engine";
 import sample from "@assembly/engine/fixtures/sample.json";
+import { getProduct } from "@assembly/products";
 
 declare global {
   interface Window {
@@ -18,7 +19,9 @@ declare global {
   }
 }
 
-const product = parseProduct(sample);
+const sampleProduct = parseProduct(sample);
+/** `?product=<id>` opens a product from @assembly/products (e.g. pc_atx); the default is the engine sample. */
+const pickProduct = () => getProduct(new URLSearchParams(window.location.search).get("product") ?? "") ?? sampleProduct;
 const MODES: HighlightMode[] = ["focus", "ghost", "error", "ok", "none"];
 
 /** Same product without any GLB (to compare, and to prove the box fallback). */
@@ -29,9 +32,10 @@ const toBoxesOnly = (p: Product): Product => ({
     x.geometry.kind === "gltf" && x.geometry.boxes ? { ...x, geometry: { kind: "boxes", boxes: x.geometry.boxes } } : x,
   ),
 });
-const boxesOnly = toBoxesOnly(product);
 
 export default function EngineViewer() {
+  const [product] = useState(pickProduct);
+  const boxesOnly = useMemo(() => toBoxesOnly(product), [product]);
   const hostRef = useRef<HTMLDivElement>(null);
   const [engine, setEngine] = useState<Engine | null>(null);
   const [state, setState] = useState<EngineState | null>(null);

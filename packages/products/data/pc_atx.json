@@ -1,0 +1,3165 @@
+{
+  "id": "pc_atx",
+  "name": "일반 ATX PC",
+  "units": "mm",
+  "parts": [
+    {
+      "id": "case",
+      "label": "케이스",
+      "description": "ATX 미들 타워 본체 틀. 뒤 배기 팬 1개, 앞 흡기 팬 2개가 달려 있다",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              450,
+              470,
+              4
+            ],
+            "position": [
+              0,
+              0,
+              -2
+            ],
+            "color": "#2f343b"
+          },
+          {
+            "size": [
+              450,
+              4,
+              210
+            ],
+            "position": [
+              0,
+              233,
+              105
+            ],
+            "color": "#3a4049"
+          },
+          {
+            "size": [
+              450,
+              4,
+              210
+            ],
+            "position": [
+              0,
+              -233,
+              105
+            ],
+            "color": "#3a4049"
+          },
+          {
+            "size": [
+              4,
+              462,
+              210
+            ],
+            "position": [
+              -223,
+              0,
+              105
+            ],
+            "color": "#353b43"
+          },
+          {
+            "size": [
+              4,
+              462,
+              210
+            ],
+            "position": [
+              223,
+              0,
+              105
+            ],
+            "color": "#353b43"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              -205,
+              200,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              19,
+              -90,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              19,
+              200,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              -205,
+              -90,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              -205,
+              45,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              6,
+              6,
+              6
+            ],
+            "position": [
+              19,
+              45,
+              3
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              25,
+              120,
+              120
+            ],
+            "position": [
+              -208.5,
+              160,
+              105
+            ],
+            "color": "#1f2328"
+          },
+          {
+            "size": [
+              2,
+              30,
+              30
+            ],
+            "position": [
+              -195,
+              160,
+              105
+            ],
+            "color": "#5b6470"
+          },
+          {
+            "size": [
+              25,
+              120,
+              120
+            ],
+            "position": [
+              208.5,
+              0,
+              105
+            ],
+            "color": "#1f2328"
+          },
+          {
+            "size": [
+              2,
+              30,
+              30
+            ],
+            "position": [
+              195,
+              0,
+              105
+            ],
+            "color": "#5b6470"
+          },
+          {
+            "size": [
+              25,
+              120,
+              120
+            ],
+            "position": [
+              208.5,
+              130,
+              105
+            ],
+            "color": "#1f2328"
+          },
+          {
+            "size": [
+              2,
+              30,
+              30
+            ],
+            "position": [
+              195,
+              130,
+              105
+            ],
+            "color": "#5b6470"
+          },
+          {
+            "size": [
+              20,
+              3,
+              20
+            ],
+            "position": [
+              190,
+              236.5,
+              100
+            ],
+            "color": "#9ca3af"
+          }
+        ]
+      }
+    },
+    {
+      "id": "side_panel",
+      "label": "옆판(유리)",
+      "description": "케이스 옆을 덮는 강화유리 판, 손나사 2개",
+      "position": [
+        0,
+        0,
+        212
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              450,
+              470,
+              4
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#a5b4c3",
+            "opacity": 0.2
+          }
+        ]
+      }
+    },
+    {
+      "id": "motherboard",
+      "label": "메인보드 (ATX)",
+      "description": "305 x 244 mm ATX 보드. CPU, RAM, M.2, 그래픽카드가 모두 여기에 꽂힌다",
+      "position": [
+        -93,
+        55,
+        7
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              244,
+              305,
+              2
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#1f5c45"
+          },
+          {
+            "size": [
+              22,
+              115,
+              35
+            ],
+            "position": [
+              -109,
+              77.5,
+              18.5
+            ],
+            "color": "#6b7280"
+          },
+          {
+            "size": [
+              18,
+              110,
+              25
+            ],
+            "position": [
+              -87,
+              85,
+              13.5
+            ],
+            "color": "#4b5563"
+          },
+          {
+            "size": [
+              44,
+              44,
+              4
+            ],
+            "position": [
+              -25,
+              80,
+              3
+            ],
+            "color": "#e5e1d8"
+          },
+          {
+            "size": [
+              44,
+              3,
+              3
+            ],
+            "position": [
+              -25,
+              55.5,
+              2.5
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              2,
+              2,
+              0.4
+            ],
+            "position": [
+              -46,
+              101,
+              5.2
+            ],
+            "color": "#d4a017"
+          },
+          {
+            "size": [
+              7,
+              136,
+              8
+            ],
+            "position": [
+              40,
+              70,
+              5
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              40,
+              -1,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              40,
+              141,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              136,
+              8
+            ],
+            "position": [
+              50,
+              70,
+              5
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              50,
+              -1,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              50,
+              141,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              136,
+              8
+            ],
+            "position": [
+              60,
+              70,
+              5
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              60,
+              -1,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              60,
+              141,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              136,
+              8
+            ],
+            "position": [
+              70,
+              70,
+              5
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              70,
+              -1,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              7,
+              6,
+              12
+            ],
+            "position": [
+              70,
+              141,
+              7
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              12,
+              52,
+              10
+            ],
+            "position": [
+              114,
+              31,
+              6
+            ],
+            "color": "#1f2937"
+          },
+          {
+            "size": [
+              20,
+              9,
+              10
+            ],
+            "position": [
+              -88,
+              146,
+              6
+            ],
+            "color": "#1f2937"
+          },
+          {
+            "size": [
+              10,
+              5,
+              7
+            ],
+            "position": [
+              5,
+              146,
+              4.5
+            ],
+            "color": "#f3f4f6"
+          },
+          {
+            "size": [
+              89,
+              7,
+              11
+            ],
+            "position": [
+              -39.5,
+              -20,
+              6.5
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              7,
+              8,
+              11
+            ],
+            "position": [
+              8.5,
+              -20,
+              6.5
+            ],
+            "color": "#e5e7eb"
+          },
+          {
+            "size": [
+              6,
+              24,
+              4.5
+            ],
+            "position": [
+              -60,
+              -38.5,
+              3.25
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              4,
+              4,
+              2.5
+            ],
+            "position": [
+              21,
+              -38.5,
+              2.25
+            ],
+            "color": "#b08d57"
+          },
+          {
+            "size": [
+              50,
+              50,
+              10
+            ],
+            "position": [
+              65,
+              -95,
+              6
+            ],
+            "color": "#4b5563"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cpu",
+      "label": "CPU (AM4)",
+      "description": "핀이 CPU 밑면에 있는 AM4 방식 CPU, 모서리에 삼각형 표시",
+      "position": [
+        -118,
+        135,
+        15
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              40,
+              40,
+              1
+            ],
+            "position": [
+              0,
+              0,
+              -2.5
+            ],
+            "color": "#2f6b3b"
+          },
+          {
+            "size": [
+              36,
+              36,
+              5
+            ],
+            "position": [
+              0,
+              0,
+              0.5
+            ],
+            "color": "#c0c4ca"
+          },
+          {
+            "size": [
+              2.5,
+              2.5,
+              0.4
+            ],
+            "position": [
+              -18.75,
+              18.75,
+              -1.8
+            ],
+            "color": "#d4a017"
+          }
+        ]
+      }
+    },
+    {
+      "id": "thermal_paste",
+      "label": "써멀 페이스트",
+      "description": "CPU와 쿨러 사이의 열전도 물질 (소모품)",
+      "position": [
+        -118,
+        135,
+        18.25
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              26,
+              26,
+              0.5
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#d1d5db",
+            "opacity": 0.95
+          }
+        ]
+      }
+    },
+    {
+      "id": "cooler",
+      "label": "타워형 CPU 쿨러",
+      "description": "방열판과 120 mm 팬, 바람은 앞에서 뒤(뒤 배기 팬 쪽)로 흐른다",
+      "position": [
+        -118,
+        135,
+        18.5
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              40,
+              40,
+              8
+            ],
+            "position": [
+              0,
+              0,
+              4
+            ],
+            "color": "#b87333"
+          },
+          {
+            "size": [
+              62,
+              40,
+              4
+            ],
+            "position": [
+              0,
+              0,
+              10
+            ],
+            "color": "#9ca3af"
+          },
+          {
+            "size": [
+              8,
+              100,
+              4
+            ],
+            "position": [
+              -27,
+              0,
+              10
+            ],
+            "color": "#6b7280"
+          },
+          {
+            "size": [
+              8,
+              100,
+              4
+            ],
+            "position": [
+              27,
+              0,
+              10
+            ],
+            "color": "#6b7280"
+          },
+          {
+            "size": [
+              6,
+              6,
+              18.5
+            ],
+            "position": [
+              -27,
+              45,
+              -1.25
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              6,
+              6,
+              18.5
+            ],
+            "position": [
+              27,
+              -45,
+              -1.25
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              6,
+              6,
+              18.5
+            ],
+            "position": [
+              27,
+              45,
+              -1.25
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              6,
+              6,
+              18.5
+            ],
+            "position": [
+              -27,
+              -45,
+              -1.25
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              6,
+              6,
+              14.5
+            ],
+            "position": [
+              0,
+              -20,
+              19.25
+            ],
+            "color": "#b87333"
+          },
+          {
+            "size": [
+              6,
+              6,
+              14.5
+            ],
+            "position": [
+              0,
+              0,
+              19.25
+            ],
+            "color": "#b87333"
+          },
+          {
+            "size": [
+              6,
+              6,
+              14.5
+            ],
+            "position": [
+              0,
+              20,
+              19.25
+            ],
+            "color": "#b87333"
+          },
+          {
+            "size": [
+              50,
+              125,
+              120
+            ],
+            "position": [
+              0,
+              0,
+              86.5
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              25,
+              120,
+              120
+            ],
+            "position": [
+              37.5,
+              0,
+              86.5
+            ],
+            "color": "#1f2328"
+          },
+          {
+            "size": [
+              2,
+              30,
+              30
+            ],
+            "position": [
+              51,
+              0,
+              86.5
+            ],
+            "color": "#4b5563"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cooler_fan_cable",
+      "label": "쿨러 팬 케이블",
+      "description": "쿨러 팬에서 나와 CPU_FAN 단자에 꽂는 4핀 케이블",
+      "position": [
+        -88,
+        201,
+        19
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              10,
+              6,
+              8
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#111111"
+          },
+          {
+            "size": [
+              4,
+              8,
+              26
+            ],
+            "position": [
+              0,
+              -2,
+              17
+            ],
+            "color": "#222222"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ram",
+      "label": "RAM 2개 (DIMM_A2, B2)",
+      "description": "DDR4 DIMM 2개. 아래 가장자리의 홈이 가운데에서 비켜 있다",
+      "position": [
+        -33,
+        125,
+        27.625
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              5,
+              133.35,
+              31.25
+            ],
+            "position": [
+              -10,
+              0,
+              0
+            ],
+            "color": "#334155"
+          },
+          {
+            "size": [
+              5.6,
+              4,
+              6
+            ],
+            "position": [
+              -10,
+              -10,
+              -8.625
+            ],
+            "color": "#fbbf24"
+          },
+          {
+            "size": [
+              5,
+              133.35,
+              31.25
+            ],
+            "position": [
+              10,
+              0,
+              0
+            ],
+            "color": "#334155"
+          },
+          {
+            "size": [
+              5.6,
+              4,
+              6
+            ],
+            "position": [
+              10,
+              -10,
+              -8.625
+            ],
+            "color": "#fbbf24"
+          }
+        ]
+      }
+    },
+    {
+      "id": "m2_ssd",
+      "label": "M.2 SSD (2280)",
+      "description": "22 x 80 mm M.2 NVMe SSD, 한쪽 끝에 홈(키)",
+      "position": [
+        -110,
+        16.5,
+        11.75
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              80,
+              22,
+              0.8
+            ],
+            "position": [
+              0,
+              0,
+              -0.85
+            ],
+            "color": "#1e293b"
+          },
+          {
+            "size": [
+              64,
+              18,
+              1.7
+            ],
+            "position": [
+              2,
+              0,
+              0.4
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              3,
+              22,
+              0.8
+            ],
+            "position": [
+              -38.5,
+              0,
+              -0.85
+            ],
+            "color": "#d4a017"
+          }
+        ]
+      }
+    },
+    {
+      "id": "m2_heatsink",
+      "label": "M.2 방열판",
+      "description": "SSD 위를 덮는 금속판, 아래에 써멀 패드(보호 필름)",
+      "position": [
+        -110,
+        16.5,
+        17
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              76,
+              19,
+              1
+            ],
+            "position": [
+              0,
+              0,
+              -3.5
+            ],
+            "color": "#7dd3fc",
+            "opacity": 0.9
+          },
+          {
+            "size": [
+              82,
+              24,
+              6
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#8a8f98"
+          },
+          {
+            "size": [
+              82,
+              3,
+              1
+            ],
+            "position": [
+              0,
+              -8.5,
+              3.5
+            ],
+            "color": "#9aa0a8"
+          },
+          {
+            "size": [
+              82,
+              3,
+              1
+            ],
+            "position": [
+              0,
+              -1.5,
+              3.5
+            ],
+            "color": "#9aa0a8"
+          },
+          {
+            "size": [
+              82,
+              3,
+              1
+            ],
+            "position": [
+              0,
+              5.5,
+              3.5
+            ],
+            "color": "#9aa0a8"
+          }
+        ]
+      }
+    },
+    {
+      "id": "psu",
+      "label": "파워 (ATX)",
+      "description": "케이스 아래 뒤쪽에 들어가는 ATX 파워, 뒷면에 스위치",
+      "position": [
+        -151,
+        -188,
+        95
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              140,
+              86,
+              150
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#27272a"
+          },
+          {
+            "size": [
+              90,
+              60,
+              0.5
+            ],
+            "position": [
+              -4,
+              -2,
+              75.25
+            ],
+            "color": "#9ca3af"
+          }
+        ]
+      }
+    },
+    {
+      "id": "atx_24pin_cable",
+      "label": "24핀 메인 전원 케이블",
+      "description": "파워에서 메인보드 24핀 단자로 가는 굵은 케이블",
+      "position": [
+        21,
+        86,
+        25
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              12,
+              52,
+              14
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              25,
+              12,
+              8
+            ],
+            "position": [
+              18.5,
+              0,
+              1
+            ],
+            "color": "#1f2937"
+          },
+          {
+            "size": [
+              8,
+              12,
+              22
+            ],
+            "position": [
+              27,
+              0,
+              -14
+            ],
+            "color": "#1f2937"
+          }
+        ]
+      }
+    },
+    {
+      "id": "eps_8pin_cable",
+      "label": "8핀 CPU 전원 케이블 (EPS)",
+      "description": "파워에서 보드 왼쪽 위 8핀 단자로 가는 케이블",
+      "position": [
+        -181,
+        201,
+        25
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              20,
+              9,
+              14
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#111827"
+          },
+          {
+            "size": [
+              8,
+              18.5,
+              10
+            ],
+            "position": [
+              0,
+              13.75,
+              0
+            ],
+            "color": "#1f2937"
+          },
+          {
+            "size": [
+              8,
+              8,
+              20
+            ],
+            "position": [
+              0,
+              19,
+              -15
+            ],
+            "color": "#1f2937"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gpu",
+      "label": "그래픽카드",
+      "description": "2슬롯 그래픽카드. PCIe x16 슬롯에 꽂히고 아래의 M.2 자리를 가린다",
+      "position": [
+        -85.5,
+        35,
+        75
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              267,
+              1.6,
+              111
+            ],
+            "position": [
+              0,
+              0,
+              -0.5
+            ],
+            "color": "#14532d"
+          },
+          {
+            "size": [
+              261,
+              2,
+              107
+            ],
+            "position": [
+              1,
+              1.8,
+              -0.5
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              261,
+              38.2,
+              106
+            ],
+            "position": [
+              1,
+              -19.9,
+              0
+            ],
+            "color": "#2b2b2b"
+          },
+          {
+            "size": [
+              90,
+              2,
+              80
+            ],
+            "position": [
+              -59.5,
+              -40,
+              0
+            ],
+            "color": "#4b5563"
+          },
+          {
+            "size": [
+              90,
+              2,
+              80
+            ],
+            "position": [
+              60.5,
+              -40,
+              0
+            ],
+            "color": "#4b5563"
+          },
+          {
+            "size": [
+              2,
+              44,
+              118
+            ],
+            "position": [
+              -134.5,
+              -19,
+              -6
+            ],
+            "color": "#9ca3af"
+          },
+          {
+            "size": [
+              22,
+              7.2,
+              6
+            ],
+            "position": [
+              96.5,
+              -4.4,
+              56
+            ],
+            "color": "#111111"
+          }
+        ]
+      }
+    },
+    {
+      "id": "gpu_power_cable",
+      "label": "그래픽카드 보조 전원 케이블",
+      "description": "파워에서 그래픽카드 보조 전원 단자로 가는 8핀 케이블",
+      "position": [
+        11,
+        31,
+        139
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              22,
+              8,
+              10
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#111111"
+          },
+          {
+            "size": [
+              10,
+              185,
+              8
+            ],
+            "position": [
+              0,
+              -88.5,
+              9
+            ],
+            "color": "#1f2937"
+          },
+          {
+            "size": [
+              87,
+              10,
+              8
+            ],
+            "position": [
+              -48.5,
+              -176,
+              9
+            ],
+            "color": "#1f2937"
+          }
+        ]
+      }
+    }
+  ],
+  "features": [
+    {
+      "id": "case_power_button",
+      "partId": "case",
+      "position": [
+        190,
+        238,
+        100
+      ],
+      "kind": "button",
+      "label": "전원 버튼"
+    },
+    {
+      "id": "case_ground",
+      "partId": "case",
+      "position": [
+        -221,
+        -60,
+        150
+      ],
+      "kind": "marker",
+      "label": "접지된 금속 (케이스 뒷면 안쪽)"
+    },
+    {
+      "id": "rear_fan_airflow",
+      "partId": "case",
+      "position": [
+        -194,
+        160,
+        105
+      ],
+      "kind": "marker",
+      "label": "뒤 배기 팬 (바람이 뒤로 나감)"
+    },
+    {
+      "id": "front_fan_airflow",
+      "partId": "case",
+      "position": [
+        194,
+        130,
+        105
+      ],
+      "kind": "marker",
+      "label": "앞 흡기 팬 (바람이 안으로 들어옴)"
+    },
+    {
+      "id": "panel_screw_1",
+      "partId": "side_panel",
+      "position": [
+        -215,
+        220,
+        2
+      ],
+      "kind": "screw_hole",
+      "label": "옆판 손나사 1"
+    },
+    {
+      "id": "panel_screw_2",
+      "partId": "side_panel",
+      "position": [
+        -215,
+        -220,
+        2
+      ],
+      "kind": "screw_hole",
+      "label": "옆판 손나사 2"
+    },
+    {
+      "id": "cpu_socket",
+      "partId": "motherboard",
+      "position": [
+        -25,
+        80,
+        5
+      ],
+      "kind": "marker",
+      "label": "CPU 소켓 (AM4)"
+    },
+    {
+      "id": "socket_triangle",
+      "partId": "motherboard",
+      "position": [
+        -46,
+        101,
+        5.4
+      ],
+      "kind": "marker",
+      "label": "소켓 삼각형 표시"
+    },
+    {
+      "id": "dimm_a1",
+      "partId": "motherboard",
+      "position": [
+        40,
+        120,
+        9
+      ],
+      "kind": "slot",
+      "label": "DIMM_A1"
+    },
+    {
+      "id": "dimm_a2",
+      "partId": "motherboard",
+      "position": [
+        50,
+        95,
+        9
+      ],
+      "kind": "slot",
+      "label": "DIMM_A2"
+    },
+    {
+      "id": "dimm_b1",
+      "partId": "motherboard",
+      "position": [
+        60,
+        70,
+        9
+      ],
+      "kind": "slot",
+      "label": "DIMM_B1"
+    },
+    {
+      "id": "dimm_b2",
+      "partId": "motherboard",
+      "position": [
+        70,
+        45,
+        9
+      ],
+      "kind": "slot",
+      "label": "DIMM_B2"
+    },
+    {
+      "id": "dimm_a2_latch_top",
+      "partId": "motherboard",
+      "position": [
+        50,
+        141,
+        13
+      ],
+      "kind": "latch",
+      "label": "A2 걸쇠(위)"
+    },
+    {
+      "id": "dimm_a2_latch_bottom",
+      "partId": "motherboard",
+      "position": [
+        50,
+        -1,
+        13
+      ],
+      "kind": "latch",
+      "label": "A2 걸쇠(아래)"
+    },
+    {
+      "id": "dimm_b2_latch_top",
+      "partId": "motherboard",
+      "position": [
+        70,
+        141,
+        13
+      ],
+      "kind": "latch",
+      "label": "B2 걸쇠(위)"
+    },
+    {
+      "id": "dimm_b2_latch_bottom",
+      "partId": "motherboard",
+      "position": [
+        70,
+        -1,
+        13
+      ],
+      "kind": "latch",
+      "label": "B2 걸쇠(아래)"
+    },
+    {
+      "id": "m2_slot",
+      "partId": "motherboard",
+      "position": [
+        -60,
+        -38.5,
+        5.5
+      ],
+      "kind": "slot",
+      "label": "M.2 슬롯"
+    },
+    {
+      "id": "m2_screw_hole",
+      "partId": "motherboard",
+      "position": [
+        21,
+        -38.5,
+        3.5
+      ],
+      "kind": "screw_hole",
+      "label": "M.2 고정 나사"
+    },
+    {
+      "id": "pcie_slot",
+      "partId": "motherboard",
+      "position": [
+        -40,
+        -20,
+        12
+      ],
+      "kind": "slot",
+      "label": "PCIe x16 슬롯"
+    },
+    {
+      "id": "pcie_latch",
+      "partId": "motherboard",
+      "position": [
+        8.5,
+        -20,
+        12
+      ],
+      "kind": "latch",
+      "label": "PCIe 걸쇠"
+    },
+    {
+      "id": "cpu_fan_header",
+      "partId": "motherboard",
+      "position": [
+        5,
+        146,
+        8
+      ],
+      "kind": "header",
+      "label": "CPU_FAN 단자"
+    },
+    {
+      "id": "atx_24pin",
+      "partId": "motherboard",
+      "position": [
+        114,
+        31,
+        11
+      ],
+      "kind": "connector",
+      "label": "24핀 전원 단자"
+    },
+    {
+      "id": "eps_8pin",
+      "partId": "motherboard",
+      "position": [
+        -88,
+        146,
+        11
+      ],
+      "kind": "connector",
+      "label": "8핀(EPS) CPU 전원 단자"
+    },
+    {
+      "id": "board_screw_1",
+      "partId": "motherboard",
+      "position": [
+        -112,
+        145,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 1"
+    },
+    {
+      "id": "board_screw_2",
+      "partId": "motherboard",
+      "position": [
+        112,
+        -145,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 2"
+    },
+    {
+      "id": "board_screw_3",
+      "partId": "motherboard",
+      "position": [
+        112,
+        145,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 3"
+    },
+    {
+      "id": "board_screw_4",
+      "partId": "motherboard",
+      "position": [
+        -112,
+        -145,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 4"
+    },
+    {
+      "id": "board_screw_5",
+      "partId": "motherboard",
+      "position": [
+        -112,
+        -10,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 5"
+    },
+    {
+      "id": "board_screw_6",
+      "partId": "motherboard",
+      "position": [
+        112,
+        -10,
+        1
+      ],
+      "kind": "screw_hole",
+      "label": "보드 나사 6"
+    },
+    {
+      "id": "cpu_triangle",
+      "partId": "cpu",
+      "position": [
+        -19,
+        19,
+        -1.6
+      ],
+      "kind": "marker",
+      "label": "CPU 삼각형 (소켓 표시와 맞춤)"
+    },
+    {
+      "id": "cpu_ihs",
+      "partId": "cpu",
+      "position": [
+        0,
+        0,
+        3
+      ],
+      "kind": "marker",
+      "label": "CPU 윗면 (써멀 바르는 곳)"
+    },
+    {
+      "id": "cooler_screw_1",
+      "partId": "cooler",
+      "position": [
+        -27,
+        45,
+        12
+      ],
+      "kind": "screw_hole",
+      "label": "쿨러 나사 1"
+    },
+    {
+      "id": "cooler_screw_2",
+      "partId": "cooler",
+      "position": [
+        27,
+        -45,
+        12
+      ],
+      "kind": "screw_hole",
+      "label": "쿨러 나사 2"
+    },
+    {
+      "id": "cooler_screw_3",
+      "partId": "cooler",
+      "position": [
+        27,
+        45,
+        12
+      ],
+      "kind": "screw_hole",
+      "label": "쿨러 나사 3"
+    },
+    {
+      "id": "cooler_screw_4",
+      "partId": "cooler",
+      "position": [
+        -27,
+        -45,
+        12
+      ],
+      "kind": "screw_hole",
+      "label": "쿨러 나사 4"
+    },
+    {
+      "id": "cooler_airflow",
+      "partId": "cooler",
+      "position": [
+        52,
+        0,
+        86.5
+      ],
+      "kind": "marker",
+      "label": "쿨러 바람 방향 (앞 → 뒤)"
+    },
+    {
+      "id": "ram_notch_1",
+      "partId": "ram",
+      "position": [
+        -10,
+        -10,
+        -15.625
+      ],
+      "kind": "notch",
+      "label": "RAM 홈"
+    },
+    {
+      "id": "ram_notch_2",
+      "partId": "ram",
+      "position": [
+        10,
+        -10,
+        -15.625
+      ],
+      "kind": "notch",
+      "label": "RAM 홈 (B2)"
+    },
+    {
+      "id": "m2_notch",
+      "partId": "m2_ssd",
+      "position": [
+        -40,
+        4.5,
+        -0.85
+      ],
+      "kind": "notch",
+      "label": "M.2 홈(키)"
+    },
+    {
+      "id": "m2_pad_film",
+      "partId": "m2_heatsink",
+      "position": [
+        0,
+        0,
+        -4
+      ],
+      "kind": "marker",
+      "label": "패드 보호 필름 (떼고 덮기)"
+    },
+    {
+      "id": "heatsink_screw_1",
+      "partId": "m2_heatsink",
+      "position": [
+        -39,
+        0,
+        4
+      ],
+      "kind": "screw_hole",
+      "label": "방열판 나사 1"
+    },
+    {
+      "id": "heatsink_screw_2",
+      "partId": "m2_heatsink",
+      "position": [
+        39,
+        0,
+        4
+      ],
+      "kind": "screw_hole",
+      "label": "방열판 나사 2"
+    },
+    {
+      "id": "psu_switch",
+      "partId": "psu",
+      "position": [
+        -70,
+        28,
+        45
+      ],
+      "kind": "button",
+      "label": "파워 스위치 (뒷면)"
+    },
+    {
+      "id": "gpu_power",
+      "partId": "gpu",
+      "position": [
+        96.5,
+        -4.4,
+        59
+      ],
+      "kind": "header",
+      "label": "그래픽카드 보조 전원 단자"
+    },
+    {
+      "id": "gpu_bracket_screw_1",
+      "partId": "gpu",
+      "position": [
+        -134.5,
+        -7,
+        47
+      ],
+      "kind": "screw_hole",
+      "label": "브래킷 나사 1"
+    },
+    {
+      "id": "gpu_bracket_screw_2",
+      "partId": "gpu",
+      "position": [
+        -134.5,
+        -27,
+        47
+      ],
+      "kind": "screw_hole",
+      "label": "브래킷 나사 2"
+    }
+  ],
+  "assembly": [
+    {
+      "id": "s_board",
+      "partId": "motherboard",
+      "action": "place",
+      "label": "메인보드 꺼내 놓기",
+      "description": "메인보드를 평평한 곳에 놓는다. CPU, M.2, RAM, 쿨러는 케이스에 넣기 전에 단다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            120
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "cpu_socket"
+      ],
+      "camera": "board_area"
+    },
+    {
+      "id": "s_cpu",
+      "partId": "cpu",
+      "action": "place",
+      "label": "CPU 놓기",
+      "description": "소켓 레버를 올리고, CPU 삼각형을 소켓 삼각형에 맞춰 힘을 주지 않고 내려놓은 뒤 레버를 내린다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            60
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            6
+          ],
+          "duration": 0.5
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "checks": [
+        "cpu_triangle",
+        "cpu_socket"
+      ],
+      "camera": "cpu_area",
+      "mistakes": [
+        {
+          "id": "cpu_triangle_misaligned",
+          "label": "삼각형을 안 맞추고 놓기",
+          "description": "삼각형이 소켓 표시와 어긋나면 CPU가 소켓에 들어가지 않는다. 억지로 누르면 핀이 휜다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                40
+              ],
+              "rotation": [
+                0,
+                0,
+                90
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                2
+              ],
+              "rotation": [
+                0,
+                0,
+                90
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "cpu_triangle"
+          ],
+          "source": [
+            "https://rog.asus.com/us/support/faq/1047659"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_m2",
+      "partId": "m2_ssd",
+      "action": "insert",
+      "label": "M.2 SSD 꽂기",
+      "description": "홈을 슬롯 돌기에 맞춰 30도로 기울여 밀어 넣는다. 억지로 밀지 않는다. 눌러 눕힌 뒤 나사로 고정한다.",
+      "path": [
+        {
+          "offset": [
+            24.952,
+            0,
+            37.5
+          ],
+          "rotation": [
+            0,
+            -30,
+            0
+          ]
+        },
+        {
+          "offset": [
+            -5.359,
+            0,
+            20
+          ],
+          "rotation": [
+            0,
+            -30,
+            0
+          ],
+          "duration": 0.5
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "m2_slot",
+        "m2_notch"
+      ],
+      "screwOrder": [
+        "m2_screw_hole"
+      ],
+      "camera": "m2_area",
+      "mistakes": [
+        {
+          "id": "m2_flat_push",
+          "label": "수평으로 밀어 넣기",
+          "description": "눕힌 채로 밀면 끝까지 들어가지 않는다. 30도로 기울여 꽂아야 한다.",
+          "path": [
+            {
+              "offset": [
+                45,
+                0,
+                0
+              ]
+            },
+            {
+              "offset": [
+                10,
+                0,
+                0
+              ],
+              "duration": 0.7
+            }
+          ],
+          "violates": [
+            "m2_slot"
+          ],
+          "source": [
+            "https://www.crucial.com/support/ssd-support/how-to-install-m2-nvme-pcie-ssd"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_m2_heatsink",
+      "partId": "m2_heatsink",
+      "action": "screw_down",
+      "label": "M.2 방열판 덮기",
+      "description": "방열판 패드의 보호 필름을 떼고 SSD 위에 덮은 뒤 나사 2개를 조인다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            70
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            6
+          ],
+          "duration": 0.4
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.3
+        }
+      ],
+      "blocks": [
+        "m2_ssd"
+      ],
+      "checks": [
+        "m2_pad_film"
+      ],
+      "screwOrder": [
+        "heatsink_screw_1",
+        "heatsink_screw_2"
+      ],
+      "camera": "m2_area",
+      "mistakes": [
+        {
+          "id": "heatsink_film_on",
+          "label": "패드 필름을 안 떼고 덮기",
+          "description": "패드의 비닐 보호 필름을 떼지 않으면 열이 방열판으로 잘 넘어가지 않는다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                40
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                1.5
+              ],
+              "duration": 0.6
+            }
+          ],
+          "violates": [
+            "m2_pad_film"
+          ],
+          "source": [
+            "https://www.crucial.com/support/ssd-support/how-to-install-m2-nvme-pcie-ssd"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_ram",
+      "partId": "ram",
+      "action": "insert",
+      "label": "RAM 2개 꽂기 (DIMM_A2, B2)",
+      "description": "2개면 DIMM_A2, B2에 꽂는다(슬롯 이름은 보드 설명서로 확인). 걸쇠를 열고 홈을 슬롯 돌기에 맞춘 뒤 수직으로 눌러 양쪽 걸쇠가 닫히게 한다. 이 보드는 양쪽 걸쇠이고, 한쪽만 걸쇠인 보드도 있다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            80
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            6
+          ],
+          "duration": 0.5
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.3
+        }
+      ],
+      "checks": [
+        "dimm_a2",
+        "dimm_b2",
+        "dimm_a2_latch_top",
+        "dimm_a2_latch_bottom"
+      ],
+      "camera": "ram_area",
+      "mistakes": [
+        {
+          "id": "ram_notch_reversed",
+          "label": "홈 방향을 반대로 꽂기",
+          "description": "홈이 가운데에서 비켜 있어 반대로 돌리면 돌기에 걸려 끝까지 들어가지 않는다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                80
+              ],
+              "rotation": [
+                0,
+                0,
+                180
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                6
+              ],
+              "rotation": [
+                0,
+                0,
+                180
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "ram_notch_1"
+          ],
+          "source": [
+            "https://www.asus.com/us/support/faq/1047257"
+          ]
+        },
+        {
+          "id": "ram_wrong_slots",
+          "label": "DIMM_A1, B1에 꽂기",
+          "description": "2개일 때 이 보드 권장은 DIMM_A2, B2다. A1, B1에 꽂으면 권장 배치가 아니다.",
+          "path": [
+            {
+              "offset": [
+                -10,
+                0,
+                80
+              ]
+            },
+            {
+              "offset": [
+                -10,
+                0,
+                0
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "dimm_a2",
+            "dimm_b2"
+          ],
+          "source": [
+            "https://www.asus.com/us/support/faq/1047257"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_paste",
+      "partId": "thermal_paste",
+      "action": "apply",
+      "label": "써멀 페이스트 바르기",
+      "description": "CPU 윗면에 써멀 페이스트를 바른다(소모품).",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            40
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "cpu_ihs"
+      ],
+      "camera": "cpu_area"
+    },
+    {
+      "id": "s_cooler",
+      "partId": "cooler",
+      "action": "screw_down",
+      "label": "타워 쿨러 달기",
+      "description": "바람이 앞에서 뒤(뒤 배기 팬 쪽)로 가게 놓는다. 나사는 먼저 반 바퀴씩, 그다음 대각선 순서(1, 2, 3, 4)로 한 바퀴씩 조인다. 뺄 때는 나사를 푼 뒤 좌우로 살짝 비틀어 떼고 들어 올린다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            150
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            6
+          ],
+          "duration": 0.6
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            4
+          ],
+          "duration": 0.25
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "rotation": [
+            0,
+            0,
+            -4
+          ],
+          "duration": 0.25
+        }
+      ],
+      "blocks": [
+        "cpu",
+        "thermal_paste"
+      ],
+      "checks": [
+        "cooler_airflow"
+      ],
+      "screwOrder": [
+        "cooler_screw_1",
+        "cooler_screw_2",
+        "cooler_screw_3",
+        "cooler_screw_4"
+      ],
+      "camera": "cooler_area",
+      "mistakes": [
+        {
+          "id": "cooler_straight_pull",
+          "label": "비틀지 않고 똑바로 당기기",
+          "description": "굳은 써멀 때문에 CPU가 쿨러에 붙은 채 소켓에서 뽑힐 수 있다(AM4는 핀이 CPU에 있어 핀이 휜다). 나사를 푼 뒤 좌우로 살짝 비틀어 뗀다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                45
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "cpu_socket"
+          ],
+          "source": [
+            "https://www.amd.com/en/resources/support-articles/faqs/CPU-7.html",
+            "https://gelidsolutions.com/product/cpu-protection-bracket/"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_cooler_fan_cable",
+      "partId": "cooler_fan_cable",
+      "action": "plug",
+      "label": "쿨러 팬 케이블 꽂기 (CPU_FAN)",
+      "description": "쿨러 팬 케이블을 메인보드 CPU_FAN 단자에 꽂는다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            40
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "attachedTo": "cooler",
+      "checks": [
+        "cpu_fan_header"
+      ],
+      "camera": "cooler_area"
+    },
+    {
+      "id": "s_case",
+      "partId": "case",
+      "action": "screw_down",
+      "label": "메인보드를 케이스에 넣고 고정",
+      "description": "보드 나사 구멍을 케이스 스탠드오프에 맞춰 넣고 보드 나사 6개를 조인다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            -320
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            -30
+          ],
+          "duration": 0.6
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "screwOrder": [
+        "board_screw_1",
+        "board_screw_2",
+        "board_screw_3",
+        "board_screw_4",
+        "board_screw_5",
+        "board_screw_6"
+      ],
+      "camera": "default"
+    },
+    {
+      "id": "s_psu",
+      "partId": "psu",
+      "action": "screw_down",
+      "label": "파워 달기",
+      "description": "파워를 케이스 아래 뒤쪽에 넣고 고정한다. 뒷면 스위치는 꺼 둔다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            240
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.6
+        }
+      ],
+      "checks": [
+        "psu_switch"
+      ],
+      "camera": "psu_area"
+    },
+    {
+      "id": "s_cable_24pin",
+      "partId": "atx_24pin_cable",
+      "action": "plug",
+      "label": "24핀 메인 전원 꽂기",
+      "description": "24핀 케이블을 보드 24핀 단자에 걸쇠가 걸릴 때까지 똑바로 꽂는다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            70
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "attachedTo": "motherboard",
+      "blocks": [
+        "psu"
+      ],
+      "checks": [
+        "atx_24pin"
+      ],
+      "camera": "cable_area"
+    },
+    {
+      "id": "s_cable_8pin",
+      "partId": "eps_8pin_cable",
+      "action": "plug",
+      "label": "8핀 CPU 전원 꽂기 (EPS)",
+      "description": "8핀 케이블을 보드 왼쪽 위 8핀 단자에 걸쇠가 걸릴 때까지 똑바로 꽂는다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            70
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "attachedTo": "motherboard",
+      "blocks": [
+        "psu"
+      ],
+      "checks": [
+        "eps_8pin"
+      ],
+      "camera": "cable_area"
+    },
+    {
+      "id": "s_gpu",
+      "partId": "gpu",
+      "action": "insert",
+      "label": "그래픽카드 꽂기",
+      "description": "슬롯 걸쇠를 열고 카드를 슬롯에 맞춰 수직으로 눌러 걸쇠가 걸리게 한 뒤 브래킷 나사 2개를 조인다. 뺄 때는 보조 전원과 브래킷 나사를 먼저 풀고, 걸쇠를 누른 채 수직으로 뺀다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            200
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            15
+          ],
+          "duration": 0.5
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "blocks": [
+        "m2_ssd",
+        "m2_heatsink"
+      ],
+      "checks": [
+        "pcie_slot",
+        "pcie_latch"
+      ],
+      "screwOrder": [
+        "gpu_bracket_screw_1",
+        "gpu_bracket_screw_2"
+      ],
+      "camera": "gpu_area",
+      "mistakes": [
+        {
+          "id": "gpu_pull_no_latch",
+          "label": "걸쇠를 안 누르고 당기기",
+          "description": "걸쇠가 카드를 잡고 있어 한쪽만 들리고 슬롯과 걸쇠가 상한다. 걸쇠를 누른 채 수직으로 뺀다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "offset": [
+                6.832,
+                0,
+                0.304
+              ],
+              "rotation": [
+                0,
+                7,
+                0
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "pcie_latch"
+          ],
+          "source": [
+            "https://www.asus.com/us/support/faq/1047391/"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_gpu_power",
+      "partId": "gpu_power_cable",
+      "action": "plug",
+      "label": "그래픽카드 보조 전원 꽂기",
+      "description": "보조 전원 케이블을 카드의 보조 전원 단자에 걸쇠가 걸릴 때까지 똑바로 꽂는다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            80
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "attachedTo": "gpu",
+      "blocks": [
+        "psu"
+      ],
+      "checks": [
+        "gpu_power"
+      ],
+      "camera": "gpu_area"
+    },
+    {
+      "id": "s_side_panel",
+      "partId": "side_panel",
+      "action": "slide",
+      "label": "옆판(유리) 닫기",
+      "description": "열거나 닫기 전에: 전원을 끄고 전원 케이블을 뽑는다. 전원 버튼을 눌러 남은 전기를 빼고(Dell 예: 15~20초), 접지된 금속을 만져 몸의 정전기를 뺀다. 그다음 옆판 손나사 2개를 풀거나 조인다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            200
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.6
+        }
+      ],
+      "blocks": [
+        "*"
+      ],
+      "checks": [
+        "case_power_button",
+        "case_ground"
+      ],
+      "screwOrder": [
+        "panel_screw_1",
+        "panel_screw_2"
+      ],
+      "camera": "default"
+    }
+  ],
+  "views": {
+    "default": {
+      "label": "전체",
+      "position": [
+        560,
+        320,
+        1000
+      ],
+      "target": [
+        -30,
+        0,
+        90
+      ]
+    },
+    "board_area": {
+      "label": "메인보드",
+      "position": [
+        260,
+        220,
+        720
+      ],
+      "target": [
+        -93,
+        55,
+        20
+      ]
+    },
+    "cpu_area": {
+      "label": "CPU 소켓",
+      "position": [
+        60,
+        260,
+        420
+      ],
+      "target": [
+        -118,
+        135,
+        15
+      ]
+    },
+    "cooler_area": {
+      "label": "쿨러",
+      "position": [
+        300,
+        430,
+        340
+      ],
+      "target": [
+        -118,
+        135,
+        80
+      ]
+    },
+    "ram_area": {
+      "label": "RAM 슬롯",
+      "position": [
+        170,
+        230,
+        400
+      ],
+      "target": [
+        -33,
+        125,
+        25
+      ]
+    },
+    "m2_area": {
+      "label": "M.2 자리",
+      "position": [
+        20,
+        -140,
+        380
+      ],
+      "target": [
+        -110,
+        16,
+        12
+      ]
+    },
+    "gpu_area": {
+      "label": "그래픽카드",
+      "position": [
+        260,
+        380,
+        520
+      ],
+      "target": [
+        -85,
+        20,
+        70
+      ]
+    },
+    "psu_area": {
+      "label": "파워",
+      "position": [
+        220,
+        -220,
+        700
+      ],
+      "target": [
+        -151,
+        -170,
+        95
+      ]
+    },
+    "cable_area": {
+      "label": "전원 케이블",
+      "position": [
+        260,
+        260,
+        680
+      ],
+      "target": [
+        -80,
+        140,
+        20
+      ]
+    }
+  },
+  "guides": [
+    {
+      "id": "guide_overheat",
+      "title": "자꾸 꺼지고 팬 소리가 커짐 (CPU 과열)",
+      "symptoms": [
+        "컴퓨터가 자꾸 꺼져요",
+        "팬 소리가 갑자기 커졌어요",
+        "CPU 온도가 너무 높아요",
+        "게임하다가 꺼지고 다시 켜져요"
+      ],
+      "targetPartId": "cooler",
+      "source": [
+        "https://www.amd.com/en/resources/support-articles/faqs/CPU-7.html",
+        "https://gelidsolutions.com/product/cpu-protection-bracket/",
+        "https://rog.asus.com/us/support/faq/1047659",
+        "https://www.noctua.at/en/support/faqs/airflow-guide-setup-ideas",
+        "https://www.dell.com/support/kbdoc/en-us/000137973/safety-precautions-when-working-with-electrical-equipment",
+        "https://www.kingston.com/unitedkingdom/en/support/technical/how-to-install-memory-desktop-pc"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_oh_safety",
+          "at": "afterRemoval",
+          "partId": "case",
+          "label": "작업 중 안전 다시 확인",
+          "description": "전원 케이블이 빠져 있는지 다시 본다(전원을 끄고 케이블을 뽑은 뒤 전원 버튼을 눌러 남은 전기를 빼는 것은 옆판을 열기 전에 한다). 부품을 만지기 전에 접지된 금속을 만져 정전기를 뺀다.",
+          "checks": [
+            "case_power_button",
+            "case_ground"
+          ],
+          "camera": "default"
+        },
+        {
+          "id": "x_oh_wipe",
+          "at": "afterRemoval",
+          "partId": "cpu",
+          "label": "굳은 써멀 닦기",
+          "description": "CPU 윗면과 쿨러 바닥에 남은 굳은 써멀을 깨끗이 닦아 낸다.",
+          "checks": [
+            "cpu_ihs"
+          ],
+          "camera": "cpu_area"
+        },
+        {
+          "id": "x_oh_triangle",
+          "at": "afterRemoval",
+          "partId": "cpu",
+          "label": "CPU 삼각형 확인",
+          "description": "CPU가 소켓에 그대로 있고, CPU 삼각형이 소켓 삼각형과 맞는지 본다.",
+          "checks": [
+            "cpu_triangle"
+          ],
+          "camera": "cpu_area"
+        },
+        {
+          "id": "x_oh_paste",
+          "at": "beforeReinstall",
+          "partId": "thermal_paste",
+          "action": "apply",
+          "label": "써멀 새로 바르기",
+          "description": "CPU 윗면에 새 써멀 페이스트를 바른다(소모품). 쿨러는 바람이 앞에서 뒤로 가게 다시 단다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                30
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "duration": 0.5
+            }
+          ],
+          "checks": [
+            "cpu_ihs"
+          ],
+          "camera": "cpu_area"
+        }
+      ]
+    },
+    {
+      "id": "guide_ram_not_detected",
+      "title": "RAM이 인식되지 않거나 용량이 반만 보임",
+      "symptoms": [
+        "램을 꽂았는데 인식이 안 돼요",
+        "램 용량이 반만 보여요",
+        "16GB를 꽂았는데 8GB로 나와요",
+        "램 하나만 잡혀요"
+      ],
+      "targetPartId": "ram",
+      "source": [
+        "https://www.asus.com/us/support/faq/1047257",
+        "https://www.kingston.com/unitedkingdom/en/support/technical/how-to-install-memory-desktop-pc",
+        "https://download.msi.com/archive/mnu_exe/mb/PROB840-PWIFI_English.pdf",
+        "https://www.dell.com/support/kbdoc/en-us/000137973/safety-precautions-when-working-with-electrical-equipment"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_ram_safety",
+          "at": "afterRemoval",
+          "partId": "case",
+          "label": "작업 중 안전 다시 확인",
+          "description": "전원 케이블이 빠져 있는지 다시 본다(전원을 끄고 케이블을 뽑은 뒤 전원 버튼을 눌러 남은 전기를 빼는 것은 옆판을 열기 전에 한다). 부품을 만지기 전에 접지된 금속을 만져 정전기를 뺀다.",
+          "checks": [
+            "case_power_button",
+            "case_ground"
+          ],
+          "camera": "default"
+        },
+        {
+          "id": "x_ram_notch",
+          "at": "afterRemoval",
+          "partId": "motherboard",
+          "label": "홈 방향 확인",
+          "description": "RAM 아래 홈이 슬롯 돌기와 같은 쪽에 오게 방향을 맞춘다. 홈은 가운데에서 비켜 있다.",
+          "checks": [
+            "dimm_a2",
+            "dimm_b2"
+          ],
+          "camera": "ram_area"
+        },
+        {
+          "id": "x_ram_slots",
+          "at": "afterRemoval",
+          "partId": "motherboard",
+          "label": "DIMM_A2, B2 슬롯 확인",
+          "description": "2개면 CPU에서 두 번째와 네 번째인 DIMM_A2, B2에 꽂는다. 슬롯 이름은 보드에 적힌 글자와 설명서로 확인한다.",
+          "checks": [
+            "dimm_a1",
+            "dimm_a2",
+            "dimm_b1",
+            "dimm_b2"
+          ],
+          "camera": "ram_area"
+        },
+        {
+          "id": "x_ram_latch",
+          "at": "beforeReinstall",
+          "partId": "motherboard",
+          "label": "걸쇠 확인",
+          "description": "걸쇠를 열어 둔 채 수직으로 눌러 꽂고, 양쪽 걸쇠가 닫혔는지 본다(B2도 같다).",
+          "checks": [
+            "dimm_a2_latch_top",
+            "dimm_a2_latch_bottom"
+          ],
+          "camera": "ram_area"
+        }
+      ]
+    },
+    {
+      "id": "guide_add_ssd",
+      "title": "M.2 SSD 달기, SSD가 인식되지 않음",
+      "symptoms": [
+        "SSD를 달고 싶어요",
+        "M.2 SSD를 새로 달려고 해요",
+        "SSD가 인식이 안 돼요",
+        "새 SSD가 안 보여요"
+      ],
+      "targetPartId": "m2_ssd",
+      "source": [
+        "https://www.crucial.com/support/ssd-support/how-to-install-m2-nvme-pcie-ssd",
+        "https://www.dell.com/support/kbdoc/en-us/000137973/safety-precautions-when-working-with-electrical-equipment",
+        "https://www.kingston.com/unitedkingdom/en/support/technical/how-to-install-memory-desktop-pc"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_ssd_safety",
+          "at": "afterRemoval",
+          "partId": "case",
+          "label": "작업 중 안전 다시 확인",
+          "description": "전원 케이블이 빠져 있는지 다시 본다(전원을 끄고 케이블을 뽑은 뒤 전원 버튼을 눌러 남은 전기를 빼는 것은 옆판을 열기 전에 한다). 부품을 만지기 전에 접지된 금속을 만져 정전기를 뺀다.",
+          "checks": [
+            "case_power_button",
+            "case_ground"
+          ],
+          "camera": "default"
+        },
+        {
+          "id": "x_ssd_angle",
+          "at": "beforeReinstall",
+          "partId": "motherboard",
+          "label": "30도로 꽂기",
+          "description": "SSD 홈을 슬롯 돌기에 맞추고 30도로 기울여 밀어 넣는다. 억지로 밀지 않는다. 눌러 눕힌 뒤 나사로 고정한다.",
+          "checks": [
+            "m2_slot",
+            "m2_screw_hole"
+          ],
+          "camera": "m2_area"
+        },
+        {
+          "id": "x_ssd_film",
+          "at": "beforeReinstall",
+          "partId": "m2_heatsink",
+          "label": "방열판 필름 확인",
+          "description": "방열판 패드에 비닐 보호 필름이 붙어 있으면 떼고 덮는다.",
+          "checks": [
+            "m2_pad_film"
+          ],
+          "camera": "m2_area"
+        }
+      ]
+    },
+    {
+      "id": "guide_replace_gpu",
+      "title": "그래픽카드 교체",
+      "symptoms": [
+        "그래픽카드를 바꾸고 싶어요",
+        "새 그래픽카드로 교체하려고 해요",
+        "그래픽카드를 빼는 방법을 알려 주세요"
+      ],
+      "targetPartId": "gpu",
+      "source": [
+        "https://www.asus.com/us/support/faq/1047391/",
+        "https://www.dell.com/support/kbdoc/en-us/000137973/safety-precautions-when-working-with-electrical-equipment",
+        "https://www.kingston.com/unitedkingdom/en/support/technical/how-to-install-memory-desktop-pc"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_gpu_safety",
+          "at": "afterRemoval",
+          "partId": "case",
+          "label": "작업 중 안전 다시 확인",
+          "description": "전원 케이블이 빠져 있는지 다시 본다(전원을 끄고 케이블을 뽑은 뒤 전원 버튼을 눌러 남은 전기를 빼는 것은 옆판을 열기 전에 한다). 부품을 만지기 전에 접지된 금속을 만져 정전기를 뺀다.",
+          "checks": [
+            "case_power_button",
+            "case_ground"
+          ],
+          "camera": "default"
+        },
+        {
+          "id": "x_gpu_latch",
+          "at": "afterRemoval",
+          "partId": "motherboard",
+          "label": "걸쇠 누르고 수직으로",
+          "description": "카드는 걸쇠를 누른 채 수직으로 뺀다. 억지로 당기지 않는다. 걸쇠 모양은 보드마다 다르다.",
+          "checks": [
+            "pcie_latch",
+            "pcie_slot"
+          ],
+          "camera": "gpu_area"
+        },
+        {
+          "id": "x_gpu_insert",
+          "at": "beforeReinstall",
+          "partId": "motherboard",
+          "label": "새 카드 수직으로 꽂기",
+          "description": "새 카드를 슬롯에 맞춰 수직으로 눌러 걸쇠가 걸리게 한 뒤, 브래킷 나사 2개와 보조 전원을 다시 연결한다.",
+          "checks": [
+            "pcie_slot",
+            "pcie_latch"
+          ],
+          "camera": "gpu_area"
+        }
+      ]
+    }
+  ]
+}
