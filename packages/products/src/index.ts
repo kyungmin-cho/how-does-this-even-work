@@ -1,6 +1,6 @@
 import { parseProduct, type Product } from "@assembly/engine/schema";
 import pcAtxData from "../data/pc_atx.json";
-import dresserData from "../data/dresser.json";
+import distillSetupData from "../data/distill_setup.json";
 
 /**
  * The engine schema has no field for source URLs, and zod strips unknown keys, so `source`
@@ -15,7 +15,7 @@ interface RawProduct {
   assembly?: { id: string; mistakes?: RawSourced[] }[];
 }
 
-const RAW: unknown[] = [pcAtxData, dresserData];
+const RAW: unknown[] = [pcAtxData, distillSetupData];
 
 /** Every product, validated with the engine's parseProduct (throws on bad data at import). */
 export const products: Product[] = RAW.map((d) => parseProduct(d));
