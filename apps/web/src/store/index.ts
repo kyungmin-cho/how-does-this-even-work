@@ -15,9 +15,13 @@ import { initialEngineState } from "@/lib/engine-state";
 export type SheetSnap = "peek" | "half";
 
 /** Where the user is in a product, saved per product. */
-export type Progress =
+export type Progress = (
   | { mode: "assembly"; stepId: string | null }
-  | { mode: "service"; guideId: string | null; targetPartId: string; index: number };
+  | { mode: "service"; guideId: string | null; targetPartId: string; index: number }
+) & {
+  /** Past the last step: the "완성" step (whole product, nothing highlighted). */
+  finished?: boolean;
+};
 
 export interface UiState {
   /** Mobile chat sheet height. */
@@ -52,6 +56,8 @@ export interface AppState {
   /** Full item list of the procedure being played (the engine state only has the current item). */
   procedureItems: ProcedureItem[] | null;
   progress: Record<string, Progress>;
+  /** The "완성" step after the last step is showing (see engine-bridge `finishSteps`). */
+  finished: boolean;
   chats: Record<string, UIMessage[]>;
   /** Unsent question per product. */
   drafts: Record<string, string>;
@@ -62,6 +68,7 @@ export interface AppState {
   setScene: (scene: EngineState) => void;
   setProcedureItems: (items: ProcedureItem[] | null) => void;
   setProgress: (slug: string, progress: Progress) => void;
+  setFinished: (finished: boolean) => void;
   setChat: (slug: string, messages: UIMessage[]) => void;
   setDraft: (slug: string, text: string) => void;
   setUi: (patch: Partial<UiState>) => void;
@@ -97,6 +104,7 @@ export const useAppStore = create<AppState>()(
       scene: initialEngineState(),
       procedureItems: null,
       progress: {},
+      finished: false,
       chats: {},
       drafts: {},
       ui: initialUi,
@@ -106,6 +114,7 @@ export const useAppStore = create<AppState>()(
       setScene: (scene) => set({ scene }),
       setProcedureItems: (procedureItems) => set({ procedureItems }),
       setProgress: (slug, progress) => set((s) => ({ progress: { ...s.progress, [slug]: progress } })),
+      setFinished: (finished) => set({ finished }),
       setChat: (slug, messages) => set((s) => ({ chats: { ...s.chats, [slug]: messages } })),
       setDraft: (slug, text) => set((s) => ({ drafts: { ...s.drafts, [slug]: text } })),
       setUi: (patch) => set((s) => ({ ui: { ...s.ui, ...patch } })),

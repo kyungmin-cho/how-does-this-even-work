@@ -17,5 +17,5 @@ export const pc: RawProduct = JSON.parse(
 
 export const partLabel = (id: string) => pc.parts.find((p) => p.id === id)!.label;
 export const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-/** "n/total" text of the step bar for assembly step index i (0-based). */
-export const pos = (i: number) => `${i + 1}/${pc.assembly.length}`;
+/** "n/total" text of the step bar for assembly step index i (0-based). The bar counts one more step, "완성". */
+export const pos = (i: number) => `${i + 1}/${pc.assembly.length + 1}`;

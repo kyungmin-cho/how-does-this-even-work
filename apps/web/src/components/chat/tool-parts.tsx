@@ -4,7 +4,7 @@ import type { Product } from "@assembly/engine/schema";
 import { getToolName, type ToolUIPart, type DynamicToolUIPart } from "ai";
 import { CheckIcon, ChevronDownIcon, ListChecksIcon, LoaderIcon, XIcon } from "lucide-react";
 
-import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
+import { Question, QuestionOption, QuestionOptions, QuestionPrompt } from "@/components/ai-elements/question";
 import { Task, TaskContent, TaskItem, TaskTrigger } from "@/components/ai-elements/task";
 import { Tool, ToolContent, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -130,7 +130,7 @@ export function ToolActivity({ part }: { part: AnyToolPart }) {
   );
 }
 
-/** ask_user: the agent's question with answer buttons. */
+/** ask_user: the agent's question. One tap on an option answers (a typed answer goes in the main input). */
 export function AskUserCard({
   part,
   onAnswer,
@@ -143,22 +143,50 @@ export function AskUserCard({
   const options = list(input.options);
   const answered = part.state === "output-available" ? str((part.output as Args)?.answer) : null;
   if (part.state === "input-streaming") return null;
-  return (
-    <div className="space-y-2">
-      <p className="text-sm">{question}</p>
-      {answered ? (
+  if (answered) {
+    return (
+      <div className="space-y-1">
+        <p className="text-sm">{question}</p>
         <p className="text-xs text-muted-foreground">고른 답: {answered}</p>
-      ) : (
-        <div role="group" aria-label="에이전트 질문">
-          <Suggestions>
-            {options.map((o) => (
-              <Suggestion key={o} suggestion={o} onClick={() => onAnswer(part.toolCallId, o)} />
-            ))}
-          </Suggestions>
-        </div>
-      )}
+      </div>
+    );
+  }
+  return (
+    <div role="group" aria-label="에이전트 질문">
+      <Question className="space-y-2.5 bg-muted/40 p-3">
+        <QuestionPrompt className="font-normal">{question}</QuestionPrompt>
+        <QuestionOptions aria-label="답 고르기">
+          {options.map((o) => (
+            <QuestionOption
+              key={o}
+              value={o}
+              size="sm"
+              variant="outline"
+              className="bg-background"
+              onClick={() => onAnswer(part.toolCallId, o)}
+            />
+          ))}
+        </QuestionOptions>
+      </Question>
     </div>
   );
+}
+
+/** Links behind an answer, gathered from the product data the agent read (each `source` field). */
+export function sourcesOf(parts: AnyToolPart[]): { url: string; quote?: string }[] {
+  const found = new Map<string, string | undefined>();
+  const walk = (v: unknown, inSource = false) => {
+    if (Array.isArray(v)) return v.forEach((x) => walk(x, inSource));
+    if (!v || typeof v !== "object") return;
+    const o = v as Record<string, unknown>;
+    if (inSource && typeof o.url === "string" && /^https?:\/\//.test(o.url)) {
+      if (!found.has(o.url) || (!found.get(o.url) && typeof o.quote === "string")) found.set(o.url, str(o.quote) || undefined);
+      return;
+    }
+    for (const [k, x] of Object.entries(o)) walk(x, k === "source");
+  };
+  for (const p of parts) if (p.state === "output-available") walk(p.output);
+  return [...found].map(([url, quote]) => ({ url, quote }));
 }
 
 /** start_guide result: the planned procedure, kept in step with the step bar. */

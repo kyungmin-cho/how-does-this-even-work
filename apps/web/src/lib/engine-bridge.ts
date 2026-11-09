@@ -117,14 +117,69 @@ function onStateChange(scene: EngineState) {
         index: scene.procedure.index,
       }
     : { mode: "assembly", stepId: scene.currentStepId };
-  store.setProgress(slug, progress);
+  store.setProgress(slug, store.finished ? { ...progress, finished: true } : progress);
 }
+
+/** True when the current step is the last one (assembly order or service procedure). */
+function atLastStep(state: EngineState, product: Product): boolean {
+  if (state.procedure) return state.procedure.index === state.procedure.length - 1;
+  return state.currentStepId === product.assembly.at(-1)?.id;
+}
+
+/** Whole product, nothing highlighted, default view: the "완성" step after the last one. */
+function showFinished(e: ReturnType<typeof getEngine>) {
+  const product = e.getProduct();
+  const state = e.getState();
+  if (state.peek || state.mistake) runCommand(e, { type: "resumeProcedure" });
+  runCommand(e, { type: "highlight", partIds: [], mode: "none" });
+  runCommand(e, { type: "clearMarks" });
+  if (product && "default" in product.views) runCommand(e, { type: "setView", view: "default" });
+  return e.getState();
+}
+
+/** Go past the last step to "완성". */
+export function finishSteps(): CommandResult {
+  try {
+    const e = getEngine();
+    useAppStore.getState().setFinished(true);
+    return { ok: true, state: showFinished(e) };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+/** Commands that move to a step leave "완성". */
+const STEP_COMMANDS = new Set<EngineCommand["type"]>(["showStep", "goTo"]);
 
 export type CommandResult = { ok: true; state: EngineState } | { ok: false; error: string };
 
 export function sendCommand(command: EngineCommand): CommandResult {
   try {
     const e = getEngine();
+    const store = useAppStore.getState();
+    const product = e.getProduct();
+    // "완성" sits after the last step: next goes there, prev comes back to the last step.
+    if (store.finished) {
+      if (command.type === "next") return { ok: true, state: e.getState() };
+      if (command.type === "prev") {
+        store.setFinished(false);
+        const state = e.getState();
+        return {
+          ok: true,
+          state: state.procedure
+            ? runCommand(e, { type: "goTo", index: state.procedure.index })
+            : runCommand(e, { type: "showStep", stepId: state.currentStepId ?? product!.assembly.at(-1)!.id }),
+        };
+      }
+      // Clearing a peek or a mistake returns to "완성", not to the last step's highlight.
+      if (command.type === "resumeProcedure" || command.type === "clearMistake") {
+        runCommand(e, command);
+        return { ok: true, state: showFinished(e) };
+      }
+      if (STEP_COMMANDS.has(command.type)) store.setFinished(false);
+    } else if (command.type === "next" && product && atLastStep(e.getState(), product)) {
+      return finishSteps();
+    }
     // The engine steps only inside a service procedure; in assembly mode next/prev walk the
     // fixed assembly order with showStep.
     if ((command.type === "next" || command.type === "prev") && !e.getState().procedure) {
@@ -153,6 +208,7 @@ export function openProduct(slug: string) {
   const product = getProduct(slug);
   if (!product) return;
   const saved = useAppStore.getState().progress[slug];
+  useAppStore.getState().setFinished(false);
   shared.openedSlug = null; // don't save the fresh load over the saved progress
   getEngine().loadProduct(product);
   shared.openedSlug = slug;
@@ -167,6 +223,7 @@ function restore(product: Product, saved: Progress) {
     } else if (saved.stepId) {
       getEngine().showStep(saved.stepId);
     }
+    if (saved.finished) finishSteps();
   } catch {
     // Saved data no longer matches the product: start fresh.
   }
@@ -208,6 +265,7 @@ function playGuide(product: Product, guideId: string | null, targetPartId: strin
   const guide = guideId ? (product.guides.find((g) => g.id === guideId) ?? null) : null;
   const all = product.assembly.map((s) => s.id);
   const procedure = planService(product, all, guide?.targetPartId ?? targetPartId, guide);
+  useAppStore.getState().setFinished(false);
   useAppStore.getState().setProcedureItems(procedure.items);
   getEngine().playProcedure(procedure, { startIndex: Math.min(index, procedure.items.length - 1) });
 }
@@ -231,6 +289,7 @@ export function exitProcedure() {
   if (!product) return;
   const slug = shared.openedSlug;
   shared.openedSlug = null;
+  useAppStore.getState().setFinished(false);
   getEngine().loadProduct(product);
   shared.openedSlug = slug;
   if (slug) useAppStore.getState().setProgress(slug, { mode: "assembly", stepId: null });

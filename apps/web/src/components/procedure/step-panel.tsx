@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProduct } from "@/hooks/use-studio";
 import { partLabel } from "@/lib/describe";
-import { exitProcedure, sendCommand } from "@/lib/engine-bridge";
+import { exitProcedure, finishSteps, sendCommand } from "@/lib/engine-bridge";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 
@@ -57,7 +57,31 @@ interface Row {
 function useSteps(product: Product | null) {
   const scene = useAppStore((s) => s.scene);
   const items = useAppStore((s) => s.procedureItems);
+  const finished = useAppStore((s) => s.finished);
+  const base = useStepsBase(product, scene, items);
+  if (!base) return null;
+  // One more step after the last: "완성", the whole product with nothing highlighted.
+  const done = { label: "완성", description: base.mode === "service" ? FINISHED_SERVICE : FINISHED_ASSEMBLY };
+  return {
+    ...base,
+    finished,
+    index: finished ? base.total : base.index,
+    total: base.total + 1,
+    current: finished ? done : base.current,
+    step: finished ? null : base.step,
+    rows: [...base.rows, { key: "finished", label: "완성" }],
+    goTo: (i: number) => (i === base.total ? finishSteps() : base.goTo(i)),
+  };
+}
 
+const FINISHED_ASSEMBLY = "모든 부품이 제자리에 있어요. 돌려 보며 다 됐는지 확인해 보세요.";
+const FINISHED_SERVICE = "다시 조립까지 끝났어요. 돌려 보며 다 됐는지 확인해 보세요.";
+
+function useStepsBase(
+  product: Product | null,
+  scene: ReturnType<typeof useAppStore.getState>["scene"],
+  items: ProcedureItem[] | null,
+) {
   if (!product) return null;
 
   if (scene.procedure && items) {
@@ -126,7 +150,7 @@ export function StepPanel({ compact = false, className }: { compact?: boolean; c
   const scene = useAppStore((s) => s.scene);
 
   const atStart = steps ? (steps.mode === "service" ? steps.index <= -1 : steps.index <= 0) : true;
-  const atEnd = steps ? steps.index >= steps.total - 1 : true;
+  const atEnd = steps ? steps.finished : true;
 
   // ← and → step through the procedure from anywhere that does not use arrows itself.
   useEffect(() => {
@@ -145,7 +169,7 @@ export function StepPanel({ compact = false, className }: { compact?: boolean; c
 
   if (!product || !steps) return null;
 
-  const position = steps.index >= 0 ? `${steps.index + 1}/${steps.total}` : `시작 전 · ${steps.total}단계`;
+  const position = steps.index >= 0 ? `${steps.index + 1}/${steps.total}` : `시작 전 · ${steps.total - 1}단계`;
   const mistake = scene.mistake
     ? (steps.step?.mistakes.find((m) => m.id === scene.mistake!.mistakeId) ?? null)
     : null;
@@ -261,7 +285,7 @@ export function StepPanel({ compact = false, className }: { compact?: boolean; c
               </ItemContent>
               <ItemActions>
                 <Button size="xs" variant="ghost" onClick={() => sendCommand({ type: "resumeProcedure" })}>
-                  원래 단계로
+                  {steps.index >= 0 && !steps.finished ? "원래 단계로" : "선택 해제"}
                 </Button>
               </ItemActions>
             </Item>

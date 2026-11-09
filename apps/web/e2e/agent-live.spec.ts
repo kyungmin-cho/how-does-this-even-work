@@ -24,7 +24,7 @@ async function settle(page: Page) {
     await expect(panel.getByRole("button", { name: "멈추기" })).toHaveCount(0, { timeout: TURN });
     const question = panel.getByRole("group", { name: "에이전트 질문" }).last();
     if (!(await question.isVisible())) return;
-    await question.getByRole("button").first().click();
+    await question.getByRole("radio").first().click();
     await page.waitForTimeout(500);
   }
 }

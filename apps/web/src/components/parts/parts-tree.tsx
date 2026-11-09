@@ -53,26 +53,43 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
   const setUi = useAppStore((s) => s.setUi);
   const scene = useAppStore((s) => s.scene);
   const items = useAppStore((s) => s.procedureItems);
+  const finished = useAppStore((s) => s.finished);
 
   if (!product) return null;
 
   const visible: Node[] = tree.flatMap((n) => (expanded.includes(n.id) ? [n, ...n.children] : [n]));
   const activeId = focusId && visible.some((n) => n.id === focusId) ? focusId : visible[0]?.id;
 
-  const selectedPartIds = new Set(scene.peek?.partIds ?? (scene.highlight.mode === "none" ? [] : scene.highlight.partIds));
-  const selectedFeature = scene.peek?.featureId ?? null;
   const installedParts = new Set(
     product.assembly.filter((s) => scene.installedStepIds.includes(s.id)).map((s) => s.partId),
   );
-  const currentPartId =
-    scene.procedure && items && scene.procedure.index >= 0
+  const currentPartId = finished
+    ? undefined
+    : scene.procedure && items && scene.procedure.index >= 0
       ? items[scene.procedure.index]?.partId
       : product.assembly.find((s) => s.id === scene.currentStepId)?.partId;
+  // Selected = what the user picked (peek) or the agent highlighted; the current step's own part
+  // only gets the "지금 단계" badge, so a selection can always be cleared back to nothing.
+  const selectedPartIds = new Set(
+    scene.peek?.partIds ??
+      (scene.highlight.mode === "none" ? [] : scene.highlight.partIds.filter((id) => id !== currentPartId)),
+  );
+  const selectedFeature = scene.peek?.featureId ?? null;
+  const hasSelection = selectedPartIds.size > 0 || selectedFeature !== null;
 
   const isSelected = (n: Node) =>
     n.kind === "feature" ? selectedFeature === featureId(n) : !selectedFeature && selectedPartIds.has(n.id);
 
+  /** Back to the step's own view (or to nothing at the start and at "완성"). */
+  const clearSelection = () => sendCommand({ type: "resumeProcedure" });
+
+  /** Choosing the selected row again clears it. */
   const pick = (n: Node) => {
+    if (isSelected(n)) {
+      clearSelection();
+      onPick?.();
+      return;
+    }
     sendCommand(n.kind === "part" ? { type: "peek", partIds: [n.id] } : { type: "peek", featureId: featureId(n) });
     onPick?.();
   };
@@ -111,6 +128,10 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
       case "Enter":
       case " ":
         pick(n);
+        break;
+      case "Escape":
+        if (!hasSelection) return;
+        clearSelection();
         break;
       default:
         return;
