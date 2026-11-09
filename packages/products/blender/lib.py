@@ -555,7 +555,7 @@ def m2_2280(p: Part, mats, length=80.0, width=22.0, seed=5):
     p.box((length - 4.0, width, t), (-2.0, 0, 0), mats["pcb"], bevel=0.2, round_axis="z")
     p.box((4.0, width * 0.32, t), (length / 2 - 2.0, width * 0.34, 0), mats["pcb"], bevel=0.2)
     p.box((4.0, width * 0.32, t), (length / 2 - 2.0, -width * 0.34, 0), mats["pcb"], bevel=0.2)
-    p.annulus(1.75, 3.0, t + 0.05, (length / 2 - 1.6, 0, 0), mats["gold"], seg=20)
+    p.annulus(1.6, 2.5, t + 0.05, (length / 2 - 2.6, 0, 0), mats["gold"], seg=20)
     # M key: notch 1.1 mm wide, centre 19.85 from one edge? spec: 5.3 mm from the M-key side -> show at +Y side
     key_y = width / 2 - 6.6
     fy = [(-width / 2 + 1.0, key_y - 0.6), (key_y + 0.6, width / 2 - 1.0)]
@@ -595,14 +595,14 @@ def pcie_x16_slot(p: Part, m_body=None, m_latch=None, m_slot=None, m_metal=None,
     p.box((L - 4.0, 1.8, 0.6), (0.8, 0, h + 0.05), m_slot)
     p.box((0.8, w + 0.2, 0.7), (-L / 2 + 11.65, 0, h + 0.1), m_body)  # key bridge
     with p.at(xf((L / 2 + 3.6, 0, 0))):
-        p.box((7.0, w + 0.6, h + 1.0), (0, 0, (h + 1.0) / 2), m_latch, bevel=0.8)
-        p.box((5.0, w + 0.6, 2.2), (1.4, 0, h + 1.6), m_latch, bevel=0.7)
+        p.box((7.0, w + 0.6, h - 1.0), (0, 0, (h - 1.0) / 2), m_latch, bevel=0.8)
+        p.box((5.0, w + 0.6, 2.0), (1.4, 0, h - 1.0), m_latch, bevel=0.7)
 
 
 def m2_socket(p: Part, m_body=None, m_slot=None):
     """M.2 socket. Canonical: card enters along +X; socket body centred at origin, sits on z=0."""
     p.box((5.5, 23.0, 4.2), (0, 0, 2.1), m_body, bevel=0.4)
-    p.box((1.2, 19.5, 1.0), (2.8, 0, 2.6), m_slot)
+    p.box((1.0, 19.5, 1.0), (2.2, 0, 2.6), m_slot)
 
 
 def label_text(p: Part, text, size, pos, m, depth=0.2, rot=(0, 0, 0), align="CENTER"):

@@ -202,7 +202,7 @@ def build_case():
         for i, x in enumerate((-12, 12)):
             p.box((13, 5.5, 0.6), (x * 1.6 + 2, 20, 0.2), M["hole"], bevel=0.8)
             p.box((11, 1.8, 0.7), (x * 1.6 + 2, 20, 0.3), M["usb_blue"])
-    p.feature("case_power_button", (190, H / 2 + 3, 100))
+    p.feature("case_power_button", (190, H / 2 + 1.4, 100))
 
     # rear wall inner side: I/O shield, fan vents, slot rail and covers
     rx = -W / 2 + 4  # inner face x
@@ -211,7 +211,7 @@ def build_case():
     with p.at(xf((rx + 0.6, 160, 120), (0, 90, 0))):
         p.box((118, 118, 0.4), (0, 0, 0), M["case_dark"])
     with p.at(xf((rx, 0, 0))):
-        p.box((12, 140, 5), (5.5, -25, 128.5), M["case"], bevel=1.0)  # slot rail
+        p.box((9, 140, 5), (6.5, -25, 128.5), M["case"], bevel=1.0)  # slot rail (gap for brackets)
         for k in range(7):
             y = PCIE_Y + MB.y - 20.32 * k
             if k < 2:
@@ -244,7 +244,7 @@ def build_case():
     for y in (130, 5, -120):
         with p.group("#24272c"):
             case_fan((W / 2 - 10 - 15, y, 105), "-x")
-    p.feature("front_fan_airflow", (W / 2 - 41, 130, 105))
+    p.feature("front_fan_airflow", (W / 2 - 38.5, 130, 105))
     return p
 
 
@@ -287,14 +287,14 @@ def build_motherboard():
     sx, sy = SOCKET
     with p.group("#e5e1d8"):
         p.box((42, 42, 4.2), (sx, sy, z + 2.1), M["plastic_ivory"], bevel=0.6)
-        p.box((36, 36, 0.3), (sx, sy, z + 4.25), M["plastic_light"])
-        slot_grid(p, (34, 34), 11, 11, (1.0, 1.0, 0.2), M["hole"], pos=(sx, sy, z + 4.35))
+        p.box((36, 36, 0.3), (sx, sy, z + 4.05), M["plastic_light"])
+        slot_grid(p, (34, 34), 11, 11, (1.0, 1.0, 0.2), M["hole"], pos=(sx, sy, z + 4.15))
         # lever along the bottom edge
         p.box((44, 3.0, 2.6), (sx, sy - 23.5, z + 2.4), M["steel"], bevel=0.8)
         p.box((3, 8, 2.6), (sx + 22.5, sy - 20, z + 2.4), M["steel"], bevel=0.8)
     with p.at(xf((sx - 21, sy + 21, z + 0.08))):
         p.cyl(2.2, 0.3, (0, 0, 0), M["gold"], seg=3, spin=135, smooth=False)
-    p.feature("cpu_socket", (sx, sy, z + 4.4))
+    p.feature("cpu_socket", (sx, sy, z + 4.2))
     p.feature("socket_triangle", (sx - 21, sy + 21, z + 0.3))
     for yy in (45, -45):
         p.box((62, 9, 6), (sx, sy + yy, z + 3), M["plastic_black"], bevel=1.5)
@@ -344,15 +344,15 @@ def build_motherboard():
     # DIMM slots: A2/B2 (recommended) light, A1/B1 dark
     for fid, x in DIMM_X.items():
         light = fid in ("dimm_a2", "dimm_b2")
-        with p.group("#374151" if not light else "#9aa1aa"):
-            with p.at(xf((x, DIMM_Y, z))):
-                dimm_slot(p, 144, M["plastic_light"] if light else M["plastic_black"], M["plastic_white"], M["hole"])
-                p.box((1.8, 1.6, 2.0), (0, RAM_NOTCH_Y, 7.0), M["plastic_light"] if light else M["plastic_black"])
+        with p.at(xf((x, DIMM_Y, z))):
+            dimm_slot(p, 144, M["plastic_light"] if light else M["plastic_black"], M["plastic_white"], M["hole"])
+            p.box((1.8, 1.6, 2.0), (0, RAM_NOTCH_Y, 7.0), M["plastic_light"] if light else M["plastic_black"])
+            p.coarse((7.0, 144, 7.6), (0, 0, 3.8), "#374151" if not light else "#9aa1aa")
         p.feature(fid, (x, DIMM_Y, z + 7.7))
         if light:
             tag = fid.split("_")[1]
-            p.feature(f"dimm_{tag}_latch_top", (x, DIMM_Y + 69, z + 11))
-            p.feature(f"dimm_{tag}_latch_bottom", (x, DIMM_Y - 69, z + 11))
+            p.feature(f"dimm_{tag}_latch_top", (x, DIMM_Y + 69, z + 8.4))
+            p.feature(f"dimm_{tag}_latch_bottom", (x, DIMM_Y - 69, z + 8.4))
 
     # power connectors and fan header
     ax, ay = ATX24
@@ -375,11 +375,11 @@ def build_motherboard():
     p.feature("cpu_fan_header", (fx, fy, z + 6.0))
 
     # PCIe x16 (armoured), x1, second x16 (x4)
-    with p.group("#111827"):
-        with p.at(xf((PCIE_X, PCIE_Y, z))):
-            pcie_x16_slot(p, M["plastic_black"], M["plastic_light"], M["hole"], M["steel"])
+    with p.at(xf((PCIE_X, PCIE_Y, z))):
+        pcie_x16_slot(p, M["plastic_black"], M["plastic_light"], M["hole"], M["steel"])
+        p.coarse((89 + 2 * 3.6 + 7.0, 8.8, 11.2), (3.6, 0, 5.6), "#111827")
     p.feature("pcie_slot", (PCIE_X, PCIE_Y, z + 11.2))
-    p.feature("pcie_latch", (PCIE_X + 48.1, PCIE_Y, z + 12.2))
+    p.feature("pcie_latch", (PCIE_X + 48.1, PCIE_Y, z + 11.2))
     with p.at(xf((PCIE_X - 32, -80, z))):
         p.box((25, 7.6, 11.2), (0, 0, 5.6), M["plastic_black"], bevel=0.5)
         p.box((21, 1.8, 0.6), (0, 0, 11.25), M["hole"])
@@ -388,13 +388,14 @@ def build_motherboard():
 
     # M.2 socket + standoff, under the GPU
     with p.group("#111827"):
-        with p.at(xf((SSD_X - 40 - 2.2, M2_Y, z))):
+        with p.at(xf((SSD_X - 40 - 2.3, M2_Y, z))):
             m2_socket(p, M["plastic_black"], M["hole"])
-    p.feature("m2_slot", (SSD_X - 42.2, M2_Y, z + 4.2))
+    p.feature("m2_slot", (SSD_X - 42.3, M2_Y, z + 4.2))
     sx2 = SSD_X + 38.4
-    p.cyl(2.6, 2.0, (sx2, M2_Y, z + 1.0), M["gold"], seg=6, smooth=False)
+    with p.group("#b08d57"):
+        p.cyl(2.6, 2.0, (sx2, M2_Y, z + 1.0), M["gold"], seg=6, smooth=False)
     screw(p, (sx2, M2_Y, z + 2.0 + 0.8), 2.3, "z", M["screw"], M["screw_dark"], h=1.2)
-    p.feature("m2_screw_hole", (sx2, M2_Y, z + 2.8))
+    p.feature("m2_screw_hole", (sx2, M2_Y, z + 2.0))
     p.box((84, 0.4, 0.05), (SSD_X, M2_Y + 12.5, z + 0.03), M["silk"])
     p.box((84, 0.4, 0.05), (SSD_X, M2_Y - 12.5, z + 0.03), M["silk"])
 
@@ -428,7 +429,7 @@ def build_cpu():
     p = Part("cpu")
     with p.group("#2f6b3b"):
         p.box((40, 40, 1.2), (0, 0, -2.4), M["substrate"], bevel=0.4, round_axis="z")
-        p.box((36, 36, 0.4), (0, 0, -3.2), M["gold"])  # pin field
+    p.box((36, 36, 0.4), (0, 0, -3.2), M["gold"])  # pin field (sits in the socket)
     with p.group("#c0c4ca"):
         p.box((36, 36, 1.4), (0, 0, -1.1), M["ihs"], bevel=1.5, round_axis="z")
         p.box((32, 32, 3.6), (0, 0, 1.0), M["ihs"], bevel=1.2)
@@ -454,22 +455,24 @@ def build_cooler():
         p.box((40, 40, 3), (0, 0, 1.5), M["copper"], bevel=0.6)
         p.box((46, 50, 6), (0, 0, 6), M["nickel"], bevel=1.2)
     for x in (-27, 27):
-        p.box((9, 104, 3.2), (x, 0, 10.4), M["steel"], bevel=1.0)
+        with p.group("#6b7280"):
+            p.box((9, 104, 3.2), (x, 0, 10.4), M["steel"], bevel=1.0)
+            for y in (-45, 45):
+                screw(p, (x, y, 12.0), 3.2, "z", M["screw"], M["screw_dark"], h=2.4)
     for i, (x, y) in enumerate(((-27, 45), (27, -45), (27, 45), (-27, -45)), 1):
         p.cyl(1.6, 20.0, (x, y, 2.0), M["steel"], seg=12)
         p.annulus(2.0, 3.2, 8.0, (x, y, 4.5), M["steel"], seg=16)
-        screw(p, (x, y, 12.0), 3.2, "z", M["screw"], M["screw_dark"], h=2.4)
         p.feature(f"cooler_screw_{i}", (x, y, 12.0))
-    with p.group("#b87333"):
-        pass
     # heat pipes: three U pipes, legs through the fin stack
     fin_z0, fin_z1 = 26.5, 146.5
     for x, s in ((-12, 18), (0, 36), (12, 52)):
-        pts = [(x, -s, fin_z1 + 2), (x, -s, 7.0), (x, s, 7.0), (x, s, fin_z1 + 2)]
-        with p.group("#b87333"):
-            p.pipe(pts, 3.0, M["copper"], bend=9.0, seg=14)
+        lift = 7.0 if s < 24 else 20.0
+        inner = min(s, 16.0)
+        pts = [(x, -s, fin_z1 + 2), (x, -s, lift), (x, -inner, 7.0), (x, inner, 7.0), (x, s, lift), (x, s, fin_z1 + 2)]
+        p.pipe(pts, 3.0, M["copper"], bend=9.0, seg=14)
         for yy in (-s, s):
             p.cyl(3.4, 1.2, (x, yy, fin_z1 + 2.6), M["nickel"], seg=16)
+    p.coarse((36, 110, 17.0), (0, 0, 9.5 + 8.5), "#b87333")  # exposed pipes between base and fins
     # fin stack
     with p.group("#d1d5db"):
         with p.at(xf((0, 0, (fin_z0 + fin_z1) / 2))):
@@ -485,7 +488,7 @@ def build_cooler():
     for zz in (fin_z0 + 8, fin_z1 - 8):  # wire clips
         p.pipe([(52, -62, zz), (26, -63, zz)], 0.8, M["steel"])
         p.pipe([(52, 62, zz), (26, 63, zz)], 0.8, M["steel"])
-    p.feature("cooler_airflow", (52, 0, (fin_z0 + fin_z1) / 2))
+    p.feature("cooler_airflow", (50.5, 0, (fin_z0 + fin_z1) / 2))
     return p
 
 
@@ -505,8 +508,9 @@ def build_m2_ssd():
     p = Part("m2_ssd")
     mats = dict(pcb=M["pcb_dark"], gold=M["gold"], chip=M["chip"], label=M["label"], accent=M["accent"],
                 smd=M["smd"], smd2=M["smd2"])  # fmt: skip
-    with p.group("#1e293b"):
-        m2_2280(p, mats)
+    p.coarse((80, 22, 0.8), (0, 0, 0), "#1e293b")
+    p.coarse((60, 18, 1.3), (6, 0, 0.4 + 0.65), "#111827")
+    m2_2280(p, mats)
     p.feature("m2_notch", (-40, 22 / 2 - 6.6, 0))
     return p
 
@@ -596,24 +600,34 @@ def build_cable(name, cols, rows, pitch, path, plug_rot, wire_m, bend, wire_r=1.
     n0 = t0.cross(ref).normalized()
     b0 = t0.cross(n0)
     uv = [(o.dot(n0), o.dot(b0)) for o in offs3]
-    for wire in bundle([start] + pts0[1:] if (pts0[0] - start).length < 1e-3 else [start] + pts0, uv, bend):
+    route = [start] + pts0[1:] if (pts0[0] - start).length < 1e-3 else [start] + pts0
+    for wire in bundle(route, uv, bend):
         p.pipe(wire, wire_r, wire_m, seg=8)
-    span = max(cols, rows) * pitch / 2 + 2
-    cable_boxes(p, [tuple(start)] + [tuple(q) for q in path], span, "#1f2937")
+    wire_boxes(p, bundle(route, uv, 0.0), wire_r, "#1f2937")
     return p
+
+
+def wire_boxes(p, raw_wires, r, color):
+    """One AABB per straight run, from the unfilleted wire paths (+ wire radius)."""
+    for k in range(len(raw_wires[0]) - 1):
+        pts = [w[k] for w in raw_wires] + [w[k + 1] for w in raw_wires]
+        lo = [min(q[i] for q in pts) - r for i in range(3)]
+        hi = [max(q[i] for q in pts) + r for i in range(3)]
+        p.boxes.append({"size": [round(hi[i] - lo[i], 2) for i in range(3)],
+                        "position": [round((hi[i] + lo[i]) / 2, 2) for i in range(3)], "color": color})  # fmt: skip
 
 
 def build_atx_24pin_cable():
     w0 = mbw(*ATX24, BOARD_TOP + 8.0)
     gx = 46.0 - w0.x  # grommet x (local)
-    path = [(0, 0, 15.5), (0, 0, 26), (gx, 0, 26), (gx, 0, -6 - w0.z)]
+    path = [(0, 0, 15.5), (0, 0, 26), (gx, 0, 26), (gx, 0, 1.0 + 1.45 - w0.z)]
     return build_cable("atx_24pin_cable", 2, 12, 4.2, path, (0, 0, 0), M["sleeve"], bend=10.0), w0
 
 
 def build_eps_8pin_cable():
     w0 = mbw(*EPS8, BOARD_TOP + 8.0)
     gy = 223.0 - w0.y
-    path = [(0, 0, 15.5), (0, 0, 24), (0, gy, 24), (0, gy, -6 - w0.z)]
+    path = [(0, 0, 15.5), (0, 0, 24), (0, gy, 24), (0, gy, 1.0 + 1.45 - w0.z)]
     return build_cable("eps_8pin_cable", 4, 2, 4.2, path, (0, 0, 0), M["sleeve"], bend=8.0), w0
 
 
@@ -624,6 +638,7 @@ def build_gpu():
     # PCB (main + finger tab)
     with p.group("#14532d"):
         p.box((L, 1.6, Hh - 8.5), (0, 0, 4.25), M["pcb"])
+    if True:
         fx0, fx1 = PCIE_X + MB.x - POS["gpu"][0] - 44.5, PCIE_X + MB.x - POS["gpu"][0] + 44.5
         p.box((fx1 - fx0, 1.6, 8.5), ((fx0 + fx1) / 2, 0, zb + 4.25), M["pcb"])
         for k in range(int((fx1 - fx0) / 1.0)):
@@ -639,13 +654,13 @@ def build_gpu():
             slot_grid(p, (100, 40), 10, 3, (6, 1.6, 0.2), M["hole"])
         p.box((150, 0.2, 2), (-30, 2.85, 46), M["gpu_accent"])
     # shroud (-y) with two fans
-    shy0, shy1 = -2.0, -38.0
+    shy0, shy1 = -2.0, -30.0
     sz0, sz1 = -45.0, 49.0
     zc = (sz0 + sz1) / 2
     with p.group("#2b2b2b"):
         # heatsink fins visible through the fan openings
-        with p.at(xf((0, -18, zc))):
-            fin_stack(p, (250, 26, sz1 - sz0 - 6), 70, 0.5, M["alu_dark"], axis="x")
+        with p.at(xf((0, -15, zc))):
+            fin_stack(p, (250, 22, sz1 - sz0 - 6), 70, 0.5, M["alu_dark"], axis="x")
         # end caps and side walls
         p.box((8, shy0 - shy1, sz1 - sz0), (-L / 2 + 6, (shy0 + shy1) / 2, zc), M["gpu_shroud"], bevel=2.0)
         p.box((8, shy0 - shy1, sz1 - sz0), (L / 2 - 4, (shy0 + shy1) / 2, zc), M["gpu_shroud"], bevel=2.0)
@@ -666,21 +681,23 @@ def build_gpu():
             p.box((L - 20, 1.2, 0.4), (0, (sz1 - sz0) / 2 - 3, -1.7), M["gpu_accent"])
             p.box((L - 20, 1.2, 0.4), (0, -(sz1 - sz0) / 2 + 3, -1.7), M["gpu_accent"])
         for fx in fan_x:
-            with p.at(axis_m("y", (fx, shy1 + 8, zc))):
+            with p.at(axis_m("y", (fx, shy1 + 7, zc))):
                 p.blade_fan(15, 43.5, 7, 11, M["fan_blade"], pitch=28, sweep=36)
                 p.cyl(15.5, 7, (0, 0, 0), M["fan_hub"], seg=40)
                 p.cyl(12, 0.3, (0, 0, -3.6), M["gpu_accent"], seg=40)
     # bracket (two slots) with tab resting on the case slot rail
-    bx = -224.0 + 0.5 - POS["gpu"][0]
+    bx = -221.0 + 0.5 - POS["gpu"][0]
+    by = (35 - 10.16 - 20.32 / 2 + 10.16) - POS["gpu"][1]  # covers expansion slots 0 and 1
+    by = 24.84 - POS["gpu"][1]
     with p.group("#9ca3af"):
-        p.box((1.0, 40.6, 120), (bx, -18, 3), M["steel"], bevel=0.3)
-        p.box((10, 40.6, 1.2), (bx + 5, -18, 63.4), M["steel"], bevel=0.3)
-        with p.at(xf((bx + 0.55, -18, -10), (0, 90, 0))):
+        p.box((1.0, 40.6, 120), (bx, by, 3), M["steel"], bevel=0.3)
+        p.box((11, 40.6, 1.2), (bx + 5, by, 64.6), M["steel"], bevel=0.3)
+        with p.at(xf((bx + 0.55, by, -10), (0, 90, 0))):
             slot_grid(p, (60, 30), 6, 3, (7, 3.5, 0.3), M["hole"])
         p.box((L / 2 + bx + 10, 1.2, 10), ((bx - L / 2) / 2 + 2, -2, 40), M["steel"]) if False else None
-    for i, yy in enumerate((-7.8, -28.1), 1):
-        screw(p, (bx + 6, yy, 64.0), 3.0, "z", M["screw"], M["screw_dark"])
-        p.feature(f"gpu_bracket_screw_{i}", (bx + 6, yy, 64.0))
+    for i, yy in enumerate((0.0, -20.32), 1):
+        screw(p, (bx + 6, yy, 65.2), 3.0, "z", M["screw"], M["screw_dark"])
+        p.feature(f"gpu_bracket_screw_{i}", (bx + 6, yy, 65.2))
     # 8-pin power on the top edge
     with p.group("#111111"):
         with p.at(xf((96.5, -4.4, Hh / 2 - 6))):
@@ -694,7 +711,7 @@ def build_gpu_power_cable(gpu_world_conn):
     path = [(0, 0, 15.5), (0, 0, 22), (0, -150 - w0.y + 0, 22), (0, -150 - w0.y, 22)]
     # down along the front of the GPU, then to the PSU's modular socket
     psu = Vector(POS["psu"])
-    tx = psu.x + 70 + 4 - w0.x
+    tx = psu.x + 70 + 1.45 + 0.1 - w0.x
     path = [(0, 0, 15.5), (0, 0, 26), (0, -158 - w0.y + 0, 26), (tx, -158 - w0.y, 26)]
     return build_cable("gpu_power_cable", 4, 2, 4.2, path, (0, 0, 0), M["sleeve"], bend=12.0)
 
@@ -707,12 +724,13 @@ def build_cooler_fan_cable():
         p.box((3.0, 1.2, 5.0), (0, -3.2, 3.5), M["plastic_black"], bevel=0.3)
     # to the cooler fan frame (bottom edge near the hub side)
     cool = Vector(POS["cooler"])
-    tgt = Vector((cool.x + 37.5, cool.y + 58.5, cool.z + 30)) - w0
+    tgt = Vector((cool.x + 37.5, cool.y + 60 + 0.85, cool.z + 34)) - w0
     path = [(0, 0, 7.5), (0, 0, 14), (0, 0, 14), (tgt.x * 0.4, 0.0, 16), (tgt.x, tgt.y, tgt.z)]
-    path = [(0, 0, 7.5), (0, 0, 16), (tgt.x, 0.0, 16), (tgt.x, tgt.y, tgt.z)]
-    for wire in bundle(path, [(0, -2.54), (0, 0), (0, 2.54), (0, 5.08)][:3], bend=5.0):
+    path = [(0, 0, 7.5), (0, 0, tgt.z), (tgt.x, 0.0, tgt.z), (tgt.x, tgt.y, tgt.z)]
+    offs = [(0, -2.54), (0, 0), (0, 2.54)]
+    for wire in bundle(path, offs, bend=5.0):
         p.pipe(wire, 0.75, M["wire"], seg=6)
-    cable_boxes(p, path, 3.0, "#222222")
+    wire_boxes(p, bundle(path, offs, 0.0)[:], 0.75, "#222222")
     return p, w0
 
 
@@ -804,10 +822,73 @@ def main():
     except FileNotFoundError:
         pass
 
+    check_layout(layout)
     if "--no-export" not in ARGS:
         export_glb(objs)
     if "--preview" in ARGS:
         render_previews(objs)
+
+
+ALLOWED = {("motherboard", "ram"): 4.0}
+TOL = 0.5
+
+
+def check_layout(layout):
+    """Python port of the geometry rules in packages/products/src/pc_atx.test.ts."""
+    boxes = []
+    for pid, pd in layout["parts"].items():
+        for b in pd["boxes"]:
+            c = [pd["position"][i] + b["position"][i] for i in range(3)]
+            boxes.append((pid, [c[i] - b["size"][i] / 2 for i in range(3)], [c[i] + b["size"][i] / 2 for i in range(3)]))
+
+    def ov(a, b):
+        return [min(a[2][i], b[2][i]) - max(a[1][i], b[1][i]) for i in range(3)]
+
+    bad, deepest = [], {}
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            a, b = boxes[i], boxes[j]
+            if a[0] == b[0]:
+                continue
+            o = ov(a, b)
+            if not all(v > TOL for v in o):
+                continue
+            key = tuple(sorted((a[0], b[0])))
+            d = min(o)
+            deepest[key] = max(deepest.get(key, 0), d)
+            if key not in ALLOWED or d > ALLOWED[key] + 1e-9:
+                bad.append(f"{key[0]}+{key[1]} {d:.2f} [{', '.join(f'{v:.1f}' for v in o)}] {a[1]}..{a[2]} vs {b[1]}..{b[2]}")
+    for k in ALLOWED:
+        if deepest.get(k, 0) <= TOL:
+            bad.append(f"allowed overlap {k} not present (depth {deepest.get(k, 0):.2f})")
+    floating = [pid for pid in layout["parts"] if not any(
+        all(v >= -TOL for v in ov(a, b)) for a in boxes if a[0] == pid for b in boxes if b[0] != pid)]
+    far = []
+    for fid, f in layout["features"].items():
+        pd = layout["parts"][f["partId"]]
+        w = [pd["position"][i] + f["position"][i] for i in range(3)]
+        d = min(math.hypot(*[max(b[1][i] - w[i], 0, w[i] - b[2][i]) for i in range(3)]) for b in boxes if b[0] == f["partId"])
+        if d > 1.5:
+            far.append(f"{fid} {d:.1f}")
+    glass = next(b for b in boxes if b[0] == "side_panel")
+    inside = max(b[2][2] for b in boxes if b[0] not in ("side_panel", "case"))
+    sizes = []
+    P = layout["parts"]
+    if P["motherboard"]["boxes"][0]["size"][:2] != [244, 305]:
+        sizes.append(f"motherboard first box {P['motherboard']['boxes'][0]['size']}")
+    if P["ram"]["boxes"][0]["size"][1] != 133.35:
+        sizes.append(f"ram first box {P['ram']['boxes'][0]['size']}")
+    if P["m2_ssd"]["boxes"][0]["size"][:2] != [80, 22]:
+        sizes.append(f"m2_ssd first box {P['m2_ssd']['boxes'][0]['size']}")
+    print("[check] overlaps:", bad or "ok")
+    for x in bad:
+        print("   ", x)
+    print("[check] floating:", floating or "ok")
+    print("[check] far features:", far or "ok")
+    print("[check] glass clear:", "ok" if inside < glass[1][2] else f"inside max z {inside} >= glass {glass[1][2]}")
+    print("[check] sizes:", sizes or "ok")
+    layout_ok = not (bad or floating or far or sizes or inside >= glass[1][2])
+    print("[check] ALL OK" if layout_ok else "[check] FAILED")
 
 
 def export_glb(objs):
