@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 
-import { runClientTool, viewSummary } from "@/lib/agent/client-tools";
+import { markUserTurn, runClientTool, viewSummary } from "@/lib/agent/client-tools";
 import { CLIENT_TOOL_NAMES, type ClientToolName } from "@/lib/agent/tools";
 import { useAppStore } from "@/store";
 
@@ -98,7 +98,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   }, [messages]);
 
   const answerQuestion = useCallback(
-    (toolCallId: string, answer: string) => void addToolOutput({ tool: "ask_user", toolCallId, output: { answer } }),
+    (toolCallId: string, answer: string) => {
+      markUserTurn();
+      void addToolOutput({ tool: "ask_user", toolCallId, output: { answer } });
+    },
     [addToolOutput],
   );
   const value = useMemo(() => ({ ...chat, answerQuestion }), [chat, answerQuestion]);

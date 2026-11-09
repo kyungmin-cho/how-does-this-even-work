@@ -66,6 +66,29 @@ function run(command: EngineCommand) {
   return answer(sendCommand(command));
 }
 
+/**
+ * Side questions stay on the side: once the agent peeks during a user turn, it may not move
+ * the procedure (resume, jump, start) until the user speaks again ("계속", "돌아가", a chip,
+ * or the 원래 단계로 button, which does not go through the agent).
+ */
+let userTurn = 0;
+let peekTurn = -1;
+
+/** The chat calls this whenever the user sends something (a message or an answer). */
+export function markUserTurn() {
+  userTurn++;
+}
+
+function heldBySidePeek() {
+  if (peekTurn !== userTurn || !useAppStore.getState().scene.peek) return null;
+  return {
+    ok: false,
+    error:
+      "방금 잠깐 보기로 곁가지 질문에 답하는 중이에요. 이번 답은 설명으로 끝내세요. 원래 단계로 돌아가거나 단계를 바꾸는 건 사용자가 '계속', '돌아가', '다음'처럼 말할 때만 해요.",
+    view: viewSummary(),
+  };
+}
+
 export interface ClientToolContext {
   /** Open another product (route change). */
   openProduct: (slug: string) => void;
@@ -82,16 +105,14 @@ export async function runClientTool(name: ClientToolName, input: unknown, ctx: C
       const image = captureViewport(768);
       return image ? { ok: true, image } : { ok: false, error: "3D 화면이 아직 준비되지 않았어요" };
     }
-    case "start_guide": {
-      const result = answer(startGuide(String(args.guideId)));
-      return result;
-    }
+    case "start_guide":
+      return heldBySidePeek() ?? answer(startGuide(String(args.guideId)));
     case "show_step":
-      return run({ type: "showStep", stepId: String(args.stepId) });
+      return heldBySidePeek() ?? run({ type: "showStep", stepId: String(args.stepId) });
     case "next_step":
-      return run({ type: "next" });
+      return heldBySidePeek() ?? run({ type: "next" });
     case "prev_step":
-      return run({ type: "prev" });
+      return heldBySidePeek() ?? run({ type: "prev" });
     case "highlight":
       return run({ type: "highlight", partIds: args.partIds as string[], mode: args.mode as "focus" });
     case "mark":
@@ -108,12 +129,15 @@ export async function runClientTool(name: ClientToolName, input: unknown, ctx: C
     }
     case "explode":
       return run({ type: "explode", amount: Number(args.amount) });
-    case "peek":
-      return args.featureId
+    case "peek": {
+      const result = args.featureId
         ? run({ type: "peek", featureId: String(args.featureId) })
         : run({ type: "peek", partIds: args.partIds as string[] });
+      if (result.ok) peekTurn = userTurn;
+      return result;
+    }
     case "resume_procedure":
-      return run({ type: "resumeProcedure" });
+      return heldBySidePeek() ?? run({ type: "resumeProcedure" });
     case "show_mistake":
       return run({ type: "showMistake", stepId: String(args.stepId), mistakeId: String(args.mistakeId) });
     case "clear_mistake":

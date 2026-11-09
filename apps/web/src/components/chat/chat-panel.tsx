@@ -24,6 +24,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { useStudioChat } from "@/components/chat/chat-provider";
 import { NextSteps, StartCards } from "@/components/chat/next-steps";
+import { markUserTurn } from "@/lib/agent/client-tools";
 import { AskUserCard, ProcedureCard, ToolActivity } from "@/components/chat/tool-parts";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
@@ -65,6 +66,7 @@ export function ChatPanel({
     if (error) clearError();
     // The agent is waiting on its own question: typed text is the answer to it. Sending a new
     // message instead would leave that tool call without a result.
+    markUserTurn();
     if (pending && isToolUIPart(pending)) answerQuestion(pending.toolCallId, question);
     else void sendMessage({ text: question });
     setDraft(slug, "");
