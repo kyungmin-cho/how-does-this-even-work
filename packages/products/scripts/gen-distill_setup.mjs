@@ -123,6 +123,9 @@ const views = {
   default: { label: "전체", position: [180, 520, 1180], target: [-10, 230, 0] },
   flask_area: { label: "플라스크와 가열 맨틀", position: [-40, 260, 470], target: [-200, 130, 0] },
   thermo_area: { label: "온도계 끝과 가지관", position: [-95, 300, 300], target: [-200, 245, 0] },
+  // Whole thermometer: the engine draws a mistake's red copy pushed away by ~60% of the part's
+  // length (180 mm here), so the thermometer step needs room above and below.
+  thermo_full: { label: "온도계 전체", position: [10, 330, 720], target: [-200, 300, 0] },
   condenser_area: { label: "냉각기와 호스", position: [150, 340, 560], target: [40, 190, 0] },
   receiver_area: { label: "어댑터와 받는 플라스크", position: [330, 250, 420], target: [200, 120, 0] },
   stand_area: { label: "스탠드와 클램프", position: [-420, 380, 520], target: [-120, 200, -80] },
@@ -223,14 +226,14 @@ const assembly = [
     path: [{ offset: [0, 200, 0] }],
     attachedTo: "stopper",
     checks: ["therm_bulb_tip", "flask_side_arm"],
-    camera: "thermo_area",
+    camera: "thermo_full",
     source: [S.bulb],
     mistakes: [
       {
         id: "thermo_too_high",
         label: "온도계 끝이 가지관보다 높음",
         description: "증기가 구부를 제대로 감싸지 않아 증기 온도가 바르게 재지지 않는다.",
-        path: [{ offset: [0, 200, 0] }, { offset: [0, 28, 0] }],
+        path: [{ offset: [0, 90, 0] }, { offset: [0, 28, 0] }, { offset: [0, 28, 0], duration: 1.5 }], // hold the wrong pose
         violates: ["therm_bulb_tip", "flask_side_arm"],
         source: [S.tooHigh],
       },
@@ -238,7 +241,7 @@ const assembly = [
         id: "thermo_too_low",
         label: "온도계 끝이 너무 낮음 (액체 가까이)",
         description: "끓는 액체에 너무 가까워 실제 증기 온도보다 높게 읽힌다.",
-        path: [{ offset: [0, 200, 0] }, { offset: [0, -100, 0] }],
+        path: [{ offset: [0, 60, 0] }, { offset: [0, -100, 0] }, { offset: [0, -100, 0], duration: 1.5 }],
         violates: ["therm_bulb_tip", "flask_side_arm"],
         source: [S.tooLow],
       },
@@ -258,7 +261,7 @@ const assembly = [
     partId: "condenser",
     action: "insert",
     label: "냉각기를 가지관에 끼우기",
-    description: "가지관을 냉각기 안쪽 관에 끼운다. 냉각기는 받는 쪽으로 조금 내려가게 둔다.",
+    description: "가지관을 냉각기 안쪽 관에 끼운다.",
     path: [{ offset: mul(DIR, 120) }],
     blocks: ["flask"],
     checks: ["cond_vapor_in", "flask_side_arm"],
@@ -304,9 +307,11 @@ const assembly = [
         id: "hose_swapped",
         label: "냉각수 입구와 출구를 바꿔 꽂음",
         description: "물이 위로 들어가면 냉각기 안에 공기 주머니가 생기기 쉬워 증기가 잘 식지 않는다.",
-        path: [{ offset: add(mul(NRM, -40), [0, 0, 40]) }, { offset: hoseSwap }],
+        path: [{ offset: add(mul(NRM, -40), [0, 0, 40]) }, { offset: hoseSwap }, { offset: hoseSwap, duration: 1.5 }],
         violates: ["cond_water_in_low", "cond_water_out_high"],
-        alsoMove: [{ partId: "hose_out", path: [{ offset: [0, 0, 40] }, { offset: mul(hoseSwap, -1) }] }],
+        alsoMove: [
+          { partId: "hose_out", path: [{ offset: [0, 0, 40] }, { offset: mul(hoseSwap, -1) }, { offset: mul(hoseSwap, -1), duration: 1.5 }] },
+        ],
         source: [S.water, S.waterTop],
       },
     ],

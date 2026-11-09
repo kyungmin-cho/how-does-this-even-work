@@ -121,11 +121,11 @@ test("distill_setup: assembled, guide steps and mistakes", async ({ page, isMobi
   for (const [stepId, mistakeId] of mistakes) await phase(page, async () => {
     await page.evaluate(([s, m]) => window.__engine!.showMistake(s, m), [stepId, mistakeId] as const);
     expect((await state(page)).mistake).toEqual({ stepId, mistakeId });
-    await page.waitForTimeout(2400); // camera glide + one pass of the wrong motion
+    await page.waitForTimeout(1600); // into the 1.5 s hold at the wrong pose (reached after 0.8 s)
     await shot(page, `mistake-${mistakeId}`);
     await page.evaluate(() => window.__engine!.clearMistake());
   });
 
   // Hot-reload noise from the shared dev server is not ours; anything else is.
-  expect(errors.filter((m) => !/__engine|Fast Refresh|hot/i.test(m))).toEqual([]);
+  expect(errors.filter((m) => !/__engine|Fast Refresh/.test(m))).toEqual([]);
 });

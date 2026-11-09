@@ -245,7 +245,7 @@ def build_flask():
         p.pipe([ARM0 - DIR * 2, arm_end], ARM_R, M["glass"], seg=14)
         # features
         p.feature("flask_neck", (x, NECK_TOP, 0))
-        p.feature("flask_side_arm", (x + NECK_R, ARM_Y, 0))
+        p.feature("flask_side_arm", tuple(ARM0 + DIR * 12))  # a little out along the arm, so its pin clears the bulb pin
         p.feature("flask_fill_line", (x + BULB_R, BULB_C.y, 0))
         p.feature("flask_bottom", (x, BULB_BOTTOM + 1, 0))
         # coarse

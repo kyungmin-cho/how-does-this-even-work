@@ -1136,8 +1136,8 @@
       "id": "flask_side_arm",
       "partId": "flask",
       "position": [
-        13,
-        130,
+        23.738,
+        127.505,
         0
       ],
       "kind": "port",
@@ -1531,7 +1531,7 @@
         "therm_bulb_tip",
         "flask_side_arm"
       ],
-      "camera": "thermo_area",
+      "camera": "thermo_full",
       "source": [
         {
           "url": "https://www.fao.org/4/a0691e/A0691E06.htm",
@@ -1547,7 +1547,7 @@
             {
               "offset": [
                 0,
-                200,
+                90,
                 0
               ]
             },
@@ -1557,6 +1557,14 @@
                 28,
                 0
               ]
+            },
+            {
+              "offset": [
+                0,
+                28,
+                0
+              ],
+              "duration": 1.5
             }
           ],
           "violates": [
@@ -1578,7 +1586,7 @@
             {
               "offset": [
                 0,
-                200,
+                60,
                 0
               ]
             },
@@ -1588,6 +1596,14 @@
                 -100,
                 0
               ]
+            },
+            {
+              "offset": [
+                0,
+                -100,
+                0
+              ],
+              "duration": 1.5
             }
           ],
           "violates": [
@@ -1625,7 +1641,7 @@
       "partId": "condenser",
       "action": "insert",
       "label": "냉각기를 가지관에 끼우기",
-      "description": "가지관을 냉각기 안쪽 관에 끼운다. 냉각기는 받는 쪽으로 조금 내려가게 둔다.",
+      "description": "가지관을 냉각기 안쪽 관에 끼운다.",
       "path": [
         {
           "offset": [
@@ -1746,6 +1762,14 @@
                 104.43,
                 0
               ]
+            },
+            {
+              "offset": [
+                -202.718,
+                104.43,
+                0
+              ],
+              "duration": 1.5
             }
           ],
           "violates": [
@@ -1769,6 +1793,14 @@
                     -104.43,
                     0
                   ]
+                },
+                {
+                  "offset": [
+                    202.718,
+                    -104.43,
+                    0
+                  ],
+                  "duration": 1.5
                 }
               ]
             }
@@ -1879,6 +1911,19 @@
       "target": [
         -200,
         245,
+        0
+      ]
+    },
+    "thermo_full": {
+      "label": "온도계 전체",
+      "position": [
+        10,
+        330,
+        720
+      ],
+      "target": [
+        -200,
+        300,
         0
       ]
     },
