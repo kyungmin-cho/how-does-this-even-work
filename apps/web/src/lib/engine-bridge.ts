@@ -1,9 +1,8 @@
-import type { EngineState } from "@assembly/engine";
+import { createEngine, type Engine, type EngineState } from "@assembly/engine";
 import { runCommand, type EngineCommand } from "@assembly/engine/commands";
 import { planService } from "@assembly/engine/planner";
 import type { Product } from "@assembly/engine/schema";
 
-import { createPlaceholderEngine, type PlaceholderEngine } from "@/lib/placeholder-engine";
 import { getProduct } from "@/lib/products";
 import { useAppStore, type Progress } from "@/store";
 
@@ -12,21 +11,70 @@ import { useAppStore, type Progress } from "@/store";
  * Buttons, the agent and tests all go through `sendCommand` (the engine's JSON command
  * format), and the engine reports back through `statechange` into the store.
  *
- * Today this is the placeholder engine. To plug in the real renderer, replace
- * `createPlaceholderEngine()` with `createEngine(container)` from @assembly/engine and
- * call `attachViewport` from the viewer.
+ * The engine is created once, the first time a 3D viewport mounts, inside a host element
+ * that lives outside React. Layout switches (desktop/phone) only move that host into the new
+ * viewport (`attachViewport`), so the scene, camera and animation state survive.
  */
 
-let engine: PlaceholderEngine | null = null;
+let engine: Engine | null = null;
+let host: HTMLDivElement | null = null;
 let openedSlug: string | null = null;
+/** Product asked for before the viewport existed. */
+let pendingSlug: string | null = null;
 let deepLinkUsed = false;
 
-export function getEngine(): PlaceholderEngine {
-  if (!engine) {
-    engine = createPlaceholderEngine();
-    engine.on("statechange", onStateChange);
+class EngineNotReady extends Error {
+  constructor() {
+    super("3D 화면이 아직 준비되지 않았어요");
   }
+}
+
+function getEngine(): Engine {
+  if (!engine) throw new EngineNotReady();
   return engine;
+}
+
+export function engineReady(): boolean {
+  return engine !== null;
+}
+
+/** The viewer calls this with its slot element; returns a detach function. */
+export function attachViewport(slot: HTMLElement): () => void {
+  if (!host) {
+    host = document.createElement("div");
+    host.dataset.testid = "engine-host";
+    host.style.position = "absolute";
+    host.style.inset = "0";
+  }
+  slot.appendChild(host);
+  if (!engine) {
+    engine = createEngine(host, { preserveDrawingBuffer: true });
+    engine.on("statechange", onStateChange);
+    const slug = pendingSlug;
+    pendingSlug = null;
+    if (slug) openProduct(slug);
+  }
+  const mine = host;
+  return () => {
+    if (mine.parentElement === slot) slot.removeChild(mine);
+  };
+}
+
+/** PNG data URL of what the user sees right now, or null before the 3D view exists. */
+export function captureViewport(maxWidth = 1024): string | null {
+  const canvas = host?.querySelector("canvas");
+  if (!canvas || !canvas.width) return null;
+  const scale = Math.min(1, maxWidth / canvas.width);
+  if (scale === 1) return canvas.toDataURL("image/png");
+  const out = document.createElement("canvas");
+  out.width = Math.round(canvas.width * scale);
+  out.height = Math.round(canvas.height * scale);
+  out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
+  return out.toDataURL("image/png");
+}
+
+export function currentProduct(): Product | null {
+  return engine?.getProduct() ?? null;
 }
 
 function onStateChange(scene: EngineState) {
@@ -50,7 +98,20 @@ export type CommandResult = { ok: true; state: EngineState } | { ok: false; erro
 
 export function sendCommand(command: EngineCommand): CommandResult {
   try {
-    return { ok: true, state: runCommand(getEngine(), command) };
+    const e = getEngine();
+    // The engine steps only inside a service procedure; in assembly mode next/prev walk the
+    // fixed assembly order with showStep.
+    if ((command.type === "next" || command.type === "prev") && !e.getState().procedure) {
+      const product = e.getProduct();
+      if (!product) throw new Error("no product loaded");
+      const steps = product.assembly;
+      const current = e.getState().currentStepId;
+      const i = current ? steps.findIndex((s) => s.id === current) : -1;
+      const j = command.type === "next" ? i + 1 : i - 1;
+      if (j < 0 || j >= steps.length) return { ok: true, state: e.getState() };
+      return { ok: true, state: runCommand(e, { type: "showStep", stepId: steps[j].id }) };
+    }
+    return { ok: true, state: runCommand(e, command) };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
@@ -58,7 +119,11 @@ export function sendCommand(command: EngineCommand): CommandResult {
 
 /** Load a product and put it back where the user left it on this device. */
 export function openProduct(slug: string) {
-  if (openedSlug === slug && getEngine().getProduct()) return;
+  if (!engine) {
+    pendingSlug = slug;
+    return;
+  }
+  if (openedSlug === slug && engine.getProduct()) return;
   const product = getProduct(slug);
   if (!product) return;
   const saved = useAppStore.getState().progress[slug];
@@ -123,7 +188,7 @@ function playGuide(product: Product, guideId: string | null, targetPartId: strin
 
 /** Start a guide's service procedure from the fully assembled product. */
 export function startGuide(guideId: string, stepNumber = 1): CommandResult {
-  const product = getEngine().getProduct();
+  const product = currentProduct();
   const guide = product?.guides.find((g) => g.id === guideId);
   if (!product || !guide) return { ok: false, error: `unknown guide "${guideId}"` };
   try {
@@ -136,18 +201,13 @@ export function startGuide(guideId: string, stepNumber = 1): CommandResult {
 
 /** Leave a service procedure and go back to the assembled product. */
 export function exitProcedure() {
-  const product = getEngine().getProduct();
+  const product = currentProduct();
   if (!product) return;
   const slug = openedSlug;
   openedSlug = null;
   getEngine().loadProduct(product);
   openedSlug = slug;
   if (slug) useAppStore.getState().setProgress(slug, { mode: "assembly", stepId: null });
-}
-
-/** The viewer calls this when the user drags or zooms the 3D view. */
-export function userTookCamera() {
-  getEngine().userInteract();
 }
 
 /** Forget this device's saved state and start over (chat, progress, layout). */

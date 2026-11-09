@@ -94,7 +94,7 @@ test("view menu, explode and camera owner", async ({ page }) => {
   await page.getByRole("menuitemradio", { name: "정면" }).click();
   await expect(viewport(page)).toHaveAccessibleName(/정면/);
 
-  await viewport(page).dispatchEvent("pointerdown");
+  await page.locator("[data-testid=engine-host] canvas").dispatchEvent("wheel");
   await expect(page.getByRole("status").filter({ hasText: "직접 돌려 보는 중" })).toBeVisible();
   await toolbar.getByRole("button", { name: "안내 시점으로" }).click();
   await expect(page.getByRole("status").filter({ hasText: "안내 시점으로 보는 중" })).toBeVisible();
@@ -121,4 +121,16 @@ test("phone: chat sheet and full-screen 3D", async ({ page }, info) => {
   await expect(page.getByRole("complementary", { name: "대화" })).toBeHidden();
   await page.getByRole("button", { name: "원래 크기로" }).click();
   await expect(page.getByRole("complementary", { name: "대화" })).toBeVisible();
+});
+
+test("switching between phone and desktop layout moves the same 3D canvas", async ({ page }) => {
+  await openStudio(page);
+  const canvas = page.locator("[data-testid=engine-host] canvas");
+  await expect(canvas).toHaveCount(1);
+  await canvas.evaluate((el) => el.setAttribute("data-e2e-mark", "first"));
+  const size = page.viewportSize()!;
+  await page.setViewportSize(size.width < 768 ? { width: 1280, height: 800 } : { width: 390, height: 844 });
+  await expect(page.getByRole("region", { name: "3D 보기" })).toBeVisible();
+  await expect(canvas).toHaveCount(1);
+  await expect(canvas).toHaveAttribute("data-e2e-mark", "first");
 });

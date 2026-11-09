@@ -15,6 +15,8 @@ export default defineConfig({
     baseURL,
     headless: true,
     trace: "on-first-retry",
+    // Headless Chromium needs SwiftShader for WebGL (the studio draws with the real engine).
+    launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] },
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, headless: true } },

@@ -4,7 +4,7 @@ import type { UIMessage } from "ai";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { initialEngineState } from "@/lib/placeholder-engine";
+import { initialEngineState } from "@/lib/engine-state";
 
 /**
  * The one store for the whole app. Every screen reads from here; the 3D scene writes

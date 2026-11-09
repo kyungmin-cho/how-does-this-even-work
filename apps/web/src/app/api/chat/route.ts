@@ -15,13 +15,16 @@ export const maxDuration = 60;
 interface ChatRequest {
   messages: UIMessage[];
   productSlug?: string;
+  /** Dev and tests only: ask for the fixed reply without a model call. */
+  mock?: boolean;
 }
 
 export async function POST(req: Request) {
-  const { messages, productSlug }: ChatRequest = await req.json();
+  const { messages, productSlug, mock }: ChatRequest = await req.json();
   const product = getProduct(productSlug ?? DEFAULT_PRODUCT_SLUG) ?? getProduct(DEFAULT_PRODUCT_SLUG)!;
 
-  if (process.env.AGENT_MOCK === "1") return mockResponse(messages);
+  const mockAllowed = process.env.NODE_ENV !== "production" || process.env.AGENT_MOCK === "1";
+  if (process.env.AGENT_MOCK === "1" || (mock && mockAllowed)) return mockResponse(messages);
 
   const result = streamText({
     model: anthropic(AGENT_MODEL),

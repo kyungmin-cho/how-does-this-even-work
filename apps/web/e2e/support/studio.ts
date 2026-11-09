@@ -4,10 +4,15 @@ export const isPhone = (info: TestInfo) => info.project.name === "phone";
 
 /** Open the studio on a clean device (no saved state) and wait until it is ready. */
 export async function openStudio(page: Page, path = "/studio/pc", { keepStorage = false } = {}) {
+  if (process.env.LIVE_AGENT !== "1") {
+    await page.addInitScript(() => localStorage.setItem("hdtew:mock-agent", "1"));
+  }
   if (!keepStorage) {
     await page.addInitScript(() => {
       if (!sessionStorage.getItem("__e2e_cleared")) {
+        const mock = localStorage.getItem("hdtew:mock-agent");
         localStorage.clear();
+        if (mock) localStorage.setItem("hdtew:mock-agent", mock);
         sessionStorage.setItem("__e2e_cleared", "1");
       }
     });

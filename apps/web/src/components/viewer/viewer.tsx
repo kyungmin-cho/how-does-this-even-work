@@ -1,8 +1,7 @@
 "use client";
 
-import { BoxIcon } from "lucide-react";
 import { Toolbar as ToolbarPrimitive } from "radix-ui";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,24 +14,29 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { useProduct } from "@/hooks/use-studio";
-import { describeScene, partLabel, viewLabel } from "@/lib/describe";
-import { sendCommand, userTookCamera } from "@/lib/engine-bridge";
+import { describeScene, viewLabel } from "@/lib/describe";
+import { attachViewport, sendCommand } from "@/lib/engine-bridge";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
 
 /**
- * The 3D area. The canvas is a placeholder until the engine is plugged in, but its
- * accessible name, toolbar and status already follow the store.
+ * The 3D area. The engine's canvas is moved in here; the accessible name, toolbar and
+ * status follow the store.
  */
 export function Viewer({ toolbarExtra, className }: { toolbarExtra?: ReactNode; className?: string }) {
   const product = useProduct();
   const scene = useAppStore((s) => s.scene);
   const label = describeScene(product, scene);
-  const focus = scene.peek?.partIds ?? scene.highlight.partIds;
+  const slotRef = useRef<HTMLDivElement | null>(null);
+
+  // The engine lives outside React; this only lends it a place on the screen.
+  useEffect(() => {
+    if (!slotRef.current) return;
+    return attachViewport(slotRef.current);
+  }, []);
 
   return (
     <section aria-label="3D 보기" className={cn("relative min-h-0 overflow-hidden bg-muted/40", className)}>
@@ -40,38 +44,9 @@ export function Viewer({ toolbarExtra, className }: { toolbarExtra?: ReactNode; 
         role="img"
         aria-label={label}
         data-testid="viewport"
-        className="absolute inset-0 flex touch-none select-none items-center justify-center"
-        onPointerDown={userTookCamera}
-        onWheel={userTookCamera}
-      >
-        <Empty className="max-w-sm">
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <BoxIcon />
-            </EmptyMedia>
-            <EmptyTitle>3D 엔진 자리</EmptyTitle>
-            <EmptyDescription>
-              {product?.name}, {viewLabel(product, scene.view)}
-              {scene.explode > 0 ? `, 분해도 ${Math.round(scene.explode * 100)}%` : ""}
-              {`, 조립된 단계 ${scene.installedStepIds.length}/${product?.assembly.length ?? 0}`}
-            </EmptyDescription>
-          </EmptyHeader>
-          {(focus.length > 0 || scene.marks.length > 0) && (
-            <EmptyContent className="flex-row flex-wrap justify-center gap-1">
-              {focus.map((id) => (
-                <Badge key={id} variant={scene.mistake ? "destructive" : "secondary"}>
-                  {partLabel(product, id)}
-                </Badge>
-              ))}
-              {scene.marks.map((m) => (
-                <Badge key={m.featureId} variant="outline">
-                  {m.label}
-                </Badge>
-              ))}
-            </EmptyContent>
-          )}
-        </Empty>
-      </div>
+        ref={slotRef}
+        className="absolute inset-0 touch-none select-none"
+      />
 
       <ViewToolbar extra={toolbarExtra} />
 
