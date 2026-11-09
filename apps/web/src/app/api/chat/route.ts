@@ -23,14 +23,31 @@ export async function POST(req: Request) {
   const { messages, productSlug, view }: ChatRequest = await req.json();
   const product = getProduct(productSlug ?? DEFAULT_PRODUCT_SLUG) ?? getProduct(DEFAULT_PRODUCT_SLUG)!;
 
+  // Earlier turns' reasoning is not sent back: its signature is tied to the exact prompt it was
+  // made with, which changes when the product changes.
+  const history = messages.map((m) => ({ ...m, parts: m.parts.filter((p) => p.type !== "reasoning") }));
+  const modelMessages = await convertToModelMessages(history);
+  // What the user sees now goes last, as context, so the instructions stay the same every request.
+  if (view) {
+    modelMessages.push({
+      role: "user",
+      content: [{ type: "text", text: `[지금 화면 상태, 사용자의 말이 아님]\n${JSON.stringify(view)}` }],
+    });
+  }
+
   const result = streamText({
     model: anthropic(AGENT_MODEL),
-    instructions: agentInstructions(product, view),
-    messages: await convertToModelMessages(messages),
+    instructions: agentInstructions(product),
+    messages: modelMessages,
     tools: buildTools(product),
     stopWhen: isStepCount(AGENT_MAX_STEPS),
     providerOptions: {
-      anthropic: { effort: AGENT_EFFORT } satisfies AnthropicLanguageModelOptions,
+      anthropic: {
+        effort: AGENT_EFFORT,
+        // No thinking blocks: they carry signatures bound to one prompt, and this agent's
+        // prompt follows the open product. Effort still sets how hard it works.
+        thinking: { type: "disabled" },
+      } satisfies AnthropicLanguageModelOptions,
     },
   });
 

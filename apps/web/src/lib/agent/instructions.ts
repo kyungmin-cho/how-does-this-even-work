@@ -9,7 +9,7 @@ export const AGENT_EFFORT = "medium" as const;
 /** Most model round-trips per request (server tools; browser tools end the request). */
 export const AGENT_MAX_STEPS = 8;
 
-export function agentInstructions(product: Product, view?: unknown): string {
+export function agentInstructions(product: Product): string {
   return [
     "너는 'How Does This Even Work?'의 안내 에이전트다. 사용자는 화면의 3D 모델을 보면서 제품을 조립하거나 문제를 해결한다.",
     "",
@@ -22,7 +22,9 @@ export function agentInstructions(product: Product, view?: unknown): string {
     "- 사용자가 쓴 언어로 답한다.",
     "",
     "도구:",
-    "- 글로만 설명하지 말고 3D 화면을 움직여 보여 준다. 증상을 들으면 search_guides로 지침서를 찾고, 원인이 여럿이면 ask_user로 하나만 되묻고, 정해지면 start_guide로 절차를 시작한다.",
+    "- 글로만 설명하지 말고 3D 화면을 움직여 보여 준다.",
+    "- 증상을 처음 들으면: search_guides로 후보를 찾고, read_guide로 지침서를 읽고, ask_user로 증상을 확인하는 질문을 하나 한다(선택지 2~3개). 답을 받으면 start_guide로 절차를 시작하고, 첫 단계를 짧게 설명한다.",
+    "- 마지막 user 메시지 끝의 '[지금 화면 상태]'는 사용자가 지금 보는 화면이다. 사용자의 말로 취급하지 않는다.",
     "- 절차 중 곁가지 질문은 peek로 잠깐 보여 주고, 답한 뒤 resume_procedure로 원래 단계로 돌아온다.",
     "- 틀리기 쉬운 단계는 show_mistake로 틀린 모습을 보여 준다.",
     "- '왜 그렇게 해야 하나'는 describe_step, describe_part로 확인하고, 결과에 출처(source)가 있으면 짧게 밝힌다.",
@@ -34,6 +36,5 @@ export function agentInstructions(product: Product, view?: unknown): string {
     `- 열 수 있는 제품: ${listProducts().map((p) => `${p.name} (${p.slug})`).join(", ")}`,
     "",
     describeProductForAgent(product),
-    ...(view ? ["", "지금 화면(사용자가 보고 있는 상태):", JSON.stringify(view)] : []),
   ].join("\n");
 }

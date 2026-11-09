@@ -149,11 +149,17 @@ export function ProcedureCard({ part }: { part: AnyToolPart }) {
   const guide = product?.guides.find((g) => g.id === guideId);
   if (part.state !== "output-available" || (part.output as Args)?.ok === false || !guide) return null;
   const live = scene.procedure?.guideId === guideId && items;
+  // Remove items reuse the install step's wording; name what comes out instead.
+  const rowLabel = (kind: string, label: string, partId?: string) =>
+    kind === "remove" && partId ? `${partLabel(product, partId)} 빼기` : kind === "install" ? `다시 끼우기: ${label}` : label;
   const rows = live
-    ? items.map((i) => i.label)
-    : (((part.output as Args).view as { procedure?: { steps?: string[] } } | undefined)?.procedure?.steps ?? []).map((s) =>
-        s.replace(/^\d+\.\s+\S+\s+/, "").replace(/\s+\([^)]*\)$/, ""),
-      );
+    ? items.map((i) => rowLabel(i.kind, i.label, i.partId))
+    : (((part.output as Args).view as { procedure?: { steps?: string[] } } | undefined)?.procedure?.steps ?? []).map((s) => {
+        const m = s.match(/^\d+\.\s+(\S+)\s+(.*?)\s+\(([^)]*)\)$/);
+        if (!m) return s;
+        const step = product?.assembly.find((a) => a.id === m[3]);
+        return rowLabel(m[1], m[2], step?.partId);
+      });
   const current = live ? scene.procedure!.index : -1;
   return (
     <Task className="rounded-md border p-3" defaultOpen>
