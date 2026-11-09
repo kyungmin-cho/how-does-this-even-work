@@ -1,4 +1,26 @@
-# assembly
+# How Does This Even Work?
+
+**An AI you can talk to about any object. It answers by moving the thing in 3D, so every question becomes something you can see and understand.**
+
+**Live demo: [arcyou.ai](https://arcyou.ai)**
+
+Tell it what's wrong, and it reads the product's own guide, loads the model in 3D, and moves the parts to show exactly what to check. Ask "why?" at any step and it shows you, so you finish understanding what you fixed.
+
+| | What happens |
+| --- | --- |
+| Analyze | "My PC keeps shutting down." The agent asks a follow-up, finds the repair guide, loads the PC, and plans the steps |
+| Understand | Ask "Why twist the cooler?" and the 3D shows the wrong way and the right way |
+| Learn | Ask about any part mid-step ("What's this connector?"); the view goes to it, then back to your step |
+
+Products in the demo: a desktop PC (overheating, RAM not detected, adding an SSD, replacing the GPU) and a dresser.
+
+The agent can only move parts and steps that exist in the product file (`packages/products/data/`), so positions, paths, screw orders and common mistakes come from the product data, not from the model.
+
+Built at c0mpiled-17: Seoul (2026-11-09).
+
+---
+
+## Developer notes (assembly)
 
 AI 에이전트가 3D 화면을 직접 조작하며 제품의 조립과 이슈 해결 절차를 단계별로 보여 주는 웹 앱. pnpm 워크스페이스 모노레포.
 
