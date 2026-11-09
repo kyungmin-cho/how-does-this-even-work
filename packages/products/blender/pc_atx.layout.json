@@ -1,0 +1,1600 @@
+{
+ "units": "mm",
+ "source": "packages/products/blender/build_pc_atx.py",
+ "parts": {
+  "case": {
+   "position": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     450.0,
+     482.85,
+     214.0
+    ],
+    "center": [
+     0.0,
+     -3.58,
+     103.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      450.0,
+      470.0,
+      4.0
+     ],
+     "position": [
+      0.0,
+      0.0,
+      -2.0
+     ],
+     "color": "#d9dce1"
+    },
+    {
+     "size": [
+      450.0,
+      4.0,
+      214.0
+     ],
+     "position": [
+      0.0,
+      233.0,
+      103.0
+     ],
+     "color": "#d9dce1"
+    },
+    {
+     "size": [
+      450.0,
+      4.0,
+      214.0
+     ],
+     "position": [
+      0.0,
+      -233.0,
+      103.0
+     ],
+     "color": "#d9dce1"
+    },
+    {
+     "size": [
+      4.0,
+      462.0,
+      214.0
+     ],
+     "position": [
+      -223.0,
+      0.0,
+      103.0
+     ],
+     "color": "#d9dce1"
+    },
+    {
+     "size": [
+      10.0,
+      470.0,
+      214.0
+     ],
+     "position": [
+      220.0,
+      0.0,
+      103.0
+     ],
+     "color": "#d9dce1"
+    },
+    {
+     "size": [
+      25.5,
+      120.0,
+      120.0
+     ],
+     "position": [
+      -208.5,
+      160.0,
+      120.0
+     ],
+     "color": "#24272c"
+    },
+    {
+     "size": [
+      25.5,
+      120.0,
+      120.0
+     ],
+     "position": [
+      200.0,
+      130.0,
+      105.0
+     ],
+     "color": "#24272c"
+    },
+    {
+     "size": [
+      25.5,
+      120.0,
+      120.0
+     ],
+     "position": [
+      200.0,
+      5.0,
+      105.0
+     ],
+     "color": "#24272c"
+    },
+    {
+     "size": [
+      25.5,
+      120.0,
+      120.0
+     ],
+     "position": [
+      200.0,
+      -120.0,
+      105.0
+     ],
+     "color": "#24272c"
+    }
+   ],
+   "triangles": 25704
+  },
+  "side_panel": {
+   "position": [
+    0.0,
+    0.0,
+    212.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     448.0,
+     468.0,
+     9.6
+    ],
+    "center": [
+     0.0,
+     0.0,
+     2.5
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      448.0,
+      468.0,
+      4.0
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "color": "#a5b4c3"
+    }
+   ],
+   "triangles": 908
+  },
+  "motherboard": {
+   "position": [
+    -93.0,
+    55.0,
+    7.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     250.3,
+     305.3,
+     32.55
+    ],
+    "center": [
+     -3.15,
+     0.15,
+     15.47
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      244.0,
+      305.0,
+      1.6
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "color": "#1c1f24"
+    },
+    {
+     "size": [
+      46.0,
+      46.0,
+      4.45
+     ],
+     "position": [
+      -24.0,
+      78.0,
+      3.03
+     ],
+     "color": "#e5e1d8"
+    },
+    {
+     "size": [
+      18.4,
+      84.4,
+      17.9
+     ],
+     "position": [
+      -88.0,
+      76.0,
+      9.75
+     ],
+     "color": "#4a4f57"
+    },
+    {
+     "size": [
+      66.4,
+      15.4,
+      17.9
+     ],
+     "position": [
+      -47.0,
+      132.0,
+      9.75
+     ],
+     "color": "#4a4f57"
+    },
+    {
+     "size": [
+      24.4,
+      120.4,
+      30.95
+     ],
+     "position": [
+      -110.0,
+      80.0,
+      16.28
+     ],
+     "color": "#3a3f46"
+    },
+    {
+     "size": [
+      7.0,
+      145.2,
+      11.85
+     ],
+     "position": [
+      40.0,
+      70.0,
+      6.73
+     ],
+     "color": "#374151"
+    },
+    {
+     "size": [
+      7.0,
+      145.2,
+      11.85
+     ],
+     "position": [
+      50.0,
+      70.0,
+      6.73
+     ],
+     "color": "#9aa1aa"
+    },
+    {
+     "size": [
+      7.0,
+      145.2,
+      11.85
+     ],
+     "position": [
+      60.0,
+      70.0,
+      6.73
+     ],
+     "color": "#374151"
+    },
+    {
+     "size": [
+      7.0,
+      145.2,
+      11.85
+     ],
+     "position": [
+      70.0,
+      70.0,
+      6.73
+     ],
+     "color": "#9aa1aa"
+    },
+    {
+     "size": [
+      12.0,
+      52.4,
+      8.35
+     ],
+     "position": [
+      113.2,
+      31.0,
+      4.98
+     ],
+     "color": "#202226"
+    },
+    {
+     "size": [
+      18.8,
+      12.0,
+      8.35
+     ],
+     "position": [
+      -88.0,
+      146.8,
+      4.98
+     ],
+     "color": "#202226"
+    },
+    {
+     "size": [
+      11.2,
+      3.8,
+      6.0
+     ],
+     "position": [
+      5.0,
+      146.4,
+      3.8
+     ],
+     "color": "#f3f4f6"
+    },
+    {
+     "size": [
+      97.1,
+      8.8,
+      13.9
+     ],
+     "position": [
+      -36.05,
+      -20.0,
+      7.75
+     ],
+     "color": "#111827"
+    },
+    {
+     "size": [
+      6.15,
+      23.0,
+      4.2
+     ],
+     "position": [
+      -58.88,
+      -38.5,
+      2.9
+     ],
+     "color": "#111827"
+    },
+    {
+     "size": [
+      46.0,
+      46.0,
+      8.15
+     ],
+     "position": [
+      65.0,
+      -95.0,
+      4.88
+     ],
+     "color": "#4b5563"
+    }
+   ],
+   "triangles": 19928
+  },
+  "cpu": {
+   "position": [
+    -118.0,
+    135.0,
+    15.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     40.0,
+     40.0,
+     6.2
+    ],
+    "center": [
+     0.0,
+     0.0,
+     -0.3
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      40.0,
+      40.0,
+      1.6
+     ],
+     "position": [
+      0.0,
+      0.0,
+      -2.6
+     ],
+     "color": "#2f6b3b"
+    },
+    {
+     "size": [
+      36.0,
+      36.0,
+      4.6
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.5
+     ],
+     "color": "#c0c4ca"
+    }
+   ],
+   "triangles": 216
+  },
+  "thermal_paste": {
+   "position": [
+    -118.0,
+    135.0,
+    18.25
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     24.0,
+     24.0,
+     0.55
+    ],
+    "center": [
+     0.0,
+     0.0,
+     0.03
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      24.0,
+      24.0,
+      0.55
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.03
+     ],
+     "color": "#d1d5db"
+    }
+   ],
+   "triangles": 168
+  },
+  "cooler": {
+   "position": [
+    -118.0,
+    135.0,
+    18.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     83.53,
+     127.6,
+     157.8
+    ],
+    "center": [
+     10.27,
+     0.0,
+     70.9
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      46.0,
+      50.0,
+      9.0
+     ],
+     "position": [
+      0.0,
+      0.0,
+      4.5
+     ],
+     "color": "#b87333"
+    },
+    {
+     "size": [
+      5.85,
+      42.0,
+      144.5
+     ],
+     "position": [
+      -12.0,
+      0.0,
+      76.25
+     ],
+     "color": "#b87333"
+    },
+    {
+     "size": [
+      5.85,
+      78.0,
+      144.5
+     ],
+     "position": [
+      0.0,
+      0.0,
+      76.25
+     ],
+     "color": "#b87333"
+    },
+    {
+     "size": [
+      5.85,
+      110.0,
+      144.5
+     ],
+     "position": [
+      12.0,
+      0.0,
+      76.25
+     ],
+     "color": "#b87333"
+    },
+    {
+     "size": [
+      52.0,
+      127.0,
+      123.3
+     ],
+     "position": [
+      0.0,
+      0.0,
+      88.15
+     ],
+     "color": "#d1d5db"
+    },
+    {
+     "size": [
+      25.5,
+      120.0,
+      120.0
+     ],
+     "position": [
+      37.5,
+      0.0,
+      86.5
+     ],
+     "color": "#1f2328"
+    }
+   ],
+   "triangles": 7016
+  },
+  "cooler_fan_cable": {
+   "position": [
+    -88.0,
+    201.0,
+    13.8
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     14.67,
+     13.51,
+     35.81
+    ],
+    "center": [
+     2.03,
+     -3.47,
+     17.91
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      10.6,
+      6.4,
+      7.0
+     ],
+     "position": [
+      0.0,
+      -0.6,
+      3.5
+     ],
+     "color": "#111111"
+    },
+    {
+     "size": [
+      6.0,
+      6.0,
+      14.5
+     ],
+     "position": [
+      0.0,
+      0.0,
+      11.75
+     ],
+     "color": "#222222"
+    },
+    {
+     "size": [
+      13.5,
+      6.0,
+      6.0
+     ],
+     "position": [
+      3.75,
+      0.0,
+      16.0
+     ],
+     "color": "#222222"
+    },
+    {
+     "size": [
+      6.0,
+      13.5,
+      24.7
+     ],
+     "position": [
+      7.5,
+      -3.75,
+      25.35
+     ],
+     "color": "#222222"
+    }
+   ],
+   "triangles": 708
+  },
+  "ram": {
+   "position": [
+    -33.0,
+    125.0,
+    27.625
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     25.87,
+     133.35,
+     33.25
+    ],
+    "center": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      5.87,
+      133.35,
+      33.25
+     ],
+     "position": [
+      -10.0,
+      0.0,
+      1.0
+     ],
+     "color": "#e6e8eb"
+    },
+    {
+     "size": [
+      5.87,
+      133.35,
+      33.25
+     ],
+     "position": [
+      10.0,
+      0.0,
+      1.0
+     ],
+     "color": "#e6e8eb"
+    }
+   ],
+   "triangles": 8368
+  },
+  "m2_ssd": {
+   "position": [
+    -110.0,
+    16.5,
+    10.4
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     81.4,
+     22.0,
+     2.14
+    ],
+    "center": [
+     0.7,
+     0.0,
+     0.62
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      81.4,
+      22.0,
+      2.14
+     ],
+     "position": [
+      0.7,
+      0.0,
+      0.62
+     ],
+     "color": "#1e293b"
+    }
+   ],
+   "triangles": 1884
+  },
+  "m2_heatsink": {
+   "position": [
+    -110.0,
+    16.5,
+    16.1
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     86.0,
+     25.2,
+     7.02
+    ],
+    "center": [
+     0.0,
+     0.0,
+     -0.61
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      86.0,
+      25.2,
+      7.02
+     ],
+     "position": [
+      0.0,
+      0.0,
+      -0.61
+     ],
+     "color": "#8a8f98"
+    }
+   ],
+   "triangles": 980
+  },
+  "psu": {
+   "position": [
+    -151.0,
+    -188.0,
+    95.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     144.88,
+     87.35,
+     150.45
+    ],
+    "center": [
+     -1.49,
+     0.68,
+     0.23
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      140.0,
+      86.0,
+      150.0
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "color": "#27272a"
+    }
+   ],
+   "triangles": 11776
+  },
+  "atx_24pin_cable": {
+   "position": [
+    21.0,
+    86.0,
+    15.8
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     33.75,
+     55.4,
+     51.34
+    ],
+    "center": [
+     11.68,
+     1.5,
+     3.87
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      10.4,
+      55.4,
+      16.0
+     ],
+     "position": [
+      0.0,
+      1.5,
+      8.0
+     ],
+     "color": "#111827"
+    },
+    {
+     "size": [
+      54.4,
+      54.4,
+      54.4
+     ],
+     "position": [
+      0.0,
+      0.0,
+      15.5
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      54.4,
+      54.4,
+      64.9
+     ],
+     "position": [
+      0.0,
+      0.0,
+      20.75
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      79.4,
+      54.4,
+      54.4
+     ],
+     "position": [
+      12.5,
+      0.0,
+      26.0
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      54.4,
+      54.4,
+      102.2
+     ],
+     "position": [
+      25.0,
+      0.0,
+      2.1
+     ],
+     "color": "#1f2937"
+    }
+   ],
+   "triangles": 6684
+  },
+  "eps_8pin_cable": {
+   "position": [
+    -181.0,
+    201.0,
+    15.8
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     18.8,
+     30.75,
+     49.34
+    ],
+    "center": [
+     0.0,
+     10.18,
+     2.87
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      18.8,
+      13.4,
+      16.0
+     ],
+     "position": [
+      0.0,
+      1.5,
+      8.0
+     ],
+     "color": "#111827"
+    },
+    {
+     "size": [
+      20.8,
+      20.8,
+      20.8
+     ],
+     "position": [
+      0.0,
+      0.0,
+      15.5
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      20.8,
+      20.8,
+      29.3
+     ],
+     "position": [
+      0.0,
+      0.0,
+      19.75
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      20.8,
+      42.8,
+      20.8
+     ],
+     "position": [
+      0.0,
+      11.0,
+      24.0
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      20.8,
+      20.8,
+      66.6
+     ],
+     "position": [
+      0.0,
+      22.0,
+      1.1
+     ],
+     "color": "#1f2937"
+    }
+   ],
+   "triangles": 2804
+  },
+  "gpu": {
+   "position": [
+    -85.5,
+    35.0,
+    67.0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     272.0,
+     41.25,
+     122.8
+    ],
+    "center": [
+     -2.5,
+     -17.67,
+     4.4
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      267.0,
+      1.72,
+      111.0
+     ],
+     "position": [
+      0.0,
+      0.0,
+      0.0
+     ],
+     "color": "#14532d"
+    },
+    {
+     "size": [
+      263.0,
+      2.15,
+      101.0
+     ],
+     "position": [
+      1.0,
+      1.88,
+      4.0
+     ],
+     "color": "#374151"
+    },
+    {
+     "size": [
+      265.0,
+      36.0,
+      94.0
+     ],
+     "position": [
+      1.0,
+      -20.0,
+      2.0
+     ],
+     "color": "#2b2b2b"
+    },
+    {
+     "size": [
+      10.5,
+      40.6,
+      121.0
+     ],
+     "position": [
+      -133.25,
+      -18.0,
+      3.5
+     ],
+     "color": "#9ca3af"
+    },
+    {
+     "size": [
+      18.8,
+      10.4,
+      9.35
+     ],
+     "position": [
+      96.5,
+      -4.4,
+      54.17
+     ],
+     "color": "#111111"
+    }
+   ],
+   "triangles": 8512
+  },
+  "gpu_power_cable": {
+   "position": [
+    11.0,
+    30.6,
+    125.5
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     97.4,
+     204.55,
+     29.55
+    ],
+    "center": [
+     -39.3,
+     -94.08,
+     14.77
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      18.8,
+      13.4,
+      16.0
+     ],
+     "position": [
+      0.0,
+      1.5,
+      8.0
+     ],
+     "color": "#111827"
+    },
+    {
+     "size": [
+      20.8,
+      20.8,
+      20.8
+     ],
+     "position": [
+      0.0,
+      0.0,
+      15.5
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      20.8,
+      20.8,
+      31.3
+     ],
+     "position": [
+      0.0,
+      0.0,
+      20.75
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      20.8,
+      209.4,
+      20.8
+     ],
+     "position": [
+      0.0,
+      -94.3,
+      26.0
+     ],
+     "color": "#1f2937"
+    },
+    {
+     "size": [
+      108.8,
+      20.8,
+      20.8
+     ],
+     "position": [
+      -44.0,
+      -188.6,
+      26.0
+     ],
+     "color": "#1f2937"
+    }
+   ],
+   "triangles": 2804
+  }
+ },
+ "features": {
+  "case_power_button": {
+   "partId": "case",
+   "position": [
+    190.0,
+    238.0,
+    100.0
+   ]
+  },
+  "case_ground": {
+   "partId": "case",
+   "position": [
+    -220.8,
+    -60.0,
+    150.0
+   ]
+  },
+  "rear_fan_airflow": {
+   "partId": "case",
+   "position": [
+    -195.0,
+    160.0,
+    120.0
+   ]
+  },
+  "front_fan_airflow": {
+   "partId": "case",
+   "position": [
+    184.0,
+    130.0,
+    105.0
+   ]
+  },
+  "panel_screw_1": {
+   "partId": "side_panel",
+   "position": [
+    -215.0,
+    220.0,
+    2.0
+   ]
+  },
+  "panel_screw_2": {
+   "partId": "side_panel",
+   "position": [
+    -215.0,
+    -220.0,
+    2.0
+   ]
+  },
+  "board_screw_1": {
+   "partId": "motherboard",
+   "position": [
+    -112.0,
+    145.0,
+    0.8
+   ]
+  },
+  "board_screw_2": {
+   "partId": "motherboard",
+   "position": [
+    112.0,
+    -145.0,
+    0.8
+   ]
+  },
+  "board_screw_3": {
+   "partId": "motherboard",
+   "position": [
+    112.0,
+    145.0,
+    0.8
+   ]
+  },
+  "board_screw_4": {
+   "partId": "motherboard",
+   "position": [
+    -112.0,
+    -145.0,
+    0.8
+   ]
+  },
+  "board_screw_5": {
+   "partId": "motherboard",
+   "position": [
+    -112.0,
+    -10.0,
+    0.8
+   ]
+  },
+  "board_screw_6": {
+   "partId": "motherboard",
+   "position": [
+    112.0,
+    -10.0,
+    0.8
+   ]
+  },
+  "cpu_socket": {
+   "partId": "motherboard",
+   "position": [
+    -25.0,
+    80.0,
+    5.2
+   ]
+  },
+  "socket_triangle": {
+   "partId": "motherboard",
+   "position": [
+    -46.0,
+    101.0,
+    1.1
+   ]
+  },
+  "dimm_a1": {
+   "partId": "motherboard",
+   "position": [
+    40.0,
+    70.0,
+    8.5
+   ]
+  },
+  "dimm_a2": {
+   "partId": "motherboard",
+   "position": [
+    50.0,
+    70.0,
+    8.5
+   ]
+  },
+  "dimm_a2_latch_top": {
+   "partId": "motherboard",
+   "position": [
+    50.0,
+    139.0,
+    11.8
+   ]
+  },
+  "dimm_a2_latch_bottom": {
+   "partId": "motherboard",
+   "position": [
+    50.0,
+    1.0,
+    11.8
+   ]
+  },
+  "dimm_b1": {
+   "partId": "motherboard",
+   "position": [
+    60.0,
+    70.0,
+    8.5
+   ]
+  },
+  "dimm_b2": {
+   "partId": "motherboard",
+   "position": [
+    70.0,
+    70.0,
+    8.5
+   ]
+  },
+  "dimm_b2_latch_top": {
+   "partId": "motherboard",
+   "position": [
+    70.0,
+    139.0,
+    11.8
+   ]
+  },
+  "dimm_b2_latch_bottom": {
+   "partId": "motherboard",
+   "position": [
+    70.0,
+    1.0,
+    11.8
+   ]
+  },
+  "atx_24pin": {
+   "partId": "motherboard",
+   "position": [
+    114.0,
+    31.0,
+    8.8
+   ]
+  },
+  "eps_8pin": {
+   "partId": "motherboard",
+   "position": [
+    -88.0,
+    146.0,
+    8.8
+   ]
+  },
+  "cpu_fan_header": {
+   "partId": "motherboard",
+   "position": [
+    5.0,
+    146.0,
+    6.8
+   ]
+  },
+  "pcie_slot": {
+   "partId": "motherboard",
+   "position": [
+    -39.5,
+    -20.0,
+    12.0
+   ]
+  },
+  "pcie_latch": {
+   "partId": "motherboard",
+   "position": [
+    8.6,
+    -20.0,
+    13.0
+   ]
+  },
+  "m2_slot": {
+   "partId": "motherboard",
+   "position": [
+    -59.2,
+    -38.5,
+    5.0
+   ]
+  },
+  "m2_screw_hole": {
+   "partId": "motherboard",
+   "position": [
+    21.4,
+    -38.5,
+    3.6
+   ]
+  },
+  "cpu_triangle": {
+   "partId": "cpu",
+   "position": [
+    -18.2,
+    18.2,
+    -1.7
+   ]
+  },
+  "cpu_ihs": {
+   "partId": "cpu",
+   "position": [
+    0.0,
+    0.0,
+    2.8
+   ]
+  },
+  "cooler_screw_1": {
+   "partId": "cooler",
+   "position": [
+    -27.0,
+    45.0,
+    12.0
+   ]
+  },
+  "cooler_screw_2": {
+   "partId": "cooler",
+   "position": [
+    27.0,
+    -45.0,
+    12.0
+   ]
+  },
+  "cooler_screw_3": {
+   "partId": "cooler",
+   "position": [
+    27.0,
+    45.0,
+    12.0
+   ]
+  },
+  "cooler_screw_4": {
+   "partId": "cooler",
+   "position": [
+    -27.0,
+    -45.0,
+    12.0
+   ]
+  },
+  "cooler_airflow": {
+   "partId": "cooler",
+   "position": [
+    52.0,
+    0.0,
+    86.5
+   ]
+  },
+  "ram_notch_1": {
+   "partId": "ram",
+   "position": [
+    -10.0,
+    -4.3,
+    -15.625
+   ]
+  },
+  "ram_notch_2": {
+   "partId": "ram",
+   "position": [
+    10.0,
+    -4.3,
+    -15.625
+   ]
+  },
+  "m2_notch": {
+   "partId": "m2_ssd",
+   "position": [
+    -40.0,
+    4.4,
+    0.0
+   ]
+  },
+  "m2_pad_film": {
+   "partId": "m2_heatsink",
+   "position": [
+    0.0,
+    0.0,
+    -4.1
+   ]
+  },
+  "heatsink_screw_1": {
+   "partId": "m2_heatsink",
+   "position": [
+    -40.0,
+    0.0,
+    2.6
+   ]
+  },
+  "heatsink_screw_2": {
+   "partId": "m2_heatsink",
+   "position": [
+    40.0,
+    0.0,
+    2.6
+   ]
+  },
+  "psu_switch": {
+   "partId": "psu",
+   "position": [
+    -71.0,
+    28.0,
+    45.0
+   ]
+  },
+  "gpu_bracket_screw_1": {
+   "partId": "gpu",
+   "position": [
+    -132.0,
+    -7.8,
+    64.0
+   ]
+  },
+  "gpu_bracket_screw_2": {
+   "partId": "gpu",
+   "position": [
+    -132.0,
+    -28.1,
+    64.0
+   ]
+  },
+  "gpu_power": {
+   "partId": "gpu",
+   "position": [
+    96.5,
+    -4.4,
+    58.5
+   ]
+  }
+ }
+}
