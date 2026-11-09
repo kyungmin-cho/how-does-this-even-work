@@ -134,11 +134,6 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
           selected ? "bg-muted" : "hover:bg-muted/50",
           level > 1 && "pl-7.75",
         )}
-        onClick={(e) => {
-          e.stopPropagation();
-          setUi({ treeFocusId: n.id });
-          pick(n);
-        }}
       >
         <ItemMedia
           onClick={
@@ -190,6 +185,14 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
     "aria-describedby": node.kind === "part" && !installedParts.has(node.id) ? `${domId(node.id)}-state` : undefined,
     tabIndex: node.id === activeId ? 0 : -1,
     onKeyDown: (e: KeyboardEvent) => onKeyDown(e, node),
+    // On the treeitem itself, not the inner Item: assistive tech and automation send the click to
+    // the element with the role, and a click there must pick the row just like Enter does.
+    // stopPropagation keeps a child's click from also picking its parent.
+    onClick: (e: React.MouseEvent<HTMLLIElement>) => {
+      e.stopPropagation();
+      move(node.id);
+      pick(node);
+    },
     onFocus: (e: React.FocusEvent) => {
       if (e.target === e.currentTarget && focusId !== node.id) setUi({ treeFocusId: node.id });
     },
