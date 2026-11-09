@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sample from "../fixtures/sample.json";
-import { planService, PlannerError, installedThrough } from "./planner";
-import { parseProduct, ProductSchema } from "./schema";
+import { consumableVisible, planService, PlannerError, installedThrough } from "./planner";
+import { parseGuide, parseProduct, ProductSchema } from "./schema";
 
 const product = parseProduct(sample);
 const all = product.assembly.map((s) => s.id);
@@ -172,4 +172,93 @@ describe("planService", () => {
       "install:s_panel_b",
     ]);
   });
+
+  it("beforeRemoval extras come first, before anything is removed (guidance-only highlight)", () => {
+    const g = parseGuide({
+      ...guide,
+      extraSteps: [
+        ...guide.extraSteps,
+        {
+          id: "x_power_off",
+          at: "beforeRemoval",
+          label: "전원 끄고 남은 전기 빼기",
+          highlightParts: [],
+          checks: ["panel_screw"],
+          source: [{ url: "https://example.com/safety", quote: "Unplug first." }],
+        },
+        { id: "x_esd", at: "beforeRemoval", label: "정전기 빼기", highlightParts: ["case"] },
+      ],
+    });
+    const p = planService(product, all, "m2_ssd", g);
+    expect(summary(p.items.slice(0, 3))).toEqual(["extra:x_power_off", "extra:x_esd", "remove:s_panel"]);
+    expect(p.items[0]).toMatchObject({ installed: all, highlightPartIds: [], checks: ["panel_screw"], action: "inspect" });
+    expect(p.items[0]!.source).toEqual([{ url: "https://example.com/safety", quote: "Unplug first." }]);
+    expect(p.items[1]!.highlightPartIds).toEqual(["case"]);
+    // Without highlightParts an extra highlights its part; steps highlight their part.
+    expect(p.items.find((i) => i.stepId === "x_check_slot")!.highlightPartIds).toEqual(["motherboard"]);
+    expect(p.items.find((i) => i.stepId === "s_gpu")!.highlightPartIds).toEqual(["gpu"]);
+    expect(p.items).toHaveLength(15);
+  });
+
+  it("remove_consumable hides a consumable part, a later apply shows it again", () => {
+    const g = parseGuide({
+      ...guide,
+      extraSteps: [
+        { id: "x_pad_on", at: "afterRemoval", partId: "thermal_pad", action: "apply", label: "패드 있음", path: [{ offset: [0, 0, 20] }] },
+        { id: "x_pad_wipe", at: "afterRemoval", partId: "thermal_pad", action: "remove_consumable", label: "낡은 패드 떼기", path: [{ offset: [0, 0, 20] }] },
+        { id: "x_pad_new", at: "beforeReinstall", partId: "thermal_pad", action: "apply", label: "새 패드", path: [{ offset: [0, 0, 20] }] },
+      ],
+    });
+    const p = planService(product, all, "m2_ssd", g);
+    const vis = (stepId: string) => {
+      const it = p.items.find((i) => i.stepId === stepId)!;
+      return consumableVisible(product, p.extraSteps, p.targetPartId, it.installed, it.appliedExtras, "thermal_pad");
+    };
+    expect(consumableVisible(product, p.extraSteps, p.targetPartId, all, [], "thermal_pad")).toBe(false);
+    expect(vis("x_pad_on")).toBe(true);
+    expect(vis("x_pad_wipe")).toBe(false);
+    expect(vis("x_pad_new")).toBe(true);
+    const last = p.items.at(-1)!;
+    expect(consumableVisible(product, p.extraSteps, p.targetPartId, last.installed, last.appliedExtras, "thermal_pad")).toBe(true);
+    // An installed consumable (assembly step) is hidden by remove_consumable too.
+    expect(consumableVisible(product, p.extraSteps, p.targetPartId, all, ["x_pad_wipe"], "thermal_pad")).toBe(false);
+    // Non-consumable parts ignore extras.
+    expect(consumableVisible(product, p.extraSteps, p.targetPartId, all, ["x_pad_wipe"], "gpu")).toBe(true);
+  });
+
+  it("rejects remove_consumable on a part that is not consumable", () => {
+    const g = parseGuide({
+      ...guide,
+      extraSteps: [{ id: "x_bad", at: "afterRemoval", partId: "gpu", action: "remove_consumable", label: "x" }],
+    });
+    expect(() => planService(product, all, "m2_ssd", g)).toThrow(/remove_consumable needs a consumable part/);
+  });
 });
+
+describe("mistake alsoMove and source", () => {
+  it("parses alsoMove and source, and checks alsoMove part IDs", () => {
+    const data = structuredClone(sample) as typeof sample & Record<string, unknown>;
+    const gpuStep = data.assembly.find((x) => x.id === "s_gpu")!;
+    Object.assign(gpuStep.mistakes![0]!, {
+      alsoMove: [{ partId: "gpu_power_cable", path: [{ offset: [0, 0, 0] }, { offset: [0, 0, 40] }] }],
+      source: ["https://example.com/gpu"],
+    });
+    Object.assign(gpuStep, { source: [{ url: "https://example.com/step" }] });
+    Object.assign(data.guides[0]!, { source: ["https://example.com/guide"] });
+    const p = parseProduct(data);
+    const m = p.assembly.find((x) => x.id === "s_gpu")!.mistakes[0]!;
+    expect(m.alsoMove).toEqual([
+      { partId: "gpu_power_cable", path: [{ offset: [0, 0, 0], rotation: [0, 0, 0] }, { offset: [0, 0, 40], rotation: [0, 0, 0] }] },
+    ]);
+    expect(m.source).toEqual(["https://example.com/gpu"]);
+    expect(p.assembly.find((x) => x.id === "s_gpu")!.source).toEqual([{ url: "https://example.com/step" }]);
+    expect(p.guides[0]!.source).toEqual(["https://example.com/guide"]);
+    // Old data without the new fields still parses with defaults.
+    expect(product.assembly[0]!.mistakes).toEqual([]);
+
+    (gpuStep.mistakes![0] as unknown as { alsoMove: { partId: string }[] }).alsoMove[0]!.partId = "ghost";
+    const msgs = ProductSchema.safeParse(data).error!.issues.map((i) => i.message).join("\n");
+    expect(msgs).toContain('unknown alsoMove part "ghost"');
+  });
+});
+

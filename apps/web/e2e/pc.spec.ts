@@ -75,7 +75,9 @@ test("pc_atx: assembled, guide steps and mistakes", async ({ page, isMobile }) =
       },
       g.id,
     );
-    expect(items.keys[0]).toBe("remove:s_side_panel");
+    // Three safety steps (beforeRemoval) come first, then the side panel.
+    expect(items.keys.slice(0, 3).map((k) => k.split("_").at(-1))).toEqual(["off", "drain", "esd"]);
+    expect(items.keys[3]).toBe("remove:s_side_panel");
     for (const key of g.at) {
       const index = items.keys.indexOf(key);
       expect(index, key).toBeGreaterThanOrEqual(0);

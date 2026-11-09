@@ -55,7 +55,7 @@ const off = engine.on("statechange", (s) => store.setState({ engine: s }));
 | `setView(viewOrPartId)` | 시점 이름이면 그 프리셋, 부품 ID면 그 부품에 맞춰 부드럽게 이동. `cameraOwner = agent` |
 | `resumeGuide()` | `cameraOwner = agent`, 안내 시점(state.view)으로 복귀 |
 | `explode(0..1)` | 분해도. 각 부품이 첫 조립 경로의 시작 방향으로 벌어진다(최대 260mm) |
-| `showMistake(stepId, mistakeId)` / `clearMistake()` | 틀린 방법을 빨간 반투명 복제본으로 겹쳐 보여 준다(mistake.path를 반복 재생). 진짜 부품은 초록, 나머지는 흐리게, violates 지점에 ✕ 핀. 설치 상태와 절차 위치는 그대로 |
+| `showMistake(stepId, mistakeId)` / `clearMistake()` | 틀린 방법을 빨간 반투명 복제본으로 겹쳐 보여 준다(mistake.path를 반복 재생). `alsoMove` 부품도 빨간 복제본으로 동시에 움직이고 진짜 부품은 초록. 진짜 부품은 초록, 나머지는 흐리게, violates 지점에 ✕ 핀. 설치 상태와 절차 위치는 그대로 |
 | `peek(partIds[] ｜ featureId)` | 곁가지 질문용 잠깐 보기. 강조와 카메라만 바꾸고 절차 위치, 설치 상태, `view`는 그대로. 빠진 부품이면 유령으로 보인다 |
 | `resumeProcedure()` | 잠깐 보기와 실수 표시를 지우고 현재 단계(절차 항목 또는 showStep 단계)의 강조, 핀, 시점으로 돌아온다 |
 | `getState()` | 아래 `EngineState` |
@@ -130,7 +130,10 @@ runCommand(engine, { type: "setView", view: "m2_area" });
     "attachedTo": "gpu",                 // 선택, 이 단계 부품이 붙는 부품(케이블 등). 그 부품을 빼기 전에 이 단계를 먼저 뺀다
     "mistakes": [{ "id": "gpu_tilted", "label": "비스듬히 꽂기", "description": "...",
                    "path": [{ "offset": [0, 0, 60] }, { "offset": [0, 0, 8], "rotation": [0, 6, 0] }],  // 마지막 키프레임이 틀린 자리
-                   "violates": ["pcie_latch"] }],
+                   "violates": ["pcie_latch"],
+                   "alsoMove": [{ "partId": "cpu", "path": [...] }],   // 선택, 같이 딸려 움직이는 부품(빨강 복제본, 동시에 재생)
+                   "source": ["https://..."] }],                     // 선택
+    "source": [{ "url": "https://...", "quote": "..." }],     // 선택, 단계, 실수, 지침서 공통: URL 문자열 또는 { url, quote? }
     "checks": ["pcie_slot", "pcie_latch"],
     "screwOrder": ["..."],               // 선택, 나사 구멍 feature ID 순서
     "camera": "gpu_area"                 // 선택, views의 이름
@@ -140,7 +143,10 @@ runCommand(engine, { type: "setView", view: "m2_area" });
     "id": "ssd_not_detected", "title": "SSD가 인식되지 않음", "symptoms": ["..."],
     "targetPartId": "m2_ssd",
     "extraSteps": [                     // 완전한 step 객체 + at
+      { "id": "x_power_off", "at": "beforeRemoval", "label": "전원 끄기", "highlightParts": [], "checks": ["psu_switch"] },
       { "id": "x_check_slot", "at": "afterRemoval", "label": "...", "partId": "motherboard", "checks": ["m2_slot"] },
+      { "id": "x_wipe", "at": "afterRemoval", "partId": "thermal_paste", "action": "remove_consumable", "label": "굳은 써멀 닦기",
+        "path": [{ "offset": [0, 0, 30] }], "highlightParts": ["cpu"] },
       { "id": "x_thermal_pad", "at": "beforeReinstall", "label": "써멀 패드 붙이기", "partId": "thermal_pad",
         "action": "apply", "path": [{ "offset": [0, 0, 50] }] }
     ]
@@ -150,6 +156,9 @@ runCommand(engine, { type: "setView", view: "m2_area" });
 
 - `path`: 최종 포즈 기준 상대 포즈(위치 오프셋은 제품 축 기준, 회전은 부품 원점 기준). 첫 키프레임이 출발점이고, 마지막이 0이 아니면 최종 포즈(0, 0)가 자동으로 붙는다. 설치는 앞으로, 제거는 거꾸로 재생한다.
 - 모든 부품은 조립 단계가 하나 이상 있어야 한다(`consumable: true`는 예외). 한 부품에 단계가 여럿이면 첫 단계에서 나타나고 마지막 단계가 빠질 때 사라진다(중간 단계는 살짝 움직이는 표시만).
+- `at`: `beforeRemoval`(절차 맨 앞, 아무것도 빼기 전: 전원 끄기, 남은 전기, 정전기), `afterRemoval`, `beforeReinstall`.
+- `highlightParts`(extra step만): 강조할 부품. `[]`이면 부품 강조 없이 checks 핀만(안내만 하는 단계). 없으면 `[partId]`.
+- `action: "remove_consumable"`(extra step만, 소모품 부품만): 그 소모품을 path 거꾸로 움직여 없앤다. 소모품이 보이는지는 그 부품의 설치된 조립 단계에서 시작해, 적용된 extra step을 순서대로 보며 `remove_consumable`이면 숨김, 그 밖이면 보임으로 정한다(`consumableVisible`).
 - extra step은 step과 같은 필드에 `at`이 더해진다. partId 기본은 지침서 targetPartId, action 기본 `inspect`, path 기본 `[]`. partId가 소모품이면 path대로 나타나 절차가 끝날 때까지 남고, 아니면 강조와 핀만 한다.
 - `parseProduct`가 참조를 모두 검사한다: 중복 ID, 없는 partId, blocks, attachedTo, checks, screwOrder, camera, mistakes.violates, 지침서 참조. 시점 이름이 부품 ID와 겹치면 오류(`setView`가 둘 다 받기 때문).
 - `"default"` 시점이 있으면 처음에 그 시점으로 시작한다.
@@ -177,6 +186,7 @@ Blender에서 내보낼 때
 
 `planService(product, installedStepIds, targetPartId, guide?) → Procedure`
 
+0. 지침서 extraSteps 중 `beforeRemoval`을 맨 앞에.
 1. 설치된 단계 중 목표 부품보다 먼저 빼야 하는 단계를 찾고, 그 부품보다 먼저 빼야 하는 단계를 다시 재귀로 찾는다.
    **규칙: 단계 S는 부품 P보다 먼저 뺀다 ⇔ S.attachedTo가 P이거나, S.blocks에 P가 있거나, S.blocks에 "*"가 있고 P가 S보다 먼저 조립된 경우.**
 2. 가리는 부품의 단계를 조립 역순으로 제거, 그다음 목표 부품의 단계 제거.
@@ -191,7 +201,9 @@ interface ProcedureItem {
   camera: string | null;   // extra에 camera가 없으면 목표 단계의 camera
   label: string; description: string; action: StepAction;
   installed: string[];     // 이 항목을 마친 뒤의 설치 단계 집합 (엔진은 이걸로 결정적으로 이동)
-  appliedExtras: string[]; // 이 항목까지 한 extra step ID
+  appliedExtras: string[]; // 이 항목까지 한 extra step ID (순서대로)
+  highlightPartIds: string[]; // 강조할 부품, [] = 안내만
+  source: Source[];
 }
 interface Procedure { productId; targetPartId; guideId; initialInstalled: string[]; items: ProcedureItem[]; extraSteps: ExtraStep[] }
 ```
@@ -201,6 +213,7 @@ interface Procedure { productId; targetPartId; guideId; initialInstalled: string
 - `"*"`는 그 단계보다 먼저 조립된 부품만 가린다. 그래서 `"*"` 덮개 둘이 서로를 가리지 않는다.
 
 `installedThrough(product, stepId)`: 조립 순서에서 그 단계까지의 설치 집합.
+`consumableVisible(product, extraSteps, targetPartId, installed, appliedExtras, partId)`: 소모품이 보이는지(엔진과 같은 규칙).
 
 ## 개발
 

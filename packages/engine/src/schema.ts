@@ -89,8 +89,17 @@ export const StepActionSchema = z.enum([
   "lift",
   "apply",
   "inspect",
+  /** Extra steps only: a consumable part goes away (e.g. wiping off old thermal paste). */
+  "remove_consumable",
 ]);
 export type StepAction = z.infer<typeof StepActionSchema>;
+
+/** Where a statement comes from: a URL, or a URL with the quoted sentence. */
+export const SourceSchema = z.union([
+  z.string().min(1),
+  z.object({ url: z.string().min(1), quote: z.string().optional() }),
+]);
+export type Source = z.infer<typeof SourceSchema>;
 
 /** A pose relative to the part's final pose. Offset is in product axes, rotation in degrees. */
 export const KeyframeSchema = z.object({
@@ -113,6 +122,12 @@ export const MistakeSchema = z.object({
   path: z.array(KeyframeSchema).min(1),
   /** Feature IDs this mistake violates (pinned while shown). */
   violates: z.array(z.string()).default([]),
+  /**
+   * Other parts dragged along by the wrong motion (e.g. the CPU pulled out with the cooler).
+   * Each is drawn as its own red copy moving along its path (same relative format) at the same time.
+   */
+  alsoMove: z.array(z.object({ partId: Id, path: z.array(KeyframeSchema).min(1) })).default([]),
+  source: z.array(SourceSchema).optional(),
 });
 export type Mistake = z.infer<typeof MistakeSchema>;
 
@@ -146,6 +161,7 @@ export const StepSchema = z.object({
   camera: z.string().optional(),
   /** Common wrong ways to do this step. */
   mistakes: z.array(MistakeSchema).default([]),
+  source: z.array(SourceSchema).optional(),
 });
 export type Step = z.infer<typeof StepSchema>;
 
@@ -166,8 +182,16 @@ export type View = z.infer<typeof ViewSchema>;
  *   procedure ends (e.g. thermal paste).
  */
 export const ExtraStepSchema = StepSchema.extend({
-  /** afterRemoval: right after the target part comes out. beforeReinstall: right before it goes back. */
-  at: z.enum(["afterRemoval", "beforeReinstall"]),
+  /**
+   * beforeRemoval: at the very start, before anything comes out (power off, discharge, ESD).
+   * afterRemoval: right after the target part comes out. beforeReinstall: right before it goes back.
+   */
+  at: z.enum(["beforeRemoval", "afterRemoval", "beforeReinstall"]),
+  /**
+   * Parts to highlight instead of partId. [] = no part highlight (guidance only; use checks to
+   * pin features). Default: [partId].
+   */
+  highlightParts: z.array(Id).optional(),
   label: z.string(),
   partId: z.string().optional(),
   action: StepActionSchema.default("inspect"),
@@ -181,6 +205,7 @@ export const GuideSchema = z.object({
   symptoms: z.array(z.string()).default([]),
   targetPartId: Id,
   extraSteps: z.array(ExtraStepSchema).default([]),
+  source: z.array(SourceSchema).optional(),
 });
 export type Guide = z.infer<typeof GuideSchema>;
 
@@ -236,6 +261,12 @@ function stepIssues(p: Refs, s: Step | ExtraStep, where: string, partIdRequired 
   for (const d of dupes(s.mistakes.map((m) => m.id))) out.push(`${where}: duplicate mistake id "${d}"`);
   for (const m of s.mistakes) {
     for (const v of m.violates) if (!featureIds.has(v)) out.push(`${where} mistake "${m.id}": unknown feature "${v}"`);
+    for (const a of m.alsoMove) {
+      if (!partIds.has(a.partId)) out.push(`${where} mistake "${m.id}": unknown alsoMove part "${a.partId}"`);
+    }
+  }
+  if ("highlightParts" in s) {
+    for (const h of s.highlightParts ?? []) if (!partIds.has(h)) out.push(`${where}: unknown highlight part "${h}"`);
   }
   return out;
 }
@@ -261,6 +292,7 @@ export const ProductSchema = ProductBaseSchema.superRefine((p, ctx) => {
   });
   p.assembly.forEach((s, i) => {
     for (const m of stepIssues(p, s, `step "${s.id}"`)) err(m, ["assembly", i]);
+    if (s.action === "remove_consumable") err(`step "${s.id}": remove_consumable is for guide extra steps only`, ["assembly", i]);
   });
   const installedParts = new Set(p.assembly.map((s) => s.partId));
   for (const part of p.parts) {
@@ -282,7 +314,13 @@ export function guideIssues(p: Refs, g: Guide): string[] {
   const out: string[] = [];
   const partIds = new Set(p.parts.map((x) => x.id));
   if (!partIds.has(g.targetPartId)) out.push(`guide "${g.id}": unknown targetPartId "${g.targetPartId}"`);
-  for (const e of g.extraSteps) out.push(...stepIssues(p, e, `guide "${g.id}" step "${e.id}"`, false));
+  for (const e of g.extraSteps) {
+    out.push(...stepIssues(p, e, `guide "${g.id}" step "${e.id}"`, false));
+    if (e.action === "remove_consumable") {
+      const part = p.parts.find((x) => x.id === (e.partId ?? g.targetPartId));
+      if (part && !part.consumable) out.push(`guide "${g.id}" step "${e.id}": remove_consumable needs a consumable part`);
+    }
+  }
   return out;
 }
 

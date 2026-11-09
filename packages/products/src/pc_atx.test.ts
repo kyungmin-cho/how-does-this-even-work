@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { planService, type Procedure } from "@assembly/engine/planner";
+import { consumableVisible, planService, type Procedure } from "@assembly/engine/planner";
 import { ProductSchema, type Product } from "@assembly/engine/schema";
 import raw from "../data/pc_atx.json";
 import { getProduct, getSources, productIds, products } from "./index";
@@ -9,6 +9,7 @@ const all = product.assembly.map((s) => s.id);
 const guide = (id: string) => product.guides.find((g) => g.id === id)!;
 const plan = (id: string): Procedure => planService(product, all, guide(id).targetPartId, guide(id));
 const summary = (p: Procedure) => p.items.map((i) => `${i.kind}:${i.stepId}`);
+const safety = (prefix: string) => [`extra:${prefix}_power_off`, `extra:${prefix}_drain`, `extra:${prefix}_esd`];
 
 type Vec3 = [number, number, number];
 interface WorldBox {
@@ -111,9 +112,9 @@ describe("schema", () => {
     expect(boxes("m2_ssd")[0]!.size.slice(0, 2)).toEqual([80, 22]);
   });
 
-  it("drops unknown `source` keys on parse, so sources come from the raw JSON", () => {
-    expect("source" in product.guides[0]!).toBe(false);
+  it("keeps `source` on guides and mistakes (schema field), same as getSources", () => {
     const src = getSources("pc_atx")!;
+    for (const g of product.guides) expect(g.source, g.id).toEqual(src.guides[g.id]);
     for (const g of product.guides) {
       expect(src.guides[g.id]!.length, g.id).toBeGreaterThan(0);
       for (const url of src.guides[g.id]!) expect(SOURCES_FROM_DOC_04.has(url), url).toBe(true);
@@ -130,12 +131,12 @@ describe("schema", () => {
 describe("planService on pc_atx", () => {
   it("SSD: panel, GPU power, GPU, heatsink come out first", () => {
     expect(summary(plan("guide_add_ssd"))).toEqual([
+      ...safety("x_ssd"),
       "remove:s_side_panel",
       "remove:s_gpu_power",
       "remove:s_gpu",
       "remove:s_m2_heatsink",
       "remove:s_m2",
-      "extra:x_ssd_safety",
       "extra:x_ssd_angle",
       "extra:x_ssd_film",
       "install:s_m2",
@@ -148,10 +149,10 @@ describe("planService on pc_atx", () => {
 
   it("GPU: the power cable comes out before the card (attachedTo)", () => {
     expect(summary(plan("guide_replace_gpu"))).toEqual([
+      ...safety("x_gpu"),
       "remove:s_side_panel",
       "remove:s_gpu_power",
       "remove:s_gpu",
-      "extra:x_gpu_safety",
       "extra:x_gpu_latch",
       "extra:x_gpu_insert",
       "install:s_gpu",
@@ -163,10 +164,10 @@ describe("planService on pc_atx", () => {
   it("cooler: panel, fan cable, cooler; paste stays and is reapplied", () => {
     const p = plan("guide_overheat");
     expect(summary(p)).toEqual([
+      ...safety("x_oh"),
       "remove:s_side_panel",
       "remove:s_cooler_fan_cable",
       "remove:s_cooler",
-      "extra:x_oh_safety",
       "extra:x_oh_wipe",
       "extra:x_oh_triangle",
       "extra:x_oh_paste",
@@ -178,13 +179,27 @@ describe("planService on pc_atx", () => {
     expect(paste).toMatchObject({ partId: "thermal_paste", action: "apply" });
     expect(paste.installed).toContain("s_paste");
     expect(paste.installed).toContain("s_cpu");
+    // Wiping hides the paste, applying brings it back, and it stays to the end.
+    const pasteShown = (stepId: string) => {
+      const it = stepId === "end" ? p.items.at(-1)! : p.items.find((i) => i.stepId === stepId)!;
+      return consumableVisible(product, p.extraSteps, p.targetPartId, it.installed, it.appliedExtras, "thermal_paste");
+    };
+    expect(p.items.find((i) => i.stepId === "x_oh_wipe")).toMatchObject({
+      action: "remove_consumable",
+      highlightPartIds: ["cpu", "thermal_paste"],
+    });
+    expect(pasteShown("s_cooler")).toBe(true); // first match: the removal, before wiping
+    expect(pasteShown("x_oh_wipe")).toBe(false);
+    expect(pasteShown("x_oh_triangle")).toBe(false);
+    expect(pasteShown("x_oh_paste")).toBe(true);
+    expect(pasteShown("end")).toBe(true);
   });
 
   it("RAM: only the panel is in the way", () => {
     expect(summary(plan("guide_ram_not_detected"))).toEqual([
+      ...safety("x_ram"),
       "remove:s_side_panel",
       "remove:s_ram",
-      "extra:x_ram_safety",
       "extra:x_ram_notch",
       "extra:x_ram_slots",
       "extra:x_ram_latch",
@@ -193,17 +208,24 @@ describe("planService on pc_atx", () => {
     ]);
   });
 
-  it("every guide starts with the panel (safety text) and its first extra is the safety check", () => {
+  it("every guide starts with three safety steps (beforeRemoval), then the panel", () => {
     for (const g of product.guides) {
       const p = plan(g.id);
-      expect(p.items[0]).toMatchObject({ kind: "remove", stepId: "s_side_panel" });
-      expect(p.items[0]!.description).toMatch(/전원을 끄고.*전원 버튼.*정전기/);
-      expect(p.items[0]!.checks).toContain("case_power_button");
-      const first = g.extraSteps[0]!;
-      expect(first).toMatchObject({ at: "afterRemoval", partId: "case" });
-      expect(first.checks).toEqual(["case_power_button", "case_ground"]);
+      const head = p.items.slice(0, 3);
+      expect(head.map((i) => i.kind)).toEqual(["extra", "extra", "extra"]);
+      for (const it of head) expect(it.installed).toEqual(all);
+      expect(head.map((i) => i.checks)).toEqual([["psu_switch"], ["case_power_button"], ["case_ground"]]);
+      expect(head.map((i) => i.highlightPartIds)).toEqual([["psu"], [], []]);
+      for (const it of head) expect(it.source.length).toBeGreaterThan(0);
+      expect(p.items[3]).toMatchObject({ kind: "remove", stepId: "s_side_panel" });
       expect(p.items.at(-1)!.installed).toEqual(all);
     }
+  });
+
+  it("cooler straight-pull mistake drags the CPU and paste along (alsoMove)", () => {
+    const m = product.assembly.find((s) => s.id === "s_cooler")!.mistakes.find((x) => x.id === "cooler_straight_pull")!;
+    expect(m.alsoMove.map((a) => a.partId)).toEqual(["cpu", "thermal_paste"]);
+    expect(m.alsoMove[0]!.path).toEqual(m.path);
   });
 
   it("extra steps pin features of parts that are on screen (known exception: heatsink film)", () => {

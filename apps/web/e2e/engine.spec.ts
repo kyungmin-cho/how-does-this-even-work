@@ -1,6 +1,9 @@
 import { chromium, expect, test, type Page } from "@playwright/test";
 import type { EngineState } from "@assembly/engine";
 
+// Screenshots: test-results/ by default (Playwright empties it per run); ENGINE_SHOTS=<dir> keeps them.
+const SHOTS = process.env.ENGINE_SHOTS ?? "test-results";
+
 // Headless Chromium needs SwiftShader for WebGL.
 test.use({ launchOptions: { args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] } });
 
@@ -28,7 +31,7 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   expect(s.view).toBe("default");
   expect(s.cameraOwner).toBe("agent");
   await page.waitForTimeout(500);
-  await page.screenshot({ path: "test-results/engine-initial.png" });
+  await page.screenshot({ path: `${SHOTS}/engine-initial.png` });
 
   // Step button (UI) and engine API agree.
   await page.locator('[data-step="s_m2"]').click();
@@ -87,7 +90,7 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   await page.evaluate(() => window.__engine!.prev());
   await settled(page);
   await page.waitForTimeout(800); // let the camera glide finish
-  await page.screenshot({ path: "test-results/engine-procedure.png" });
+  await page.screenshot({ path: `${SHOTS}/engine-procedure.png` });
 
   // Peek: a side question changes highlight and camera but not the procedure position.
   await page.evaluate(() => window.__engine!.goTo(5));
@@ -126,7 +129,7 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   expect(s.procedure!.index).toBe(8);
   await expect(page.evaluate(() => window.__engine!.showMistake("s_m2", "nope"))).rejects.toThrow(/unknown mistake/);
   await page.waitForTimeout(1500);
-  await page.screenshot({ path: "test-results/engine-mistake.png" });
+  await page.screenshot({ path: `${SHOTS}/engine-mistake.png` });
   await page.evaluate(() => window.__engine!.resumeProcedure());
   s = await state(page);
   expect(s.mistake).toBeNull();
@@ -146,7 +149,7 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   });
   await page.waitForTimeout(1200);
   expect((await state(page)).explode).toBe(0.6);
-  await page.screenshot({ path: "test-results/engine-explode.png" });
+  await page.screenshot({ path: `${SHOTS}/engine-explode.png` });
 
   // The canvas actually draws something (not a blank background).
   const drawn = await page.evaluate(() => {
@@ -174,7 +177,7 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   });
   await settled(page);
   await page.waitForTimeout(1200);
-  await page.screenshot({ path: "test-results/engine-glb.png" });
+  await page.screenshot({ path: `${SHOTS}/engine-glb.png` });
 
   // A broken GLB must not break the demo: parts fall back to boxes.
   await page.evaluate(() => {
@@ -188,6 +191,55 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   expect(s.installedStepIds).toEqual(ALL);
   await page.evaluate(() => window.__engine!.highlight(["gpu"], "focus"));
   expect((await state(page)).highlight.partIds).toEqual(["gpu"]);
+
+  expect(errors).toEqual([]);
+});
+
+test("pc_atx: cooler mistake drags the CPU, overheat guide starts with safety and wipes the paste", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  await page.goto("/dev/engine?product=pc_atx");
+  await page.waitForFunction(() => window.__engine?.getState().productId === "pc_atx", null, { timeout: 60_000 });
+
+  // Strongest mistake: straight pull lifts the cooler, the CPU and the paste together (red copies).
+  await page.evaluate(() => window.__engine!.showMistake("s_cooler", "cooler_straight_pull"));
+  let s = await state(page);
+  expect(s.mistake).toEqual({ stepId: "s_cooler", mistakeId: "cooler_straight_pull" });
+  expect(s.marks.map((m) => m.featureId)).toEqual(["cpu_socket"]);
+  await page.waitForTimeout(1600);
+  await page.screenshot({ path: `${SHOTS}/engine-pc-cooler-mistake.png` });
+  await page.evaluate(() => window.__engine!.resumeProcedure());
+
+  // Overheat guide: three safety steps before anything comes out.
+  await page.locator('[data-guide="guide_overheat"]').click();
+  s = await state(page);
+  expect(s.procedure!.item).toMatchObject({ kind: "extra", stepId: "x_oh_power_off" });
+  expect(s.highlight).toEqual({ mode: "focus", partIds: ["psu"] });
+  expect(s.marks.map((m) => m.featureId)).toEqual(["psu_switch"]);
+  expect(s.installedStepIds).toContain("s_side_panel");
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: `${SHOTS}/engine-pc-overheat-first.png` });
+  await page.evaluate(() => window.__engine!.next());
+  s = await state(page);
+  expect(s.procedure!.item!.stepId).toBe("x_oh_drain");
+  expect(s.highlight).toEqual({ mode: "none", partIds: [] }); // guidance only, pin on the button
+  expect(s.marks.map((m) => m.featureId)).toEqual(["case_power_button"]);
+
+  // Wipe: the paste goes away; applying new paste brings it back.
+  const order = await page.evaluate(() => window.__engine!.getState().procedure!.length);
+  expect(order).toBe(12);
+  await page.evaluate(() => window.__engine!.goTo(6)); // x_oh_wipe
+  s = await state(page);
+  expect(s.procedure!.item).toMatchObject({ stepId: "x_oh_wipe", action: "remove_consumable" });
+  expect(s.highlight.partIds).toEqual(["cpu", "thermal_paste"]);
+  await settled(page);
+  await page.waitForTimeout(900);
+  await page.screenshot({ path: `${SHOTS}/engine-pc-overheat-wipe.png` });
+  await page.evaluate(() => window.__engine!.goTo(8)); // x_oh_paste
+  s = await state(page);
+  expect(s.procedure!.item!.stepId).toBe("x_oh_paste");
+  expect(s.appliedExtraStepIds.slice(-2)).toEqual(["x_oh_triangle", "x_oh_paste"]);
+  await settled(page);
 
   expect(errors).toEqual([]);
 });

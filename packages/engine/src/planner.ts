@@ -1,4 +1,4 @@
-import { guideIssues, type ExtraStep, type Guide, type Product, type Step, type StepAction } from "./schema";
+import { guideIssues, type ExtraStep, type Guide, type Product, type Source, type Step, type StepAction } from "./schema";
 
 export type ProcedureKind = "remove" | "install" | "extra";
 
@@ -16,8 +16,11 @@ export interface ProcedureItem {
   action: StepAction;
   /** Installed assembly step IDs (assembly order) after this item is done. */
   installed: string[];
-  /** Extra step IDs applied so far (consumable parts from these stay visible). */
+  /** Extra step IDs applied so far, in order (see consumableVisible). */
   appliedExtras: string[];
+  /** Parts to highlight: [partId] for steps, extraStep.highlightParts if given ([] = guidance only). */
+  highlightPartIds: string[];
+  source: Source[];
 }
 
 export interface Procedure {
@@ -46,6 +49,31 @@ export class PlannerError extends Error {
     super(message);
     this.name = "PlannerError";
   }
+}
+
+/**
+ * Is a consumable part shown? It starts from its own installed assembly steps, then each applied
+ * extra step on that part (in order) shows it, except `remove_consumable`, which hides it.
+ * Non-consumable parts: installed assembly steps only.
+ */
+export function consumableVisible(
+  product: Product,
+  extraSteps: ExtraStep[],
+  targetPartId: string,
+  installed: Iterable<string>,
+  appliedExtras: Iterable<string>,
+  partId: string,
+): boolean {
+  const inst = new Set(installed);
+  let visible = product.assembly.some((s) => s.partId === partId && inst.has(s.id));
+  if (!product.parts.find((p) => p.id === partId)?.consumable) return visible;
+  const byId = new Map(extraSteps.map((e) => [e.id, e]));
+  for (const id of appliedExtras) {
+    const e = byId.get(id);
+    if (!e || (e.partId ?? targetPartId) !== partId) continue;
+    visible = e.action !== "remove_consumable";
+  }
+  return visible;
 }
 
 /** Assembly steps in fixed order, filtered to an installed set. */
@@ -154,17 +182,20 @@ export function planService(
       action: s.action,
       installed: snapshot(),
       appliedExtras: [...applied],
+      highlightPartIds: [s.partId],
+      source: [...(s.source ?? [])],
     });
   };
   const targetCamera = targetSteps[0]!.camera ?? null;
-  const pushExtras = (at: "afterRemoval" | "beforeReinstall") => {
+  const pushExtras = (at: ExtraStep["at"]) => {
     for (const e of guide?.extraSteps ?? []) {
       if (e.at !== at) continue;
       applied.push(e.id);
+      const partId = e.partId ?? targetPartId;
       items.push({
         kind: "extra",
         stepId: e.id,
-        partId: e.partId ?? targetPartId,
+        partId,
         checks: [...e.checks, ...(e.screwOrder ?? []).filter((c) => !e.checks.includes(c))],
         camera: e.camera ?? targetCamera,
         label: e.label,
@@ -172,10 +203,13 @@ export function planService(
         action: e.action,
         installed: snapshot(),
         appliedExtras: [...applied],
+        highlightPartIds: [...(e.highlightParts ?? [partId])],
+        source: [...(e.source ?? [])],
       });
     }
   };
 
+  pushExtras("beforeRemoval");
   for (const s of removeOrder) pushStep("remove", s);
   pushExtras("afterRemoval");
   pushExtras("beforeReinstall");

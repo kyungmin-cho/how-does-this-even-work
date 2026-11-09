@@ -299,7 +299,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   let applied = new Set<string>();
   let extraById = new Map<string, ExtraStep>();
   let peekState: { partIds: string[]; featureId: string | null } | null = null;
-  let mistakeState: { stepId: string; mistakeId: string; partId: string } | null = null;
+  let mistakeState: { stepId: string; mistakeId: string; partId: string; alsoParts: string[] } | null = null;
   let mistakeGroup: THREE.Group | null = null;
   let mistakeTl: gsap.core.Timeline | null = null;
   let assets: AssetsState = { status: "none", urls: [], glbParts: [], errors: [] };
@@ -604,20 +604,24 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   // ---------- visuals ----------
+  /** Same rule as planner.consumableVisible (kept inline: called per part on every snap). */
   function partInstalled(partId: string, inst = installed, app = applied) {
-    if (parts.get(partId)!.steps.some((s) => inst.has(s.id))) return true;
+    const rec = parts.get(partId)!;
+    let visible = rec.steps.some((s) => inst.has(s.id));
+    if (!rec.def.consumable) return visible;
     for (const id of app) {
       const e = extraById.get(id);
-      if (e && (e.partId ?? procedure?.targetPartId) === partId && parts.get(partId)!.def.consumable) return true;
+      if (!e || (e.partId ?? procedure?.targetPartId) !== partId) continue;
+      visible = e.action !== "remove_consumable";
     }
-    return false;
+    return visible;
   }
 
   /** Parts drawn even when not installed: ghost highlight, peek, mistake target. */
   function forcedVisible(partId: string) {
     if (highlightState.mode === "ghost" && highlightState.partIds.includes(partId)) return true;
     if (peekState?.partIds.includes(partId)) return true;
-    return mistakeState?.partId === partId;
+    return !!mistakeState && (mistakeState.partId === partId || mistakeState.alsoParts.includes(partId));
   }
 
   /** Put every part exactly where the logical state says (no animation). */
@@ -632,7 +636,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   function styleFor(partId: string): Style {
-    if (mistakeState) return partId === mistakeState.partId ? "ok" : "dim";
+    if (mistakeState) {
+      return partId === mistakeState.partId || mistakeState.alsoParts.includes(partId) ? "ok" : "dim";
+    }
     if (peekState && peekState.partIds.includes(partId) && !partInstalled(partId)) return "ghost";
     const { mode, partIds } = highlightState;
     const hit = partIds.includes(partId);
@@ -831,15 +837,17 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       change();
       addStepMotion(t, s, partId, kind, before, visible(partId));
     };
+    // Consumable extras move their part: apply → in, remove_consumable → out (reverse when undone).
+    const wipes = (e: ExtraStep) => e.action === "remove_consumable";
     for (const e of extrasOff) {
-      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), "remove", () => wApp.delete(e.id));
+      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), wipes(e) ? "install" : "remove", () => wApp.delete(e.id));
       else wApp.delete(e.id);
     }
     for (const s of removing) move(s, s.partId, "remove", () => wInst.delete(s.id));
     for (const s of adding) move(s, s.partId, "install", () => wInst.add(s.id));
     for (const e of extrasOn) {
       // Only consumable parts move for an extra step; other extras are highlight-only.
-      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), "install", () => wApp.add(e.id));
+      if (parts.get(extraPart(e))!.def.consumable) move(e, extraPart(e), wipes(e) ? "remove" : "install", () => wApp.add(e.id));
       else wApp.add(e.id);
     }
     if (t.duration() === 0) {
@@ -1080,7 +1088,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     const item = procedure.items[index]!;
     currentStepId = item.stepId;
-    highlightState = { mode: "focus", partIds: [item.partId] };
+    highlightState = itemHighlight(item);
     transition(new Set(item.installed), true, new Set(item.appliedExtras ?? []));
     setMarks(item.checks);
     guideCamera(item.camera);
@@ -1162,6 +1170,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     emitState();
   }
 
+  /** Highlight for a procedure item (older procedures have no highlightPartIds). */
+  function itemHighlight(item: ProcedureItem): { mode: HighlightMode; partIds: string[] } {
+    const ids = (item.highlightPartIds ?? [item.partId]).filter((id) => parts.has(id));
+    return ids.length ? { mode: "focus", partIds: ids } : { mode: "none", partIds: [] };
+  }
+
   // ---------- side looks: peek and mistakes ----------
   function findStep(stepId: string): { step: AnyStep; partId: string } | null {
     const s = stepById.get(stepId);
@@ -1208,18 +1222,11 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     clearMistakeInternal();
     peekState = null;
-    mistakeState = { stepId, mistakeId, partId };
-    const part = parts.get(partId)!;
+    for (const a of mistake.alsoMove) if (!parts.has(a.partId)) throw new Error(`unknown alsoMove part "${a.partId}"`);
+    mistakeState = { stepId, mistakeId, partId, alsoParts: mistake.alsoMove.map((a) => a.partId) };
 
-    // Red translucent copy at the wrong pose; the real part stays in place, green.
-    const root = new THREE.Group();
-    root.position.copy(part.root.position).add(part.exploded.position);
-    const anim = new THREE.Group();
-    const body = new THREE.Group();
-    body.rotation.copy(part.body.rotation);
-    root.add(anim);
-    anim.add(body);
-    // Same geometry as the real part (boxes or GLB), one shared red material.
+    // Red translucent copies at the wrong pose (the step's part, plus parts dragged along);
+    // the real parts stay in place, green. Same geometry as the real part (boxes or GLB).
     const red = new THREE.MeshStandardMaterial({
       color: RED,
       emissive: RED,
@@ -1228,30 +1235,48 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       opacity: 0.45,
       depthWrite: false,
     });
-    part.body.updateWorldMatrix(true, true);
-    const inv = part.body.matrixWorld.clone().invert();
-    for (const m of part.meshes) {
-      const mesh = new THREE.Mesh(m.mesh.geometry, red);
-      mesh.matrixAutoUpdate = false;
-      mesh.matrix.multiplyMatrices(inv, m.mesh.matrixWorld);
-      mesh.renderOrder = 2;
-      body.add(mesh);
-    }
-    root.userData.mistake = mistakeId;
-    productRoot.add(root);
-    mistakeGroup = root;
-
-    const poses = poseList(mistake.path, false);
-    anim.position.copy(poses[0]!.pos);
-    anim.rotation.copy(poses[0]!.rot);
-    if (poses.length > 1) {
-      const t = gsap.timeline({ repeat: -1, repeatDelay: 1.2 });
+    const group = new THREE.Group();
+    group.userData.mistake = mistakeId;
+    productRoot.add(group);
+    mistakeGroup = group;
+    const t = gsap.timeline({ repeat: -1, repeatDelay: 1.2, paused: true });
+    const moving = [{ partId, path: mistake.path }, ...mistake.alsoMove];
+    for (const mv of moving) {
+      const part = parts.get(mv.partId)!;
+      const root = new THREE.Group();
+      root.position.copy(part.root.position).add(part.exploded.position);
+      const anim = new THREE.Group();
+      const body = new THREE.Group();
+      body.rotation.copy(part.body.rotation);
+      root.add(anim);
+      anim.add(body);
+      part.body.updateWorldMatrix(true, true);
+      const inv = part.body.matrixWorld.clone().invert();
+      for (const m of part.meshes) {
+        const mesh = new THREE.Mesh(m.mesh.geometry, red);
+        mesh.matrixAutoUpdate = false;
+        mesh.matrix.multiplyMatrices(inv, m.mesh.matrixWorld);
+        mesh.renderOrder = 2;
+        body.add(mesh);
+      }
+      group.add(root);
+      // All copies start together; each follows its own keyframes.
+      const poses = poseList(mv.path, false);
+      anim.position.copy(poses[0]!.pos);
+      anim.rotation.copy(poses[0]!.rot);
+      let at = 0;
       for (let i = 1; i < poses.length; i++) {
         const target = poses[i]!;
-        addPoseTween(t, { anim }, target.pos, target.rot, (target.kf?.duration ?? DEFAULT_SEGMENT) / timeScale);
+        const d = (target.kf?.duration ?? DEFAULT_SEGMENT) / timeScale;
+        t.to(anim.position, { x: target.pos.x, y: target.pos.y, z: target.pos.z, duration: d, ease: "power2.inOut" }, at);
+        t.to(anim.rotation, { x: target.rot.x, y: target.rot.y, z: target.rot.z, duration: d, ease: "power2.inOut" }, at);
+        at += d;
       }
-      mistakeTl = t;
     }
+    if (t.duration() > 0) {
+      mistakeTl = t;
+      t.play();
+    } else t.kill();
 
     refreshLook();
     clearMarksInternal();
@@ -1292,19 +1317,20 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   function restoreCurrent(moveCamera: boolean) {
     clearMistakeInternal();
     peekState = null;
-    let partId: string | null = null;
+    let hp: string[] = [];
     let checks: string[] = [];
     let cam: string | null = null;
     if (procedure && procIndex >= 0) {
       const it = procedure.items[procIndex]!;
-      ({ partId, checks, camera: cam } = it);
+      ({ checks, camera: cam } = it);
+      hp = itemHighlight(it).partIds;
     } else if (currentStepId && stepById.has(currentStepId)) {
       const st = stepById.get(currentStepId)!;
-      partId = st.partId;
+      hp = [st.partId];
       checks = [...st.checks, ...(st.screwOrder ?? []).filter((c) => !st.checks.includes(c))];
       cam = st.camera ?? null;
     }
-    highlightState = partId ? { mode: "focus", partIds: [partId] } : { mode: "none", partIds: [] };
+    highlightState = hp.length ? { mode: "focus", partIds: hp } : { mode: "none", partIds: [] };
     refreshLook();
     setMarks(checks);
     if (moveCamera) {

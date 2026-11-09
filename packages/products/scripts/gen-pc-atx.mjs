@@ -271,8 +271,9 @@ const kf = (offset, rotation, duration) => {
   if (duration) k.duration = duration;
   return k;
 };
-const SAFETY =
-  "열거나 닫기 전에: 전원을 끄고 전원 케이블을 뽑는다. 전원 버튼을 눌러 남은 전기를 빼고(Dell 예: 15~20초), 접지된 금속을 만져 몸의 정전기를 뺀다.";
+// Full safety steps are the guides' beforeRemoval extras; the panel step keeps a short reminder
+// for plain assembly (showStep), where there are no guide steps.
+const SAFETY_SHORT = "열기 전에 전원을 끄고 전원 케이블을 뽑는다(지침서에서는 맨 앞 안전 단계).";
 
 // M.2 at 30 degrees: rotation pivots at the part origin (SSD center), so shift it to keep the
 // connector end (local x = -40) at the slot. Rotation about y by -30 lifts the far end.
@@ -427,6 +428,11 @@ const assembly = [
           "굳은 써멀 때문에 CPU가 쿨러에 붙은 채 소켓에서 뽑힐 수 있다(AM4는 핀이 CPU에 있어 핀이 휜다). 나사를 푼 뒤 좌우로 살짝 비틀어 뗀다.",
         path: [kf([0, 0, 0]), kf([0, 0, 45], null, 0.8)],
         violates: ["cpu_socket"],
+        // The CPU (and the paste between) comes out of the socket stuck to the cooler.
+        alsoMove: [
+          { partId: "cpu", path: [kf([0, 0, 0]), kf([0, 0, 45], null, 0.8)] },
+          { partId: "thermal_paste", path: [kf([0, 0, 0]), kf([0, 0, 45], null, 0.8)] },
+        ],
         source: [SRC.amd, SRC.gelid],
       },
     ],
@@ -526,10 +532,9 @@ const assembly = [
     partId: "side_panel",
     action: "slide",
     label: "옆판(유리) 닫기",
-    description: `${SAFETY} 그다음 옆판 손나사 2개를 풀거나 조인다.`,
+    description: `${SAFETY_SHORT} 옆판 손나사 2개를 풀거나 조인다.`,
     path: [kf([0, 0, 200]), kf([0, 0, 0], null, 0.6)],
     blocks: ["*"],
-    checks: ["case_power_button", "case_ground"],
     screwOrder: ["panel_screw_1", "panel_screw_2"],
     camera: "default",
   },
@@ -549,16 +554,42 @@ const views = {
 };
 
 // ---------- guides ----------
-const safetyExtra = (id) => ({
-  id,
-  at: "afterRemoval",
-  partId: "case",
-  label: "작업 중 안전 다시 확인",
-  description:
-    "전원 케이블이 빠져 있는지 다시 본다(전원을 끄고 케이블을 뽑은 뒤 전원 버튼을 눌러 남은 전기를 빼는 것은 옆판을 열기 전에 한다). 부품을 만지기 전에 접지된 금속을 만져 정전기를 뺀다.",
-  checks: ["case_power_button", "case_ground"],
-  camera: "default",
-});
+// Three safety steps at the very start of every guide, before anything comes out.
+const safetyExtras = (prefix) => [
+  {
+    id: `${prefix}_power_off`,
+    at: "beforeRemoval",
+    partId: "psu",
+    label: "전원 끄고 케이블 뽑기",
+    description: "컴퓨터를 끄고, 파워 뒷면 스위치를 끈 뒤 전원 케이블을 뽑는다.",
+    highlightParts: ["psu"],
+    checks: ["psu_switch"],
+    camera: "psu_area",
+    source: [SRC.dell],
+  },
+  {
+    id: `${prefix}_drain`,
+    at: "beforeRemoval",
+    partId: "case",
+    label: "남은 전기 빼기",
+    description: "케이블을 뽑은 채로 전원 버튼을 눌러(Dell 예: 15~20초) 남은 전기를 뺀다.",
+    highlightParts: [],
+    checks: ["case_power_button"],
+    camera: "default",
+    source: [SRC.dell],
+  },
+  {
+    id: `${prefix}_esd`,
+    at: "beforeRemoval",
+    partId: "case",
+    label: "정전기 빼기",
+    description: "부품을 만지기 전에 케이스의 칠하지 않은 금속(접지된 금속)을 만져 몸의 정전기를 뺀다.",
+    highlightParts: [],
+    checks: ["case_ground"],
+    camera: "default",
+    source: [SRC.kingston],
+  },
+];
 const SAFETY_SRC = [SRC.dell, SRC.kingston];
 
 const guides = [
@@ -569,13 +600,16 @@ const guides = [
     targetPartId: "cooler",
     source: [SRC.amd, SRC.gelid, SRC.asusCpu, SRC.noctua, ...SAFETY_SRC],
     extraSteps: [
-      safetyExtra("x_oh_safety"),
+      ...safetyExtras("x_oh"),
       {
         id: "x_oh_wipe",
         at: "afterRemoval",
-        partId: "cpu",
+        partId: "thermal_paste",
+        action: "remove_consumable",
         label: "굳은 써멀 닦기",
         description: "CPU 윗면과 쿨러 바닥에 남은 굳은 써멀을 깨끗이 닦아 낸다.",
+        path: [kf([0, 0, 30], null, 0.5)],
+        highlightParts: ["cpu", "thermal_paste"],
         checks: ["cpu_ihs"],
         camera: "cpu_area",
       },
@@ -608,7 +642,7 @@ const guides = [
     targetPartId: "ram",
     source: [SRC.asusRam, SRC.kingston, SRC.msi, SRC.dell],
     extraSteps: [
-      safetyExtra("x_ram_safety"),
+      ...safetyExtras("x_ram"),
       {
         id: "x_ram_notch",
         at: "afterRemoval",
@@ -645,7 +679,7 @@ const guides = [
     targetPartId: "m2_ssd",
     source: [SRC.crucial, ...SAFETY_SRC],
     extraSteps: [
-      safetyExtra("x_ssd_safety"),
+      ...safetyExtras("x_ssd"),
       {
         id: "x_ssd_angle",
         at: "beforeReinstall",
@@ -673,7 +707,7 @@ const guides = [
     targetPartId: "gpu",
     source: [SRC.asusGpu, ...SAFETY_SRC],
     extraSteps: [
-      safetyExtra("x_gpu_safety"),
+      ...safetyExtras("x_gpu"),
       {
         id: "x_gpu_latch",
         at: "afterRemoval",
