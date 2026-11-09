@@ -2,6 +2,7 @@ import { anthropic, type AnthropicLanguageModelOptions } from "@ai-sdk/anthropic
 import {
   convertToModelMessages,
   isStepCount,
+  isToolUIPart,
   streamText,
   type UIMessage,
 } from "ai";
@@ -25,7 +26,16 @@ export async function POST(req: Request) {
 
   // Earlier turns' reasoning is not sent back: its signature is tied to the exact prompt it was
   // made with, which changes when the product changes.
-  const history = messages.map((m) => ({ ...m, parts: m.parts.filter((p) => p.type !== "reasoning") }));
+  // Also drop tool calls that never got a result (e.g. a question the user talked past):
+  // the model API rejects a tool call without its result, and the chat would stay stuck.
+  const history = messages.map((m) => ({
+    ...m,
+    parts: m.parts.filter(
+      (p) =>
+        p.type !== "reasoning" &&
+        !(isToolUIPart(p) && p.state !== "output-available" && p.state !== "output-error"),
+    ),
+  }));
   const modelMessages = await convertToModelMessages(history);
   // What the user sees now goes last, as context, so the instructions stay the same every request.
   if (view) {

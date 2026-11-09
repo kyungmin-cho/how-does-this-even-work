@@ -46,18 +46,27 @@ export function ChatPanel({
   /** Called after a question is sent. */
   onSend?: () => void;
 }) {
-  const { messages, sendMessage, status, stop, error, regenerate, clearError } = useStudioChat();
+  const { messages, sendMessage, status, stop, error, regenerate, clearError, answerQuestion } = useStudioChat();
   const slug = useAppStore((s) => s.productSlug) ?? "";
   const draft = useAppStore((s) => s.drafts[slug] ?? "");
   const setDraft = useAppStore((s) => s.setDraft);
   const hasProcedure = useAppStore((s) => s.scene.procedure !== null);
   const busy = status === "submitted" || status === "streaming";
 
+  const lastMessage = messages.at(-1);
+  const pending =
+    lastMessage?.role === "assistant"
+      ? lastMessage.parts.find((p) => isToolUIPart(p) && getToolName(p) === "ask_user" && p.state === "input-available")
+      : undefined;
+
   const ask = (text: string) => {
     const question = text.trim();
     if (!question || busy) return;
     if (error) clearError();
-    void sendMessage({ text: question });
+    // The agent is waiting on its own question: typed text is the answer to it. Sending a new
+    // message instead would leave that tool call without a result.
+    if (pending && isToolUIPart(pending)) answerQuestion(pending.toolCallId, question);
+    else void sendMessage({ text: question });
     setDraft(slug, "");
     onSend?.();
   };
@@ -113,7 +122,7 @@ export function ChatPanel({
           <PromptInputBody>
             <PromptInputTextarea
               aria-label="질문"
-              placeholder="무엇이 궁금한가요?"
+              placeholder={pending ? "위 질문에 답을 직접 적어도 돼요" : "무엇이 궁금한가요?"}
               value={draft}
               onChange={(e) => setDraft(slug, e.currentTarget.value)}
               className="min-h-0 md:min-h-11"
