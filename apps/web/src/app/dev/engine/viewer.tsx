@@ -6,6 +6,7 @@ import {
   parseProduct,
   planService,
   type Engine,
+  type Product,
   type EngineState,
   type HighlightMode,
 } from "@assembly/engine";
@@ -19,6 +20,16 @@ declare global {
 
 const product = parseProduct(sample);
 const MODES: HighlightMode[] = ["focus", "ghost", "error", "ok", "none"];
+
+/** Same product without any GLB (to compare, and to prove the box fallback). */
+const toBoxesOnly = (p: Product): Product => ({
+  ...p,
+  assets: undefined,
+  parts: p.parts.map((x) =>
+    x.geometry.kind === "gltf" && x.geometry.boxes ? { ...x, geometry: { kind: "boxes", boxes: x.geometry.boxes } } : x,
+  ),
+});
+const boxesOnly = toBoxesOnly(product);
 
 export default function EngineViewer() {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -172,6 +183,21 @@ export default function EngineViewer() {
                 </button>
               )),
             )}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-1 text-xs font-medium text-neutral-500">
+            모델 (GLB: <span data-testid="assets-status">{state?.assets?.status ?? "-"}</span>,{" "}
+            {state?.assets?.glbParts.join(", ") || "없음"})
+          </h2>
+          <div className="flex flex-wrap gap-1">
+            <button className={btn} onClick={() => run((e) => e.loadProduct(product))}>
+              GLB로 다시 불러오기
+            </button>
+            <button className={btn} onClick={() => run((e) => e.loadProduct(boxesOnly))}>
+              상자만으로 다시 불러오기
+            </button>
           </div>
         </section>
 

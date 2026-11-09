@@ -2,6 +2,9 @@
   "id": "sample-pc",
   "name": "테스트용 미니 PC",
   "units": "mm",
+  "assets": {
+    "glb": "/dev-engine/sample-parts.glb"
+  },
   "parts": [
     {
       "id": "case",
@@ -227,7 +230,9 @@
         16
       ],
       "geometry": {
-        "kind": "boxes",
+        "kind": "gltf",
+        "url": "/dev-engine/sample-parts.glb",
+        "node": "Heatsink_M2",
         "boxes": [
           {
             "size": [

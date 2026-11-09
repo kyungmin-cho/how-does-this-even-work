@@ -39,8 +39,9 @@ const off = engine.on("statechange", (s) => store.setState({ engine: s }));
 
 | 메서드 | 설명 |
 | --- | --- |
-| `createEngine(container, options?)` | 장면을 한 번 만든다. options: `background`, `timeScale`, `autoplayDelay`(초), `maxPixelRatio`, `preserveDrawingBuffer` |
-| `loadProduct(data, { installedStepIds? })` | 검증 후 그린다. 설치 상태 기본값은 전체 조립. `Product`를 돌려준다 |
+| `createEngine(container, options?)` | 장면을 한 번 만든다. options: `background`, `timeScale`, `autoplayDelay`(초), `maxPixelRatio`(기본 2), `preserveDrawingBuffer`, `shadows`(기본 true) |
+| `loadProduct(data, { installedStepIds? })` | 검증 후 상자로 바로 그리고, GLB가 있으면 비동기로 불러와 해당 부품만 갈아 끼운다. 설치 상태 기본값은 전체 조립. `Product`를 돌려준다 |
+| `loadGlb(url)` (함수) | GLB를 URL당 한 번만 불러와 캐시(엔진, 재마운트, 제품 사이 공유). 실패하면 캐시에서 빠져 다시 시도 가능 |
 | `getProduct()` | 불러온 제품 |
 | `dispose()` | 캔버스, 라벨 레이어, 타임라인, 렌더 루프, ResizeObserver, WebGL 문맥까지 정리 |
 | `applyState(stepIds, { animate = true })` | 설치 단계 집합을 정한다. 빠지는 단계는 조립 역순, 들어가는 단계는 조립 순서로 움직인다 |
@@ -67,7 +68,7 @@ const off = engine.on("statechange", (s) => store.setState({ engine: s }));
 | `stepchange` | `{ kind: 'assembly'｜'remove'｜'install'｜'extra'｜null, stepId, partId, index, item, installedStepIds }` (showStep, goTo) |
 | `userinteract` | `{ cameraOwner: 'user' }` 사용자가 카메라를 잡은 순간 한 번 |
 | `animationend` | `{ installedStepIds, interrupted }` 끊긴 경우 `interrupted: true` |
-| `statechange` | `EngineState` 전체. zustand 저장소 동기화용 |
+| `statechange` | `EngineState` 전체. zustand 저장소 동기화용. GLB 불러오기가 끝났을 때도 온다(`state.assets.status`) |
 
 ```ts
 interface EngineState {
@@ -83,6 +84,8 @@ interface EngineState {
   appliedExtraStepIds: string[];       // 지금까지 한 지침서 추가 단계
   peek: { partIds: string[]; featureId: string | null } | null;   // 잠깐 보기 (절차 위치와 별개)
   mistake: { stepId: string; mistakeId: string } | null;
+  assets?: { status: "none" | "loading" | "ready" | "error"; urls: string[]; glbParts: string[]; errors: string[] };
+  // 실제 엔진은 항상 채운다. 선택 필드인 건 모델 없는 대역 엔진도 타입이 맞게 하려는 것
   animating: boolean;
   paused: boolean;
 }
@@ -150,6 +153,25 @@ runCommand(engine, { type: "setView", view: "m2_area" });
 - extra step은 step과 같은 필드에 `at`이 더해진다. partId 기본은 지침서 targetPartId, action 기본 `inspect`, path 기본 `[]`. partId가 소모품이면 path대로 나타나 절차가 끝날 때까지 남고, 아니면 강조와 핀만 한다.
 - `parseProduct`가 참조를 모두 검사한다: 중복 ID, 없는 partId, blocks, attachedTo, checks, screwOrder, camera, mistakes.violates, 지침서 참조. 시점 이름이 부품 ID와 겹치면 오류(`setView`가 둘 다 받기 때문).
 - `"default"` 시점이 있으면 처음에 그 시점으로 시작한다.
+
+## GLB 모델 (Blender)
+
+두 가지 길이 있고 둘 다 실패하면 상자로 그린다. 데모가 GLB 문제로 깨지지 않게 하는 게 원칙이다.
+
+1. **제품 단위**: `"assets": { "glb": "/models/pc.glb", "scale": 1 }`. 부품 geometry가 boxes여도 GLB에 **부품 ID와 같은 이름의 노드**가 있으면 그 노드로 그린다. 없으면 boxes.
+2. **부품 단위**: `"geometry": { "kind": "gltf", "url": "...", "node": "Heatsink_M2", "boxes": [...] }`. `node` 기본값은 부품 ID, `boxes`는 불러오는 동안과 실패했을 때 쓰는 대체 도형(없으면 자홍색 자리표시 상자).
+
+Blender에서 내보낼 때
+- 노드(오브젝트) 이름 = 부품 ID(예: `gpu`, `m2_ssd`). 엔진은 이름을 그대로 찾고, 없으면 GLTFLoader 규칙으로 바꾼 이름(공백은 `_`, `.` 등은 삭제)으로 한 번 더 찾는다.
+- 오브젝트 원점 = 부품 기준점(제품 데이터의 `position`이 가리키는 점), 축 = 부품 로컬 축. 엔진은 노드의 위치와 회전을 0으로 되돌리고 부품 자리에 붙인다. 스케일은 유지하고 `assets.scale`을 곱한다.
+- 단위는 mm(1 Blender 단위 = 1mm로 내보내거나 `assets.scale`로 맞춤), glTF 기본 Y-up(+Y up 옵션 켬).
+- 압축: meshopt는 지원, Draco와 KTX2는 미지원(디코더 파일을 따로 두지 않음).
+- 재질은 Principled BSDF(PBR) 그대로. 엔진이 부품마다 재질을 복제하고 원래 값을 기억해서 focus, ghost, error, ok, 실수 겹쳐 보기, 잠깐 보기가 상자와 똑같이 동작하고 `none`으로 원래대로 돌아온다.
+- 자식 노드가 있어도 된다(통째로 그 부품). 메시가 하나도 없는 노드는 무시하고 상자를 쓴다.
+
+렌더링: RoomEnvironment PMREM 환경광, ACES 톤 매핑, sRGB 출력, 안티앨리어싱, 그림자 하나(PCF, radius 5, 터치 기기 1024 / 그 밖 2048), 바닥 그림자 받이. pixelRatio 상한 2.
+
+테스트용 GLB: `pnpm --filter @assembly/engine make:glb`가 `apps/web/public/dev-engine/sample-parts.glb`(노드 `gpu`, `Heatsink_M2`)를 코드로 만든다.
 
 ## 절차 계산 (`src/planner.ts`, three 의존 없음)
 

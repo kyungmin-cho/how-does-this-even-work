@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { chromium, expect, test, type Page } from "@playwright/test";
 import type { EngineState } from "@assembly/engine";
 
 // Headless Chromium needs SwiftShader for WebGL.
@@ -19,6 +19,10 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   await expect(page.locator("[data-testid=engine-host] canvas")).toHaveCount(1);
 
   let s = await state(page);
+  // GLB parts arrive asynchronously and replace their boxes.
+  await expect.poll(async () => (await state(page)).assets!.status, { timeout: 15_000 }).toBe("ready");
+  expect((await state(page)).assets!.glbParts.sort()).toEqual(["gpu", "m2_heatsink"]);
+  s = await state(page);
   const ALL = ["s_case", "s_board", "s_m2", "s_heatsink", "s_gpu", "s_gpu_cable", "s_panel"];
   expect(s.installedStepIds).toEqual(ALL);
   expect(s.view).toBe("default");
@@ -159,5 +163,96 @@ test("engine dev page drives steps, highlight, procedure and camera", async ({ p
   });
   expect(drawn).toBeGreaterThan(5);
 
+  // GLB parts close up (side panel off, no highlight).
+  await page.evaluate(() => {
+    const e = window.__engine!;
+    e.explode(0);
+    e.showStep("s_gpu_cable");
+    e.highlight([], "none");
+    e.clearMarks();
+    e.setView("gpu_area");
+  });
+  await settled(page);
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: "test-results/engine-glb.png" });
+
+  // A broken GLB must not break the demo: parts fall back to boxes.
+  await page.evaluate(() => {
+    const e = window.__engine!;
+    e.loadProduct({ ...e.getProduct()!, assets: { glb: "/dev-engine/missing.glb", scale: 1 } });
+  });
+  await expect.poll(async () => (await state(page)).assets!.status, { timeout: 15_000 }).toBe("error");
+  s = await state(page);
+  expect(s.assets!.glbParts).toEqual(["m2_heatsink"]); // its own gltf url still loads
+  expect(s.assets!.errors[0]).toContain("missing.glb");
+  expect(s.installedStepIds).toEqual(ALL);
+  await page.evaluate(() => window.__engine!.highlight(["gpu"], "focus"));
+  expect((await state(page)).highlight.partIds).toEqual(["gpu"]);
+
   expect(errors).toEqual([]);
+});
+
+async function measureProcedure(page: Page) {
+  await page.goto("/dev/engine");
+  await page.waitForFunction(() => window.__engine?.getState().assets?.status === "ready", null, { timeout: 60_000 });
+  const gpu = await page.evaluate(() => {
+    const gl = document.createElement("canvas").getContext("webgl2");
+    const ext = gl?.getExtension("WEBGL_debug_renderer_info");
+    return ext ? String(gl!.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : "unknown";
+  });
+  await page.evaluate(() => {
+    const w = window as unknown as { __frames: number[]; __rec: boolean };
+    w.__frames = [];
+    w.__rec = true;
+    let last = performance.now();
+    const tick = (t: number) => {
+      w.__frames.push(t - last);
+      last = t;
+      if (w.__rec) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await page.locator('[data-guide="ssd_not_detected"]').click();
+  const length = (await state(page)).procedure!.length;
+  for (let i = 1; i < length; i++) {
+    await settled(page);
+    await page.waitForTimeout(300);
+    await page.evaluate((n) => window.__engine!.goTo(n), i);
+  }
+  await settled(page);
+  const frames = await page.evaluate(() => {
+    const w = window as unknown as { __frames: number[]; __rec: boolean };
+    w.__rec = false;
+    return w.__frames.slice(2);
+  });
+  const sorted = [...frames].sort((a, b) => a - b);
+  const avg = frames.reduce((a, b) => a + b, 0) / frames.length;
+  const p95 = sorted[Math.floor(sorted.length * 0.95)]!;
+  return { gpu, frames: frames.length, avgMs: +avg.toFixed(2), p95Ms: +p95.toFixed(2), maxMs: +sorted.at(-1)!.toFixed(2), fps: +(1000 / avg).toFixed(1) };
+}
+
+test("frame time while playing a procedure (SwiftShader, CPU)", async ({ page }, info) => {
+  test.setTimeout(120_000);
+  const r = await measureProcedure(page);
+  console.log("[perf swiftshader]", JSON.stringify(r));
+  await info.attach("perf-swiftshader", { body: JSON.stringify(r), contentType: "application/json" });
+  expect(r.frames).toBeGreaterThan(30);
+});
+
+// A separate browser with the hardware GPU (Metal via ANGLE), still headless.
+test("frame time while playing a procedure (GPU)", async ({ baseURL }, info) => {
+  test.setTimeout(120_000);
+  const browser = await chromium.launch({
+    headless: true,
+    args: ["--enable-gpu", "--use-angle=metal", "--ignore-gpu-blocklist"],
+  });
+  try {
+    const page = await browser.newPage({ baseURL, viewport: { width: 1440, height: 900 } });
+    const r = await measureProcedure(page);
+    console.log("[perf gpu]", JSON.stringify(r));
+    await info.attach("perf-gpu", { body: JSON.stringify(r), contentType: "application/json" });
+    expect(r.frames).toBeGreaterThan(30);
+  } finally {
+    await browser.close();
+  }
 });

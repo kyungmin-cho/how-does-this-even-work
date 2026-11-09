@@ -2,6 +2,9 @@ import * as THREE from "three";
 import CameraControls from "camera-controls";
 import { gsap } from "gsap";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
+import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { installedThrough, sortByAssembly, type Procedure, type ProcedureItem, type ProcedureKind } from "./planner";
 import { parseProduct, type BoxShape, type ExtraStep, type Keyframe, type Mistake, type Part, type Product, type Step } from "./schema";
 
@@ -36,8 +39,20 @@ export interface EngineState {
   peek: { partIds: string[]; featureId: string | null } | null;
   /** A wrong way being shown next to the right one. */
   mistake: { stepId: string; mistakeId: string } | null;
+  /**
+   * GLB loading. `glbParts`: part IDs drawn from a GLB (the rest are boxes). Always set by the
+   * real engine; optional only so stand-in engines without models still type-check.
+   */
+  assets?: AssetsState;
   animating: boolean;
   paused: boolean;
+}
+
+export interface AssetsState {
+  status: "none" | "loading" | "ready" | "error";
+  urls: string[];
+  glbParts: string[];
+  errors: string[];
 }
 
 export interface StepChangeEvent {
@@ -54,6 +69,7 @@ export interface EngineEvents {
   stepchange: StepChangeEvent;
   userinteract: { cameraOwner: "user" };
   animationend: { installedStepIds: string[]; interrupted: boolean };
+  /** Also fires when GLB loading finishes (state.assets.status: ready | error). */
   statechange: EngineState;
 }
 export type EngineEventName = keyof EngineEvents;
@@ -69,6 +85,31 @@ export interface EngineOptions {
   maxPixelRatio?: number;
   /** Keep the WebGL buffer readable (screenshots, tests). Default false. */
   preserveDrawingBuffer?: boolean;
+  /** Soft shadow from the key light onto the parts and the floor. Default true. */
+  shadows?: boolean;
+}
+
+// One GLTFLoader request per URL for the whole page (engines, remounts and products share it).
+const glbCache = new Map<string, Promise<GLTF>>();
+/** Load (once) and cache a GLB. A failed load is dropped from the cache so it can be retried. */
+export function loadGlb(url: string): Promise<GLTF> {
+  let p = glbCache.get(url);
+  if (!p) {
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    p = loader.loadAsync(url);
+    glbCache.set(url, p);
+    p.catch(() => glbCache.delete(url));
+  }
+  return p;
+}
+
+function findNode(gltf: GLTF, name: string): THREE.Object3D | null {
+  return (
+    gltf.scene.getObjectByName(name) ??
+    gltf.scene.getObjectByName(THREE.PropertyBinding.sanitizeNodeName(name)) ??
+    null
+  );
 }
 
 export interface Engine {
@@ -108,11 +149,30 @@ function installControls() {
   controlsInstalled = true;
 }
 
+/** Any GLB/box material we restyle. Only the fields that exist are touched. */
+type StyledMaterial = THREE.Material & {
+  color?: THREE.Color;
+  emissive?: THREE.Color;
+  emissiveIntensity?: number;
+};
+
+/** A per-part material copy and its original values (so highlight can always go back). */
+interface MatRec {
+  mat: StyledMaterial;
+  color: THREE.Color | null;
+  emissive: THREE.Color | null;
+  emissiveIntensity: number;
+  opacity: number;
+  transparent: boolean;
+  depthWrite: boolean;
+}
+
 interface MeshRec {
-  mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>;
-  edges: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial>;
-  base: THREE.Color;
-  baseOpacity: number;
+  mesh: THREE.Mesh;
+  mats: MatRec[];
+  edges: THREE.LineSegments<THREE.EdgesGeometry, THREE.LineBasicMaterial> | null;
+  /** Box geometry is ours; GLB geometry is shared with the cache and never disposed. */
+  ownsGeometry: boolean;
 }
 
 interface PartRec {
@@ -126,9 +186,11 @@ interface PartRec {
   /** Final rotation; meshes and feature anchors live here. */
   body: THREE.Group;
   meshes: MeshRec[];
+  /** Holds the meshes inside body (marks are separate children of body). */
+  visual: THREE.Group;
+  source: "boxes" | "glb";
   steps: Step[];
   explodeVec: THREE.Vector3;
-  boxes: BoxShape[];
 }
 
 type AnyStep = Step | ExtraStep;
@@ -159,6 +221,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     preserveDrawingBuffer: options.preserveDrawingBuffer ?? false,
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, options.maxPixelRatio ?? 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+  const shadows = options.shadows ?? true;
+  renderer.shadowMap.enabled = shadows;
+  renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.style.display = "block";
   renderer.domElement.style.width = "100%";
   renderer.domElement.style.height = "100%";
@@ -173,13 +241,29 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(options.background ?? "#eef0f3");
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 1.6));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+  // Studio look: image-based light from a neutral room, one soft shadow-casting key light.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  scene.environment = envTexture;
+  scene.environmentIntensity = 0.9;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f99, 0.45));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.7);
   sun.position.set(600, 900, 700);
-  scene.add(sun);
-  const fill = new THREE.DirectionalLight(0xffffff, 0.5);
+  sun.castShadow = shadows;
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  sun.shadow.mapSize.set(coarse ? 1024 : 2048, coarse ? 1024 : 2048);
+  sun.shadow.radius = 5;
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.6;
+  scene.add(sun, sun.target);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.35);
   fill.position.set(-700, 200, -400);
   scene.add(fill);
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShadowMaterial({ opacity: 0.18 }));
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  floor.visible = false;
+  scene.add(floor);
 
   const camera = new THREE.PerspectiveCamera(40, 1, 1, 20000);
   camera.position.set(600, 400, 900);
@@ -218,6 +302,8 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   let mistakeState: { stepId: string; mistakeId: string; partId: string } | null = null;
   let mistakeGroup: THREE.Group | null = null;
   let mistakeTl: gsap.core.Timeline | null = null;
+  let assets: AssetsState = { status: "none", urls: [], glbParts: [], errors: [] };
+  let loadToken = 0;
 
   const listeners = new Map<EngineEventName, Set<(p: never) => void>>();
   function emit<K extends EngineEventName>(event: K, payload: EngineEvents[K]) {
@@ -282,14 +368,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     explodeTween = null;
     clearMarksInternal();
     clearMistakeInternal();
-    for (const p of parts.values()) {
-      for (const m of p.meshes) {
-        m.mesh.geometry.dispose();
-        m.mesh.material.dispose();
-        m.edges.geometry.dispose();
-        m.edges.material.dispose();
-      }
-    }
+    for (const p of parts.values()) disposeMeshes(p.meshes);
     productRoot.clear();
     parts = new Map();
     if (grid) {
@@ -311,39 +390,167 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     root.add(exploded);
     exploded.add(anim);
     anim.add(body);
-    const boxes: BoxShape[] =
-      def.geometry.kind === "boxes"
-        ? def.geometry.boxes
-        : (console.warn(`[engine] gltf geometry is not implemented yet; "${def.id}" is drawn as a placeholder`),
-          [{ size: [50, 50, 50], position: [0, 0, 0], color: "#d946ef", opacity: 0.5 }]);
-    const meshes: MeshRec[] = boxes.map((s) => {
-      const geo = new THREE.BoxGeometry(...s.size);
-      const base = new THREE.Color(s.color);
-      const baseOpacity = s.opacity ?? 1;
-      const mat = new THREE.MeshStandardMaterial({
-        color: base.clone(),
-        roughness: 0.62,
-        metalness: 0.12,
-        transparent: baseOpacity < 1,
-        opacity: baseOpacity,
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(...s.position);
-      mesh.userData.partId = def.id;
-      const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geo, 20),
-        new THREE.LineBasicMaterial({ color: 0x111827, transparent: true, opacity: 0.35 }),
-      );
-      mesh.add(edges);
-      body.add(mesh);
-      return { mesh, edges, base, baseOpacity };
-    });
+    const visual = new THREE.Group();
+    body.add(visual);
+    const meshes = buildBoxMeshes(visual, fallbackBoxes(def), def.id);
     const first = steps[0]?.path[0]?.offset ?? [0, 0, 0];
     const v = new THREE.Vector3(...first);
     const len = v.length();
     const explodeVec = len > 0 ? v.multiplyScalar(Math.min(len, 260) / len) : new THREE.Vector3();
     productRoot.add(root);
-    return { def, root, exploded, anim, body, meshes, steps, explodeVec, boxes };
+    return { def, root, exploded, anim, body, meshes, visual, source: "boxes", steps, explodeVec };
+  }
+
+  /** Boxes to draw before (or instead of) a GLB node. */
+  function fallbackBoxes(def: Part): BoxShape[] {
+    if (def.geometry.kind === "boxes") return def.geometry.boxes;
+    return def.geometry.boxes ?? [{ size: [40, 40, 40], position: [0, 0, 0], color: "#d946ef", opacity: 0.4 }];
+  }
+
+  function matRec(mat: StyledMaterial): MatRec {
+    return {
+      mat,
+      color: mat.color?.clone() ?? null,
+      emissive: mat.emissive?.clone() ?? null,
+      emissiveIntensity: mat.emissiveIntensity ?? 1,
+      opacity: mat.opacity,
+      transparent: mat.transparent,
+      depthWrite: mat.depthWrite,
+    };
+  }
+
+  function buildBoxMeshes(visual: THREE.Group, boxes: BoxShape[], partId: string): MeshRec[] {
+    return boxes.map((s) => {
+      const geo = new THREE.BoxGeometry(...s.size);
+      const opacity = s.opacity ?? 1;
+      const mat = new THREE.MeshStandardMaterial({
+        color: new THREE.Color(s.color),
+        roughness: 0.55,
+        metalness: 0.15,
+        transparent: opacity < 1,
+        opacity,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(...s.position);
+      mesh.userData.partId = partId;
+      mesh.castShadow = mesh.receiveShadow = true;
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo, 20),
+        new THREE.LineBasicMaterial({ color: 0x111827, transparent: true, opacity: 0.35 }),
+      );
+      mesh.add(edges);
+      visual.add(mesh);
+      return { mesh, mats: [matRec(mat)], edges, ownsGeometry: true };
+    });
+  }
+
+  /** Clone a GLB node into the part (origin reset to the part origin) with per-part material copies. */
+  function buildGlbMeshes(visual: THREE.Group, node: THREE.Object3D, partId: string, scale: number): MeshRec[] {
+    const copy = node.clone(true);
+    copy.position.set(0, 0, 0);
+    copy.quaternion.identity();
+    copy.scale.multiplyScalar(scale);
+    visual.add(copy);
+    const out: MeshRec[] = [];
+    copy.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const list = (Array.isArray(mesh.material) ? mesh.material : [mesh.material]).map(
+        (m) => m.clone() as StyledMaterial,
+      );
+      mesh.material = Array.isArray(mesh.material) ? list : list[0]!;
+      mesh.userData.partId = partId;
+      mesh.castShadow = mesh.receiveShadow = true;
+      out.push({ mesh, mats: list.map(matRec), edges: null, ownsGeometry: false });
+    });
+    return out;
+  }
+
+  function disposeMeshes(list: MeshRec[]) {
+    for (const m of list) {
+      if (m.ownsGeometry) m.mesh.geometry.dispose();
+      for (const r of m.mats) r.mat.dispose();
+      m.edges?.geometry.dispose();
+      m.edges?.material.dispose();
+    }
+  }
+
+  /** Fit the shadow camera and the floor to the product at rest. */
+  function fitShadowAndFloor() {
+    const box = new THREE.Box3();
+    for (const p of parts.values()) box.union(new THREE.Box3().setFromObject(p.body));
+    if (box.isEmpty()) return;
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    const r = sphere.radius;
+    sun.target.position.copy(sphere.center);
+    sun.position.copy(sphere.center).add(new THREE.Vector3(0.55, 1, 0.65).normalize().multiplyScalar(r * 3));
+    const cam = sun.shadow.camera;
+    cam.left = cam.bottom = -r * 1.3;
+    cam.right = cam.top = r * 1.3;
+    cam.near = r * 0.5;
+    cam.far = r * 6;
+    cam.updateProjectionMatrix();
+    floor.position.set(sphere.center.x, box.min.y - 0.5, sphere.center.z);
+    floor.scale.setScalar(r * 6);
+    floor.visible = shadows;
+    if (grid) grid.position.y = box.min.y - 1;
+  }
+
+  /** Load GLB files of the product, then swap matching parts from boxes to GLB nodes. */
+  function loadAssets(p: Product) {
+    const token = ++loadToken;
+    const want = new Map<string, { url: string; node: string }>();
+    for (const def of p.parts) {
+      if (def.geometry.kind === "gltf") want.set(def.id, { url: def.geometry.url, node: def.geometry.node ?? def.id });
+      else if (p.assets?.glb) want.set(def.id, { url: p.assets.glb, node: def.id });
+    }
+    const urls = [...new Set([...want.values()].map((w) => w.url))];
+    assets = { status: urls.length ? "loading" : "none", urls, glbParts: [], errors: [] };
+    if (!urls.length) return;
+    void Promise.allSettled(urls.map((u) => loadGlb(u))).then((results) => {
+      if (token !== loadToken || disposed || product !== p) return;
+      const byUrl = new Map(urls.map((u, i) => [u, results[i]!]));
+      const errors: string[] = [];
+      urls.forEach((u, i) => {
+        const r = results[i]!;
+        if (r.status === "rejected") errors.push(`${u}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`);
+      });
+      const mistakeAgain = mistakeState && { ...mistakeState };
+      if (mistakeAgain) clearMistakeInternal();
+      const glbParts: string[] = [];
+      for (const [partId, w] of want) {
+        const r = byUrl.get(w.url)!;
+        if (r.status !== "fulfilled") continue;
+        const node = findNode(r.value, w.node);
+        if (!node) {
+          if (p.parts.find((x) => x.id === partId)!.geometry.kind === "gltf") errors.push(`node "${w.node}" not found in ${w.url}`);
+          continue;
+        }
+        const rec = parts.get(partId)!;
+        const visual = new THREE.Group();
+        const meshes = buildGlbMeshes(visual, node, partId, p.assets?.scale ?? 1);
+        if (!meshes.length) continue;
+        disposeMeshes(rec.meshes);
+        rec.visual.removeFromParent();
+        rec.body.add(visual);
+        rec.visual = visual;
+        rec.meshes = meshes;
+        rec.source = "glb";
+        glbParts.push(partId);
+      }
+      for (const e of errors) console.warn(`[engine] ${e} (drawing boxes instead)`);
+      assets = { status: errors.length ? "error" : "ready", urls, glbParts, errors };
+      fitShadowAndFloor();
+      refreshLook();
+      if (mistakeAgain) {
+        try {
+          showMistakeInternal(mistakeAgain.stepId, mistakeAgain.mistakeId, false);
+        } catch {
+          /* step data unchanged, cannot fail */
+        }
+      }
+      emitState();
+    });
   }
 
   function loadProduct(data: unknown, opts: { installedStepIds?: string[] } = {}): Product {
@@ -379,6 +586,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     grid = new THREE.GridHelper(extent, 22, 0xb4bac4, 0xd3d7de);
     grid.position.set((box.min.x + box.max.x) / 2, box.min.y - 1, (box.min.z + box.max.z) / 2);
     scene.add(grid);
+    fitShadowAndFloor();
 
     snap();
     view = null;
@@ -386,6 +594,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     if (initial) applyView(initial, false);
     else fitObject(productRoot, false);
     view = initial ?? null;
+    loadAssets(p);
     emitState();
     return p;
   }
@@ -449,54 +658,60 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   function styleMesh(m: MeshRec, style: Style) {
-    const mat = m.mesh.material;
-    mat.color.copy(m.base);
-    mat.emissive.setRGB(0, 0, 0);
-    mat.emissiveIntensity = 1;
-    let opacity = m.baseOpacity;
     let edgeOpacity = 0.35;
     let edgeColor = 0x111827;
-    switch (style) {
-      case "dim":
-        opacity = Math.min(opacity, 0.12);
-        edgeOpacity = 0.06;
-        break;
-      case "ghost":
-        opacity = Math.min(opacity, 0.28);
-        mat.emissive.copy(BLUE);
-        mat.emissiveIntensity = 0.25;
-        edgeOpacity = 0.5;
-        edgeColor = 0x1d4ed8;
-        break;
-      case "focus":
-        mat.emissive.copy(BLUE);
-        mat.emissiveIntensity = 0.3;
-        edgeOpacity = 0.9;
-        edgeColor = 0x1d4ed8;
-        break;
-      case "error":
-        mat.color.lerp(RED, 0.75);
-        mat.emissive.copy(RED);
-        mat.emissiveIntensity = 0.35;
-        edgeOpacity = 0.9;
-        edgeColor = 0x991b1b;
-        break;
-      case "ok":
-        mat.color.lerp(GREEN, 0.75);
-        mat.emissive.copy(GREEN);
-        mat.emissiveIntensity = 0.3;
-        edgeOpacity = 0.9;
-        edgeColor = 0x166534;
-        break;
+    let anyTransparent = false;
+    for (const r of m.mats) {
+      const mat = r.mat;
+      if (r.color) mat.color?.copy(r.color);
+      if (r.emissive) mat.emissive?.copy(r.emissive);
+      if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = r.emissiveIntensity;
+      let opacity = r.opacity;
+      const tint = (c: THREE.Color, amount: number, glow: number) => {
+        mat.color?.lerp(c, amount);
+        mat.emissive?.copy(c);
+        if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = glow;
+      };
+      switch (style) {
+        case "dim":
+          opacity = Math.min(opacity, 0.12);
+          edgeOpacity = 0.06;
+          break;
+        case "ghost":
+          opacity = Math.min(opacity, 0.28);
+          tint(BLUE, 0, 0.25);
+          edgeOpacity = 0.5;
+          edgeColor = 0x1d4ed8;
+          break;
+        case "focus":
+          tint(BLUE, 0, 0.3);
+          edgeOpacity = 0.9;
+          edgeColor = 0x1d4ed8;
+          break;
+        case "error":
+          tint(RED, 0.75, 0.35);
+          edgeOpacity = 0.9;
+          edgeColor = 0x991b1b;
+          break;
+        case "ok":
+          tint(GREEN, 0.75, 0.3);
+          edgeOpacity = 0.9;
+          edgeColor = 0x166534;
+          break;
+      }
+      const transparent = r.transparent || opacity < 1;
+      if (mat.transparent !== transparent) mat.needsUpdate = true;
+      mat.transparent = transparent;
+      mat.opacity = opacity;
+      mat.depthWrite = opacity < 1 ? false : r.depthWrite;
+      anyTransparent ||= opacity < 1;
     }
-    const transparent = opacity < 1;
-    if (mat.transparent !== transparent) mat.needsUpdate = true;
-    mat.transparent = transparent;
-    mat.opacity = opacity;
-    mat.depthWrite = !transparent;
-    m.mesh.renderOrder = transparent ? 1 : 0;
-    m.edges.material.opacity = edgeOpacity;
-    m.edges.material.color.setHex(edgeColor);
+    m.mesh.renderOrder = anyTransparent ? 1 : 0;
+    m.mesh.castShadow = !anyTransparent;
+    if (m.edges) {
+      m.edges.material.opacity = edgeOpacity;
+      m.edges.material.color.setHex(edgeColor);
+    }
     m.mesh.userData.style = style;
   }
 
@@ -508,7 +723,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     for (const id of partIds) {
       const p = parts.get(id);
       if (!p) continue;
-      for (const m of p.meshes) m.mesh.material.emissiveIntensity = 0.15 + 0.35 * k;
+      for (const m of p.meshes) {
+        for (const r of m.mats) if (r.mat.emissiveIntensity !== undefined) r.mat.emissiveIntensity = 0.15 + 0.35 * k;
+      }
     }
   }
 
@@ -958,11 +1175,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     mistakeTl?.kill();
     mistakeTl = null;
     if (mistakeGroup) {
-      mistakeGroup.traverse((o) => {
-        const m = o as THREE.Mesh;
-        if (m.geometry) m.geometry.dispose();
-        if (m.material) (m.material as THREE.Material).dispose();
-      });
+      // Geometry is shared with the real part; only the red material is ours.
+      const first = mistakeGroup.getObjectByProperty("isMesh", true) as THREE.Mesh | undefined;
+      (first?.material as THREE.Material | undefined)?.dispose();
       mistakeGroup.removeFromParent();
       mistakeGroup = null;
     }
@@ -978,6 +1193,10 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
 
   function showMistake(stepId: string, mistakeId: string) {
     requireProduct();
+    showMistakeInternal(stepId, mistakeId, true);
+  }
+
+  function showMistakeInternal(stepId: string, mistakeId: string, moveCamera: boolean) {
     const found = findStep(stepId);
     if (!found) throw new Error(`unknown step "${stepId}"`);
     const { step, partId } = found;
@@ -1000,22 +1219,22 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     body.rotation.copy(part.body.rotation);
     root.add(anim);
     anim.add(body);
-    for (const b of part.boxes) {
-      const geo = new THREE.BoxGeometry(...b.size);
-      const mesh = new THREE.Mesh(
-        geo,
-        new THREE.MeshStandardMaterial({
-          color: RED,
-          emissive: RED,
-          emissiveIntensity: 0.35,
-          transparent: true,
-          opacity: 0.45,
-          depthWrite: false,
-        }),
-      );
-      mesh.position.set(...b.position);
+    // Same geometry as the real part (boxes or GLB), one shared red material.
+    const red = new THREE.MeshStandardMaterial({
+      color: RED,
+      emissive: RED,
+      emissiveIntensity: 0.4,
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
+    });
+    part.body.updateWorldMatrix(true, true);
+    const inv = part.body.matrixWorld.clone().invert();
+    for (const m of part.meshes) {
+      const mesh = new THREE.Mesh(m.mesh.geometry, red);
+      mesh.matrixAutoUpdate = false;
+      mesh.matrix.multiplyMatrices(inv, m.mesh.matrixWorld);
       mesh.renderOrder = 2;
-      mesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo, 20), new THREE.LineBasicMaterial({ color: 0x991b1b })));
       body.add(mesh);
     }
     root.userData.mistake = mistakeId;
@@ -1037,7 +1256,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     refreshLook();
     clearMarksInternal();
     for (const f of mistake.violates) addMark(f, `✕ ${featureById.get(f)!.label}`);
-    if (cameraOwner === "agent" && step.camera) goToView(step.camera);
+    if (moveCamera && cameraOwner === "agent" && step.camera) goToView(step.camera);
     emitState();
   }
 
@@ -1131,6 +1350,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       appliedExtraStepIds: [...applied],
       peek: peekState && { partIds: [...peekState.partIds], featureId: peekState.featureId },
       mistake: mistakeState && { stepId: mistakeState.stepId, mistakeId: mistakeState.mistakeId },
+      assets: structuredClone(assets),
       animating: tl !== null,
       paused: tl?.paused() ?? false,
     };
@@ -1153,8 +1373,13 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     disposed = true;
     product = null;
     listeners.clear();
+    loadToken++;
     renderer.setAnimationLoop(null);
     ro.disconnect();
+    envTexture.dispose();
+    pmrem.dispose();
+    floor.geometry.dispose();
+    (floor.material as THREE.Material).dispose();
     controls.removeEventListener("controlstart", takeCamera);
     renderer.domElement.removeEventListener("wheel", takeCamera);
     controls.dispose();

@@ -14,7 +14,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "make:glb": "node scripts/make-sample-glb.mjs ../../apps/web/public/dev-engine/sample-parts.glb"
   },
   "dependencies": {
     "camera-controls": "3.1.2",
