@@ -1,0 +1,2220 @@
+{
+  "id": "dresser",
+  "name": "3단 서랍장 (벽 고정)",
+  "units": "mm",
+  "assets": {
+    "glb": "/models/dresser.glb"
+  },
+  "parts": [
+    {
+      "id": "left_side",
+      "label": "왼쪽 옆판",
+      "description": "레일 구멍 줄이 안쪽(오른쪽)을, 마감된 모서리가 앞을 본다. 오른쪽 옆판과 거울상",
+      "position": [
+        -391,
+        450,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              18,
+              900,
+              448
+            ],
+            "position": [
+              0,
+              0,
+              -1
+            ],
+            "color": "#e9e4da"
+          },
+          {
+            "size": [
+              18,
+              900,
+              2
+            ],
+            "position": [
+              0,
+              0,
+              224
+            ],
+            "color": "#c8a77a"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              9.2,
+              -342,
+              160
+            ],
+            "color": "#8b8172"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              9.2,
+              -68,
+              160
+            ],
+            "color": "#8b8172"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              9.2,
+              206,
+              160
+            ],
+            "color": "#8b8172"
+          }
+        ]
+      }
+    },
+    {
+      "id": "right_side",
+      "label": "오른쪽 옆판",
+      "description": "왼쪽 옆판과 거울상. 바꿔 끼우면 구멍 줄이 바깥을 보고 마감면이 뒤로 간다",
+      "position": [
+        391,
+        450,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              18,
+              900,
+              448
+            ],
+            "position": [
+              0,
+              0,
+              -1
+            ],
+            "color": "#e9e4da"
+          },
+          {
+            "size": [
+              18,
+              900,
+              2
+            ],
+            "position": [
+              0,
+              0,
+              224
+            ],
+            "color": "#c8a77a"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              -9.2,
+              -342,
+              160
+            ],
+            "color": "#8b8172"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              -9.2,
+              -68,
+              160
+            ],
+            "color": "#8b8172"
+          },
+          {
+            "size": [
+              0.4,
+              8,
+              80
+            ],
+            "position": [
+              -9.2,
+              206,
+              160
+            ],
+            "color": "#8b8172"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bottom_panel",
+      "label": "바닥판",
+      "description": "옆판 사이 아래쪽 판. 앞쪽 아래에 걸레받이 판이 붙어 있다",
+      "position": [
+        0,
+        69,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              764,
+              18,
+              450
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#e9e4da"
+          },
+          {
+            "size": [
+              764,
+              60,
+              18
+            ],
+            "position": [
+              0,
+              -39,
+              199
+            ],
+            "color": "#d9d2c4"
+          }
+        ]
+      }
+    },
+    {
+      "id": "top_panel",
+      "label": "상판",
+      "description": "옆판 사이 맨 위 판. 뒤쪽 가운데에 넘어짐 방지 끈 고정 지점이 있다",
+      "position": [
+        0,
+        891,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              764,
+              18,
+              448
+            ],
+            "position": [
+              0,
+              0,
+              -1
+            ],
+            "color": "#e9e4da"
+          },
+          {
+            "size": [
+              764,
+              18,
+              2
+            ],
+            "position": [
+              0,
+              0,
+              224
+            ],
+            "color": "#c8a77a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cross_rails",
+      "label": "가로대 2개",
+      "description": "서랍 사이 앞쪽 가로대. 틀이 벌어지지 않게 잡는다",
+      "position": [
+        0,
+        480,
+        200
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              764,
+              18,
+              50
+            ],
+            "position": [
+              0,
+              -137,
+              0
+            ],
+            "color": "#e9e4da"
+          },
+          {
+            "size": [
+              764,
+              18,
+              50
+            ],
+            "position": [
+              0,
+              137,
+              0
+            ],
+            "color": "#e9e4da"
+          }
+        ]
+      }
+    },
+    {
+      "id": "cam_locks",
+      "label": "캠 잠금 8개",
+      "description": "상판과 바닥판의 둥근 캠. 화살표를 옆판 볼트 쪽으로 두고 시계 방향으로 돌려 잠근다",
+      "position": [
+        0,
+        451,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              -352,
+              -372,
+              -150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              -352,
+              -372,
+              150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              352,
+              -372,
+              -150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              352,
+              -372,
+              150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              -352,
+              430,
+              -150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              -352,
+              430,
+              150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              352,
+              430,
+              -150
+            ],
+            "color": "#b8bcc2"
+          },
+          {
+            "size": [
+              15,
+              2,
+              15
+            ],
+            "position": [
+              352,
+              430,
+              150
+            ],
+            "color": "#b8bcc2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "back_panel",
+      "label": "뒤판",
+      "description": "얇은 뒤판. 옆판, 상판, 바닥판 뒤 모서리에 붙여 틀이 직각을 유지하게 한다",
+      "position": [
+        0,
+        450,
+        -226.5
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              800,
+              900,
+              3
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#b9a68a"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rail_left",
+      "label": "왼쪽 서랍 레일 3개",
+      "description": "왼쪽 옆판 안쪽의 레일. 바퀴(파랑)가 앞쪽 끝에 온다",
+      "position": [
+        -375.5,
+        378,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              -274,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              0,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              274,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              -278,
+              184
+            ],
+            "color": "#2f6fd6"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              -4,
+              184
+            ],
+            "color": "#2f6fd6"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              270,
+              184
+            ],
+            "color": "#2f6fd6"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rail_right",
+      "label": "오른쪽 서랍 레일 3개",
+      "description": "왼쪽 레일과 거울상. 바퀴(파랑)가 앞쪽 끝에 와야 서랍이 끝까지 닫힌다",
+      "position": [
+        375.5,
+        378,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              -274,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              0,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              377
+            ],
+            "position": [
+              0,
+              274,
+              -16.5
+            ],
+            "color": "#a3a8ae"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              -278,
+              184
+            ],
+            "color": "#2f6fd6"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              -4,
+              184
+            ],
+            "color": "#2f6fd6"
+          },
+          {
+            "size": [
+              13,
+              28,
+              24
+            ],
+            "position": [
+              0,
+              270,
+              184
+            ],
+            "color": "#2f6fd6"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drawer_3",
+      "label": "서랍 3 (아래)",
+      "description": "앞판, 손잡이, 서랍 몸통이 한 부품. 레일 바퀴 위로 밀어 넣는다",
+      "position": [
+        0,
+        206,
+        216
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              760,
+              252,
+              18
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#f3f1ec"
+          },
+          {
+            "size": [
+              738,
+              200,
+              407
+            ],
+            "position": [
+              0,
+              -14,
+              -212.5
+            ],
+            "color": "#d9d2c4"
+          },
+          {
+            "size": [
+              220,
+              12,
+              26
+            ],
+            "position": [
+              0,
+              0,
+              22
+            ],
+            "color": "#7b8088"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drawer_2",
+      "label": "서랍 2 (가운데)",
+      "description": "앞판, 손잡이, 서랍 몸통이 한 부품. 레일 바퀴 위로 밀어 넣는다",
+      "position": [
+        0,
+        480,
+        216
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              760,
+              252,
+              18
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#f3f1ec"
+          },
+          {
+            "size": [
+              738,
+              200,
+              407
+            ],
+            "position": [
+              0,
+              -14,
+              -212.5
+            ],
+            "color": "#d9d2c4"
+          },
+          {
+            "size": [
+              220,
+              12,
+              26
+            ],
+            "position": [
+              0,
+              0,
+              22
+            ],
+            "color": "#7b8088"
+          }
+        ]
+      }
+    },
+    {
+      "id": "drawer_1",
+      "label": "서랍 1 (위)",
+      "description": "앞판, 손잡이, 서랍 몸통이 한 부품. 레일 바퀴 위로 밀어 넣는다",
+      "position": [
+        0,
+        754,
+        216
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              760,
+              252,
+              18
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#f3f1ec"
+          },
+          {
+            "size": [
+              738,
+              200,
+              407
+            ],
+            "position": [
+              0,
+              -14,
+              -212.5
+            ],
+            "color": "#d9d2c4"
+          },
+          {
+            "size": [
+              220,
+              12,
+              26
+            ],
+            "position": [
+              0,
+              0,
+              22
+            ],
+            "color": "#7b8088"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wall",
+      "label": "벽",
+      "description": "서랍장 뒤의 벽. 서랍장은 벽에서 조금 띄워 세운다",
+      "position": [
+        0,
+        700,
+        -248
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              1800,
+              1400,
+              20
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#eef0f2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "wall_bracket",
+      "label": "벽 브래킷",
+      "description": "벽에 나사로 붙이는 고정 쇠. 끈이 여기에 걸린다",
+      "position": [
+        0,
+        897,
+        -236
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              50,
+              35,
+              4
+            ],
+            "position": [
+              0,
+              0.5,
+              0
+            ],
+            "color": "#6b7078"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tip_strap",
+      "label": "넘어짐 방지 끈",
+      "description": "상판 뒤쪽 고정 지점과 벽 브래킷을 잇는 끈. 팽팽하게 당겨 건다",
+      "position": [
+        0,
+        901.5,
+        -200
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              40,
+              3,
+              30
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#6b7078"
+          },
+          {
+            "size": [
+              24,
+              1.5,
+              49
+            ],
+            "position": [
+              0,
+              2.25,
+              -9.5
+            ],
+            "color": "#e2572b"
+          }
+        ]
+      }
+    }
+  ],
+  "features": [
+    {
+      "id": "left_rail_holes",
+      "partId": "left_side",
+      "position": [
+        9,
+        -68,
+        160
+      ],
+      "kind": "marker",
+      "label": "레일 구멍 줄 (안쪽, 앞쪽)"
+    },
+    {
+      "id": "left_front_edge",
+      "partId": "left_side",
+      "position": [
+        0,
+        0,
+        225
+      ],
+      "kind": "marker",
+      "label": "마감된 앞 모서리"
+    },
+    {
+      "id": "right_rail_holes",
+      "partId": "right_side",
+      "position": [
+        -9,
+        -68,
+        160
+      ],
+      "kind": "marker",
+      "label": "레일 구멍 줄 (안쪽, 앞쪽)"
+    },
+    {
+      "id": "right_front_edge",
+      "partId": "right_side",
+      "position": [
+        0,
+        0,
+        225
+      ],
+      "kind": "marker",
+      "label": "마감된 앞 모서리"
+    },
+    {
+      "id": "cam_lock_bottom",
+      "partId": "cam_locks",
+      "position": [
+        352,
+        -371,
+        150
+      ],
+      "kind": "latch",
+      "label": "캠 잠금 (바닥판)"
+    },
+    {
+      "id": "cam_lock_top",
+      "partId": "cam_locks",
+      "position": [
+        352,
+        429,
+        150
+      ],
+      "kind": "latch",
+      "label": "캠 잠금 (상판)"
+    },
+    {
+      "id": "rail_left_roller",
+      "partId": "rail_left",
+      "position": [
+        0,
+        -4,
+        196
+      ],
+      "kind": "marker",
+      "label": "왼쪽 레일 바퀴 (앞쪽 끝)"
+    },
+    {
+      "id": "rail_right_roller",
+      "partId": "rail_right",
+      "position": [
+        0,
+        -4,
+        196
+      ],
+      "kind": "marker",
+      "label": "오른쪽 레일 바퀴 (앞쪽 끝)"
+    },
+    {
+      "id": "top_strap_point",
+      "partId": "top_panel",
+      "position": [
+        0,
+        9,
+        -200
+      ],
+      "kind": "screw_hole",
+      "label": "끈 고정 지점 (상판 뒤쪽)"
+    },
+    {
+      "id": "wall_anchor_spot",
+      "partId": "wall",
+      "position": [
+        0,
+        197,
+        10
+      ],
+      "kind": "marker",
+      "label": "브래킷 자리 (벽 재질 확인)"
+    },
+    {
+      "id": "bracket_screw",
+      "partId": "wall_bracket",
+      "position": [
+        0,
+        0,
+        2
+      ],
+      "kind": "screw_hole",
+      "label": "브래킷 벽 나사"
+    },
+    {
+      "id": "strap_tight",
+      "partId": "tip_strap",
+      "position": [
+        0,
+        3,
+        -12
+      ],
+      "kind": "marker",
+      "label": "끈 (팽팽하게)"
+    }
+  ],
+  "assembly": [
+    {
+      "id": "s_left_side",
+      "partId": "left_side",
+      "action": "place",
+      "label": "왼쪽 옆판 세우기",
+      "description": "레일 구멍 줄이 안쪽(오른쪽)을, 마감된 모서리가 앞을 보게 세운다.",
+      "path": [
+        {
+          "offset": [
+            -260,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "left_rail_holes",
+        "left_front_edge"
+      ],
+      "camera": "carcass"
+    },
+    {
+      "id": "s_bottom",
+      "partId": "bottom_panel",
+      "action": "insert",
+      "label": "바닥판 끼우기",
+      "description": "걸레받이 판이 앞 아래로 가게 바닥판을 왼쪽 옆판에 끼운다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            380
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "camera": "carcass"
+    },
+    {
+      "id": "s_top",
+      "partId": "top_panel",
+      "action": "insert",
+      "label": "상판 끼우기",
+      "description": "끈 고정 지점이 뒤쪽에 오게 상판을 왼쪽 옆판 위에 끼운다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            260,
+            0
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "top_strap_point"
+      ],
+      "camera": "carcass"
+    },
+    {
+      "id": "s_cross_rails",
+      "partId": "cross_rails",
+      "action": "insert",
+      "label": "가로대 2개 끼우기",
+      "description": "서랍 사이 앞쪽 가로대 두 개를 끼운다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            320
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "camera": "carcass"
+    },
+    {
+      "id": "s_right_side",
+      "partId": "right_side",
+      "action": "place",
+      "label": "오른쪽 옆판 덮기",
+      "description": "오른쪽 옆판은 왼쪽과 거울상이다. 레일 구멍 줄이 안쪽(왼쪽)을, 마감된 모서리가 앞을 보게 맞춰 상판, 바닥판, 가로대에 끼운다.",
+      "path": [
+        {
+          "offset": [
+            260,
+            0,
+            0
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "blocks": [
+        "top_panel",
+        "bottom_panel",
+        "cross_rails"
+      ],
+      "checks": [
+        "right_rail_holes",
+        "right_front_edge"
+      ],
+      "camera": "carcass",
+      "mistakes": [
+        {
+          "id": "side_swapped",
+          "label": "옆판 좌우를 바꿔 끼우기",
+          "description": "왼쪽 판을 오른쪽에 끼우면 레일 구멍 줄이 바깥을 보고 마감면이 뒤로 간다. 레일을 달 구멍이 없어 다시 풀어야 한다. 구멍 줄이 안쪽, 마감면이 앞에 오게 한다.",
+          "path": [
+            {
+              "offset": [
+                240,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                180,
+                0
+              ]
+            },
+            {
+              "offset": [
+                70,
+                0,
+                0
+              ],
+              "rotation": [
+                0,
+                180,
+                0
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "right_rail_holes",
+            "right_front_edge"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_cam_locks",
+      "partId": "cam_locks",
+      "action": "latch",
+      "label": "캠 잠금 돌려 잠그기",
+      "description": "캠의 화살표를 옆판 볼트 쪽으로 두고 드라이버로 시계 방향으로 돌려 상판과 바닥판을 옆판에 잠근다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            60
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.4
+        }
+      ],
+      "blocks": [
+        "top_panel",
+        "bottom_panel",
+        "right_side",
+        "left_side"
+      ],
+      "checks": [
+        "cam_lock_bottom",
+        "cam_lock_top"
+      ],
+      "camera": "inside"
+    },
+    {
+      "id": "s_rail_left",
+      "partId": "rail_left",
+      "action": "screw_down",
+      "label": "왼쪽 레일 3개 달기",
+      "description": "바퀴가 앞쪽 끝에 오게 레일을 왼쪽 옆판 구멍 줄에 나사로 단다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            320
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "attachedTo": "left_side",
+      "checks": [
+        "rail_left_roller",
+        "left_rail_holes"
+      ],
+      "camera": "rails"
+    },
+    {
+      "id": "s_rail_right",
+      "partId": "rail_right",
+      "action": "screw_down",
+      "label": "오른쪽 레일 3개 달기",
+      "description": "오른쪽 레일은 왼쪽과 거울상이다. 바퀴가 앞쪽 끝에 오게 오른쪽 옆판 구멍 줄에 나사로 단다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            320
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "attachedTo": "right_side",
+      "checks": [
+        "rail_right_roller",
+        "right_rail_holes"
+      ],
+      "camera": "rails",
+      "mistakes": [
+        {
+          "id": "rail_flipped",
+          "label": "오른쪽 레일을 뒤집어 달기",
+          "description": "왼쪽 레일을 그대로 따라 달면 오른쪽 레일은 뒤집혀 바퀴가 뒤로 간다. 서랍이 끝까지 안 들어가거나 삐뚤게 닫힌다. 바퀴가 앞쪽 끝에 오게 단다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                240
+              ],
+              "rotation": [
+                180,
+                0,
+                0
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "rotation": [
+                180,
+                0,
+                0
+              ],
+              "duration": 0.8
+            }
+          ],
+          "violates": [
+            "rail_right_roller"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_back_panel",
+      "partId": "back_panel",
+      "action": "slide",
+      "label": "뒤판 붙이기",
+      "description": "뒤판을 틀 뒤 모서리에 맞춰 붙인다. 뒤판이 틀을 직각으로 잡아 서랍이 바르게 닫힌다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            -220
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "blocks": [
+        "left_side",
+        "right_side",
+        "top_panel",
+        "bottom_panel"
+      ],
+      "camera": "back"
+    },
+    {
+      "id": "s_drawer_3",
+      "partId": "drawer_3",
+      "action": "insert",
+      "label": "서랍 3 넣기 (아래)",
+      "description": "서랍 바퀴를 양쪽 레일 위에 얹고 끝까지 밀어 넣는다. 아래 서랍부터 넣는다. 뺄 때는 끝까지 당긴 뒤 앞을 들어 뺀다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            460
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.6
+        }
+      ],
+      "blocks": [
+        "rail_left",
+        "rail_right"
+      ],
+      "camera": "front"
+    },
+    {
+      "id": "s_drawer_2",
+      "partId": "drawer_2",
+      "action": "insert",
+      "label": "서랍 2 넣기 (가운데)",
+      "description": "서랍 바퀴를 양쪽 레일 위에 얹고 끝까지 밀어 넣는다. 아래 서랍부터 넣는다. 뺄 때는 끝까지 당긴 뒤 앞을 들어 뺀다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            460
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.6
+        }
+      ],
+      "blocks": [
+        "rail_left",
+        "rail_right"
+      ],
+      "camera": "front"
+    },
+    {
+      "id": "s_drawer_1",
+      "partId": "drawer_1",
+      "action": "insert",
+      "label": "서랍 1 넣기 (위)",
+      "description": "서랍 바퀴를 양쪽 레일 위에 얹고 끝까지 밀어 넣는다. 아래 서랍부터 넣는다. 뺄 때는 끝까지 당긴 뒤 앞을 들어 뺀다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            460
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.6
+        }
+      ],
+      "blocks": [
+        "rail_left",
+        "rail_right"
+      ],
+      "camera": "front"
+    },
+    {
+      "id": "s_wall",
+      "partId": "wall",
+      "action": "place",
+      "label": "벽 앞에 세우기",
+      "description": "다 만든 서랍장을 평평한 바닥, 벽 앞에 세운다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            -200
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "checks": [
+        "wall_anchor_spot"
+      ],
+      "camera": "default"
+    },
+    {
+      "id": "s_wall_bracket",
+      "partId": "wall_bracket",
+      "action": "screw_down",
+      "label": "벽 브래킷 달기",
+      "description": "벽 종류에 맞는 나사와 고정 부품으로 브래킷을 벽에 단다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            90
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "attachedTo": "wall",
+      "checks": [
+        "bracket_screw",
+        "wall_anchor_spot"
+      ],
+      "camera": "anchor",
+      "source": [
+        "https://www.ikea.com/us/en/customer-service/creating-safer-homes-together-pub8fa27050"
+      ]
+    },
+    {
+      "id": "s_tip_strap",
+      "partId": "tip_strap",
+      "action": "latch",
+      "label": "넘어짐 방지 끈 걸기",
+      "description": "상판 뒤쪽 고정 지점의 끈을 벽 브래킷에 걸고 팽팽하게 당긴다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            70,
+            30
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            0
+          ],
+          "duration": 0.5
+        }
+      ],
+      "attachedTo": "top_panel",
+      "blocks": [
+        "wall_bracket"
+      ],
+      "checks": [
+        "top_strap_point",
+        "strap_tight"
+      ],
+      "camera": "side",
+      "source": [
+        "https://www.anchorit.gov/2019/11/26/latest-anchor-it-statistics-show-nearly-80-of-all-furniture-tv-and-appliance-tip-over-fatalities-involve-children-5-years-old-and-younger/",
+        "https://www.ethanallen.com/en_US/furniture-safety-initiative.html",
+        "https://www.kca.go.kr/home/sub.do?menukey=4006&mode=view&no=1002570474"
+      ],
+      "mistakes": [
+        {
+          "id": "no_anchor_tip",
+          "label": "벽에 고정하지 않고 서랍 여러 개 열기",
+          "description": "벽에 고정하지 않은 서랍장은 서랍을 여러 개 열거나 아이가 열린 서랍을 밟고 오르면 앞으로 넘어질 수 있다. 끈을 벽 브래킷에 걸고, 서랍은 한 번에 하나만 연다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "duration": 0.6
+            },
+            {
+              "offset": [
+                0,
+                87.21,
+                299.38
+              ],
+              "rotation": [
+                18,
+                0,
+                0
+              ],
+              "duration": 0.9
+            }
+          ],
+          "violates": [
+            "wall_anchor_spot",
+            "strap_tight"
+          ],
+          "alsoMove": [
+            {
+              "partId": "left_side",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    47.504,
+                    150.07
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "right_side",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    47.504,
+                    150.07
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "top_panel",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    25.92,
+                    286.346
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "bottom_panel",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    66.152,
+                    32.334
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "back_panel",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    117.497,
+                    161.156
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "cross_rails",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    -15.767,
+                    149.552
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "cam_locks",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    47.455,
+                    150.379
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "rail_left",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    51.028,
+                    127.821
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "rail_right",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    51.028,
+                    127.821
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "drawer_1",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    300
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    -126.827,
+                    518.756
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "drawer_2",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    260
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    -101.056,
+                    396.043
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            },
+            {
+              "partId": "drawer_3",
+              "path": [
+                {
+                  "offset": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "offset": [
+                    0,
+                    0,
+                    180
+                  ],
+                  "duration": 0.6
+                },
+                {
+                  "offset": [
+                    0,
+                    -62.924,
+                    235.288
+                  ],
+                  "rotation": [
+                    18,
+                    0,
+                    0
+                  ],
+                  "duration": 0.9
+                }
+              ]
+            }
+          ],
+          "source": [
+            "https://www.anchorit.gov/2019/11/26/latest-anchor-it-statistics-show-nearly-80-of-all-furniture-tv-and-appliance-tip-over-fatalities-involve-children-5-years-old-and-younger/",
+            "https://www.ethanallen.com/en_US/furniture-safety-initiative.html",
+            "https://www.kca.go.kr/home/sub.do?menukey=4006&mode=view&no=1002570474"
+          ]
+        }
+      ]
+    }
+  ],
+  "views": {
+    "default": {
+      "label": "전체",
+      "position": [
+        1350,
+        1150,
+        1900
+      ],
+      "target": [
+        0,
+        430,
+        -40
+      ]
+    },
+    "carcass": {
+      "label": "틀",
+      "position": [
+        1250,
+        1150,
+        1500
+      ],
+      "target": [
+        0,
+        450,
+        0
+      ]
+    },
+    "inside": {
+      "label": "안쪽 (캠)",
+      "position": [
+        500,
+        620,
+        1250
+      ],
+      "target": [
+        120,
+        450,
+        0
+      ]
+    },
+    "rails": {
+      "label": "레일",
+      "position": [
+        -420,
+        820,
+        1650
+      ],
+      "target": [
+        200,
+        430,
+        40
+      ]
+    },
+    "front": {
+      "label": "서랍",
+      "position": [
+        900,
+        700,
+        1700
+      ],
+      "target": [
+        0,
+        450,
+        100
+      ]
+    },
+    "back": {
+      "label": "뒤판",
+      "position": [
+        -1300,
+        1000,
+        -1300
+      ],
+      "target": [
+        0,
+        450,
+        -100
+      ]
+    },
+    "anchor": {
+      "label": "벽 고정",
+      "position": [
+        700,
+        1450,
+        450
+      ],
+      "target": [
+        0,
+        890,
+        -215
+      ]
+    },
+    "side": {
+      "label": "옆에서 (넘어짐)",
+      "position": [
+        2300,
+        1250,
+        1300
+      ],
+      "target": [
+        0,
+        520,
+        150
+      ]
+    }
+  },
+  "guides": [
+    {
+      "id": "guide_drawer_wont_close",
+      "title": "서랍이 끝까지 안 닫히거나 삐뚤게 닫힘 (레일 방향)",
+      "symptoms": [
+        "서랍이 끝까지 안 닫혀요",
+        "서랍이 삐뚤게 닫혀요",
+        "서랍 한쪽이 걸려요",
+        "서랍이 덜컹거려요"
+      ],
+      "targetPartId": "rail_right",
+      "source": [
+        "https://www.ethanallen.com/en_US/furniture-safety-initiative.html"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_dr_anchor",
+          "at": "beforeRemoval",
+          "partId": "tip_strap",
+          "label": "벽 고정 먼저 확인",
+          "description": "서랍을 빼기 전에 서랍장이 벽에 고정돼 있는지 본다. 서랍은 한 번에 하나씩 열고 뺀다.",
+          "checks": [
+            "strap_tight"
+          ],
+          "camera": "anchor",
+          "source": [
+            "https://www.ethanallen.com/en_US/furniture-safety-initiative.html",
+            "https://www.anchorit.gov/2019/11/26/latest-anchor-it-statistics-show-nearly-80-of-all-furniture-tv-and-appliance-tip-over-fatalities-involve-children-5-years-old-and-younger/"
+          ]
+        },
+        {
+          "id": "x_dr_compare",
+          "at": "afterRemoval",
+          "partId": "rail_left",
+          "label": "왼쪽 레일과 비교",
+          "description": "왼쪽 레일은 바퀴가 앞쪽 끝에 있다. 오른쪽 레일은 그 거울상이라, 바퀴를 앞에 두고 오른쪽 옆판의 같은 구멍 줄에 단다.",
+          "checks": [
+            "rail_left_roller",
+            "right_rail_holes"
+          ],
+          "camera": "rails"
+        },
+        {
+          "id": "x_dr_push",
+          "at": "beforeReinstall",
+          "partId": "rail_right",
+          "label": "바퀴 앞쪽으로 다시 달기",
+          "description": "오른쪽 레일을 바퀴가 앞쪽 끝에 오게 다시 단 뒤, 서랍을 아래부터 넣고 끝까지 닫히는지 본다.",
+          "highlightParts": [
+            "right_side"
+          ],
+          "checks": [
+            "right_rail_holes"
+          ],
+          "camera": "rails"
+        }
+      ]
+    },
+    {
+      "id": "guide_tip_over",
+      "title": "서랍장이 흔들리거나 앞으로 넘어질 것 같음 (벽 고정)",
+      "symptoms": [
+        "서랍장이 앞으로 흔들려요",
+        "서랍을 열면 넘어질 것 같아요",
+        "아이가 서랍을 밟고 올라가요",
+        "서랍장을 벽에 고정하고 싶어요"
+      ],
+      "targetPartId": "wall_bracket",
+      "source": [
+        "https://www.anchorit.gov/2019/11/26/latest-anchor-it-statistics-show-nearly-80-of-all-furniture-tv-and-appliance-tip-over-fatalities-involve-children-5-years-old-and-younger/",
+        "https://www.ikea.com/us/en/customer-service/creating-safer-homes-together-pub8fa27050",
+        "https://www.ethanallen.com/en_US/furniture-safety-initiative.html",
+        "https://www.kca.go.kr/home/sub.do?menukey=4006&mode=view&no=1002570474"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_tip_drawers",
+          "at": "beforeRemoval",
+          "partId": "drawer_3",
+          "label": "서랍 닫고 무거운 것은 아래로",
+          "description": "작업하는 동안 서랍은 모두 닫아 둔다. 무거운 물건은 맨 아래 서랍에 넣는다.",
+          "highlightParts": [
+            "drawer_1",
+            "drawer_2",
+            "drawer_3"
+          ],
+          "camera": "front",
+          "source": [
+            "https://www.ikea.com/us/en/customer-service/creating-safer-homes-together-pub8fa27050",
+            "https://www.anchorit.gov/2019/11/26/latest-anchor-it-statistics-show-nearly-80-of-all-furniture-tv-and-appliance-tip-over-fatalities-involve-children-5-years-old-and-younger/",
+            "https://www.ethanallen.com/en_US/furniture-safety-initiative.html"
+          ]
+        },
+        {
+          "id": "x_tip_wall",
+          "at": "afterRemoval",
+          "partId": "wall",
+          "label": "벽 재질 확인",
+          "description": "벽 종류에 따라 맞는 나사와 고정 부품이 다르다. 벽을 확인하고 그 벽에 맞는 부품을 쓴다.",
+          "checks": [
+            "wall_anchor_spot"
+          ],
+          "camera": "anchor",
+          "source": [
+            "https://www.ikea.com/us/en/customer-service/creating-safer-homes-together-pub8fa27050"
+          ]
+        },
+        {
+          "id": "x_tip_line",
+          "at": "beforeReinstall",
+          "partId": "top_panel",
+          "label": "끈 고정 지점 확인",
+          "description": "상판 뒤쪽 끈 고정 지점이 단단한지 보고, 브래킷을 단 뒤 끈을 걸어 팽팽하게 당긴다.",
+          "checks": [
+            "top_strap_point"
+          ],
+          "camera": "anchor"
+        }
+      ]
+    }
+  ]
+}
