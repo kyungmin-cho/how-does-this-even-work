@@ -9,7 +9,7 @@ assembly/
   package.json            공통 스크립트, pnpm 워크스페이스 루트
   pnpm-workspace.yaml
   tsconfig.base.json      패키지 공통 TS 설정
-  .env.example            OPENROUTER_API_KEY
+  .env.example            ANTHROPIC_API_KEY
   apps/
     web/                  Next.js 16 App Router 앱 (Turbopack, Tailwind 4, shadcn Radix, AI Elements)
       src/app/            라우트, src/app/api/ 는 API 라우트 자리
@@ -37,7 +37,7 @@ assembly/
 
 ## 환경 변수
 
-`.env.example`을 `apps/web/.env.local`로 복사해 `OPENROUTER_API_KEY`를 채운다. 키는 커밋하지 않는다.
+`.env.example`을 `apps/web/.env.local`로 복사해 `ANTHROPIC_API_KEY`를 채운다. AI 연결은 `@ai-sdk/anthropic`(Anthropic 직접). 키는 커밋하지 않는다.
 
 ## 참고
 
