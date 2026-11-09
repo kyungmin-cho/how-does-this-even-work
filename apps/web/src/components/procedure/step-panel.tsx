@@ -4,7 +4,7 @@ import type { ProcedureItem } from "@assembly/engine/planner";
 import type { Product, Step } from "@assembly/engine/schema";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from "lucide-react";
 
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -159,23 +159,25 @@ export function StepPanel({ compact = false, className }: { compact?: boolean; c
       </div>
 
       {peekLabel && (
-        <div role="status" className="flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-sm">
-          <span className="min-w-0 flex-1 truncate">잠깐 보는 중: {peekLabel}</span>
-          <Button size="sm" variant="secondary" onClick={() => sendCommand({ type: "resumeProcedure" })}>
-            원래 단계로
-          </Button>
-        </div>
+        <Alert role="status">
+          <AlertTitle className="truncate">잠깐 보는 중: {peekLabel}</AlertTitle>
+          <AlertAction>
+            <Button size="xs" variant="secondary" onClick={() => sendCommand({ type: "resumeProcedure" })}>
+              원래 단계로
+            </Button>
+          </AlertAction>
+        </Alert>
       )}
 
       {mistake && steps.step ? (
         <Alert variant="destructive">
           <AlertTitle>흔한 실수: {mistake.label}</AlertTitle>
           {mistake.description && <AlertDescription>{mistake.description}</AlertDescription>}
-          <div className="col-start-2 mt-2">
-            <Button size="sm" variant="outline" onClick={() => sendCommand({ type: "clearMistake" })}>
+          <AlertAction>
+            <Button size="xs" variant="outline" onClick={() => sendCommand({ type: "clearMistake" })}>
               맞는 방법만 보기
             </Button>
-          </div>
+          </AlertAction>
         </Alert>
       ) : (
         steps.current && (
@@ -213,18 +215,16 @@ export function StepPanel({ compact = false, className }: { compact?: boolean; c
               <ol aria-label="단계" className="space-y-0.5 pr-3">
                 {steps.rows.map((row, i) => (
                   <li key={row.key} aria-current={i === steps.index ? "step" : undefined}>
-                    <button
-                      type="button"
+                    <Button
+                      variant={i === steps.index ? "secondary" : "ghost"}
+                      size="sm"
+                      className="w-full justify-start"
                       onClick={() => steps.goTo(i)}
-                      className={cn(
-                        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
-                        i === steps.index && "bg-muted font-medium",
-                      )}
                     >
                       <span className="w-5 tabular-nums text-muted-foreground">{i + 1}</span>
-                      <span className="min-w-0 flex-1 truncate">{row.label}</span>
+                      <span className="min-w-0 flex-1 truncate text-left">{row.label}</span>
                       <span className="text-xs text-muted-foreground">{row.hint}</span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ol>

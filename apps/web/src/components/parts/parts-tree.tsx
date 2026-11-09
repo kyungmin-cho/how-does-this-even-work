@@ -6,6 +6,7 @@ import { useMemo, type KeyboardEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
+import { Item, ItemActions, ItemContent, ItemMedia, ItemTitle } from "@/components/ui/item";
 import { useProduct } from "@/hooks/use-studio";
 import { sendCommand } from "@/lib/engine-bridge";
 import { cn } from "@/lib/utils";
@@ -120,38 +121,41 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
 
   const row = (n: Node, level: number) => {
     const open = expanded.includes(n.id);
-    const selected = isSelected(n);
     return (
-      <div
-        className={cn(
-          "flex min-h-9 cursor-pointer items-center gap-1.5 rounded-md pr-2 text-sm hover:bg-muted",
-          selected && "bg-accent text-accent-foreground",
-        )}
-        style={{ paddingLeft: `${(level - 1) * 16 + 4}px` }}
+      <Item
+        size="xs"
+        variant={isSelected(n) ? "muted" : "default"}
+        className={cn("cursor-pointer flex-nowrap hover:bg-muted", level > 1 && "pl-8")}
         onClick={(e) => {
           e.stopPropagation();
           setUi({ treeFocusId: n.id });
           pick(n);
         }}
       >
-        {n.children.length > 0 ? (
-          <span
-            aria-hidden
-            className="flex size-6 items-center justify-center rounded hover:bg-background"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle(n.id);
-            }}
-          >
-            <ChevronRightIcon className={cn("size-4 transition-transform", open && "rotate-90")} />
-          </span>
-        ) : (
-          <span aria-hidden className="size-6" />
+        <ItemMedia>
+          {n.children.length > 0 ? (
+            <ChevronRightIcon
+              aria-hidden
+              className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-90")}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggle(n.id);
+              }}
+            />
+          ) : (
+            <span aria-hidden className="size-4" />
+          )}
+        </ItemMedia>
+        <ItemContent className="min-w-0">
+          <ItemTitle className="w-full truncate font-normal">{n.label}</ItemTitle>
+        </ItemContent>
+        {n.kind === "part" && (n.id === currentPartId || !installedParts.has(n.id)) && (
+          <ItemActions>
+            {n.id === currentPartId && <Badge variant="secondary">지금 단계</Badge>}
+            {!installedParts.has(n.id) && <Badge variant="outline">빠져 있음</Badge>}
+          </ItemActions>
         )}
-        <span className="min-w-0 flex-1 truncate">{n.label}</span>
-        {n.kind === "part" && n.id === currentPartId && <Badge variant="secondary">지금 단계</Badge>}
-        {n.kind === "part" && !installedParts.has(n.id) && <Badge variant="outline">빠져 있음</Badge>}
-      </div>
+      </Item>
     );
   };
 

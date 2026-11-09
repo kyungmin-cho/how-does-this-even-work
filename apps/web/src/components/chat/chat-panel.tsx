@@ -21,7 +21,7 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useStudioChat } from "@/components/chat/chat-provider";
 import { useProduct } from "@/hooks/use-studio";
@@ -108,11 +108,11 @@ export function ChatPanel({
             <Alert variant="destructive">
               <AlertTitle>답을 받지 못했어요</AlertTitle>
               <AlertDescription>{error.message}</AlertDescription>
-              <div className="col-start-2 mt-2">
-                <Button size="sm" variant="outline" onClick={() => void regenerate()}>
+              <AlertAction>
+                <Button size="xs" variant="outline" onClick={() => void regenerate()}>
                   <RotateCcwIcon /> 다시 시도
                 </Button>
-              </div>
+              </AlertAction>
             </Alert>
           )}
         </ConversationContent>

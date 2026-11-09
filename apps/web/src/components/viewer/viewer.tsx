@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { useProduct } from "@/hooks/use-studio";
@@ -42,38 +44,40 @@ export function Viewer({ toolbarExtra, className }: { toolbarExtra?: ReactNode; 
         onPointerDown={userTookCamera}
         onWheel={userTookCamera}
       >
-        <div className="flex max-w-sm flex-col items-center gap-3 rounded-xl border border-dashed bg-background/70 px-6 py-5 text-center">
-          <BoxIcon className="size-8 text-muted-foreground" />
-          <p className="text-sm font-medium">3D 엔진 자리</p>
-          <p className="text-xs text-muted-foreground">{product?.name}</p>
-          <div className="flex flex-wrap justify-center gap-1">
-            {focus.map((id) => (
-              <Badge key={id} variant={scene.mistake ? "destructive" : "secondary"}>
-                {partLabel(product, id)}
-              </Badge>
-            ))}
-            {scene.marks.map((m) => (
-              <Badge key={m.featureId} variant="outline">
-                {m.label}
-              </Badge>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {viewLabel(product, scene.view)}
-            {scene.explode > 0 ? `, 분해도 ${Math.round(scene.explode * 100)}%` : ""}
-            {`, 조립된 단계 ${scene.installedStepIds.length}/${product?.assembly.length ?? 0}`}
-          </p>
-        </div>
+        <Empty className="max-w-sm">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <BoxIcon />
+            </EmptyMedia>
+            <EmptyTitle>3D 엔진 자리</EmptyTitle>
+            <EmptyDescription>
+              {product?.name}, {viewLabel(product, scene.view)}
+              {scene.explode > 0 ? `, 분해도 ${Math.round(scene.explode * 100)}%` : ""}
+              {`, 조립된 단계 ${scene.installedStepIds.length}/${product?.assembly.length ?? 0}`}
+            </EmptyDescription>
+          </EmptyHeader>
+          {(focus.length > 0 || scene.marks.length > 0) && (
+            <EmptyContent className="flex-row flex-wrap justify-center gap-1">
+              {focus.map((id) => (
+                <Badge key={id} variant={scene.mistake ? "destructive" : "secondary"}>
+                  {partLabel(product, id)}
+                </Badge>
+              ))}
+              {scene.marks.map((m) => (
+                <Badge key={m.featureId} variant="outline">
+                  {m.label}
+                </Badge>
+              ))}
+            </EmptyContent>
+          )}
+        </Empty>
       </div>
 
       <ViewToolbar extra={toolbarExtra} />
 
-      <p
-        role="status"
-        className="pointer-events-none absolute right-2 bottom-2 rounded-md bg-background/80 px-2 py-1 text-xs text-muted-foreground"
-      >
+      <Badge role="status" variant="outline" className="pointer-events-none absolute right-2 bottom-2 bg-background">
         {scene.cameraOwner === "agent" ? "안내 시점으로 보는 중" : "직접 돌려 보는 중"}
-      </p>
+      </Badge>
     </section>
   );
 }
@@ -86,13 +90,11 @@ function ViewToolbar({ extra }: { extra?: ReactNode }) {
   const views = Object.entries(product?.views ?? {});
 
   return (
-    <ToolbarPrimitive.Root
-      aria-label="보기 조작"
-      className="absolute top-2 left-2 flex flex-wrap items-center gap-1 rounded-lg border bg-background/90 p-1 shadow-xs"
-    >
+    <ToolbarPrimitive.Root asChild aria-label="보기 조작">
+      <ButtonGroup className="absolute top-2 left-2">
       <ToolbarPrimitive.Button asChild>
         <Button
-          variant={cameraOwner === "user" ? "default" : "ghost"}
+          variant={cameraOwner === "user" ? "default" : "outline"}
           size="sm"
           onClick={() => sendCommand({ type: "resumeGuide" })}
         >
@@ -103,7 +105,7 @@ function ViewToolbar({ extra }: { extra?: ReactNode }) {
       <DropdownMenu modal={false}>
         <ToolbarPrimitive.Button asChild>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="outline" size="sm">
               시점: {viewLabel(product, view)}
             </Button>
           </DropdownMenuTrigger>
@@ -126,7 +128,7 @@ function ViewToolbar({ extra }: { extra?: ReactNode }) {
       <Popover>
         <ToolbarPrimitive.Button asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="outline" size="sm">
               분해도{explode > 0 ? ` ${Math.round(explode * 100)}%` : ""}
             </Button>
           </PopoverTrigger>
@@ -146,7 +148,8 @@ function ViewToolbar({ extra }: { extra?: ReactNode }) {
         </PopoverContent>
       </Popover>
 
-      {extra}
+        {extra}
+      </ButtonGroup>
     </ToolbarPrimitive.Root>
   );
 }
@@ -155,7 +158,7 @@ function ViewToolbar({ extra }: { extra?: ReactNode }) {
 export function ViewToolbarButton({ children, ...props }: React.ComponentProps<typeof Button>) {
   return (
     <ToolbarPrimitive.Button asChild>
-      <Button variant="ghost" size="sm" {...props}>
+      <Button variant="outline" size="sm" {...props}>
         {children}
       </Button>
     </ToolbarPrimitive.Button>
