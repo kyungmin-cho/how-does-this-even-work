@@ -1,0 +1,184 @@
+{
+  "id": "sample-pc",
+  "name": "테스트용 미니 PC",
+  "units": "mm",
+  "parts": [
+    {
+      "id": "case",
+      "label": "케이스",
+      "description": "보드를 붙이는 판과 테두리",
+      "position": [0, 0, 0],
+      "shapes": [
+        { "size": [440, 460, 4], "position": [0, 0, -2], "color": "#3a3f47" },
+        { "size": [440, 4, 214], "position": [0, -232, 105], "color": "#4a5059" },
+        { "size": [440, 4, 214], "position": [0, 232, 105], "color": "#4a5059" },
+        { "size": [4, 460, 214], "position": [-222, 0, 105], "color": "#4a5059" },
+        { "size": [4, 460, 214], "position": [222, 0, 105], "color": "#4a5059" }
+      ]
+    },
+    {
+      "id": "motherboard",
+      "label": "메인보드",
+      "description": "모든 부품이 꽂히는 큰 회로 기판",
+      "position": [-40, 50, 8],
+      "shapes": [
+        { "size": [244, 305, 2], "position": [0, 0, 0], "color": "#23563f" },
+        { "size": [45, 45, 5], "position": [20, 90, 3.5], "color": "#b8bcc2" },
+        { "size": [8, 130, 8], "position": [95, 90, 5], "color": "#1b1b1b" },
+        { "size": [8, 130, 8], "position": [108, 90, 5], "color": "#1b1b1b" },
+        { "size": [90, 8, 10], "position": [-40, -20, 6], "color": "#151515" },
+        { "size": [6, 22, 4], "position": [-67, -45, 3], "color": "#2a2a2a" }
+      ]
+    },
+    {
+      "id": "m2_ssd",
+      "label": "M.2 SSD",
+      "description": "보드에 눕혀 꽂는 막대 모양 저장 장치",
+      "position": [-60, 5, 10.5],
+      "shapes": [
+        { "size": [80, 22, 3], "position": [0, 0, 0], "color": "#1a1a2e" },
+        { "size": [40, 16, 0.6], "position": [6, 0, 1.8], "color": "#e8e8e8" }
+      ]
+    },
+    {
+      "id": "m2_heatsink",
+      "label": "M.2 방열판",
+      "description": "SSD 위를 덮는 금속 판",
+      "position": [-60, 5, 16],
+      "shapes": [
+        { "size": [84, 26, 6], "position": [0, 0, 0], "color": "#8a8f98" },
+        { "size": [84, 4, 3], "position": [0, -9, 4.5], "color": "#9aa0a8" },
+        { "size": [84, 4, 3], "position": [0, 0, 4.5], "color": "#9aa0a8" },
+        { "size": [84, 4, 3], "position": [0, 9, 4.5], "color": "#9aa0a8" }
+      ]
+    },
+    {
+      "id": "gpu",
+      "label": "그래픽카드",
+      "description": "PCIe 슬롯에 꽂는 큰 카드, M.2 자리를 가린다",
+      "position": [-22, 5, 88],
+      "shapes": [
+        { "size": [280, 40, 132], "position": [0, 0, 0], "color": "#2b2b2b" },
+        { "size": [90, 3, 90], "position": [-65, -21.5, 0], "color": "#5a5f66" },
+        { "size": [90, 3, 90], "position": [65, -21.5, 0], "color": "#5a5f66" },
+        { "size": [280, 2, 132], "position": [0, 21, 0], "color": "#c0392b" }
+      ]
+    },
+    {
+      "id": "side_panel",
+      "label": "옆판",
+      "description": "케이스 옆을 덮는 철판",
+      "position": [0, 0, 214],
+      "shapes": [{ "size": [440, 460, 4], "position": [0, 0, 0], "color": "#7d8794" }]
+    }
+  ],
+  "features": [
+    { "id": "pcie_slot", "partId": "motherboard", "position": [-40, -20, 11], "kind": "slot", "label": "PCIe x16 슬롯" },
+    { "id": "pcie_latch", "partId": "motherboard", "position": [8, -20, 11], "kind": "latch", "label": "PCIe 고정 걸쇠" },
+    { "id": "m2_slot", "partId": "motherboard", "position": [-67, -45, 5], "kind": "slot", "label": "M.2 슬롯" },
+    { "id": "m2_screw_hole", "partId": "motherboard", "position": [22, -45, 1], "kind": "screw_hole", "label": "M.2 고정 나사 구멍" },
+    { "id": "cpu_socket", "partId": "motherboard", "position": [20, 90, 6], "kind": "marker", "label": "CPU 소켓" },
+    { "id": "m2_notch", "partId": "m2_ssd", "position": [-38, 4, 0], "kind": "notch", "label": "M.2 홈(키)" },
+    { "id": "heatsink_screw", "partId": "m2_heatsink", "position": [40, 0, 3], "kind": "screw_hole", "label": "방열판 나사" },
+    { "id": "gpu_power", "partId": "gpu", "position": [110, 22, 30], "kind": "header", "label": "보조 전원 단자" },
+    { "id": "panel_screw", "partId": "side_panel", "position": [210, 0, 2], "kind": "screw_hole", "label": "옆판 손나사" }
+  ],
+  "assembly": [
+    {
+      "id": "s_case",
+      "partId": "case",
+      "action": "place",
+      "label": "케이스 놓기",
+      "path": [{ "offset": [0, -300, 0] }],
+      "camera": "default"
+    },
+    {
+      "id": "s_board",
+      "partId": "motherboard",
+      "action": "screw_down",
+      "label": "메인보드 고정",
+      "description": "보드를 스탠드오프 위에 올리고 나사로 고정한다",
+      "path": [{ "offset": [0, 0, 220] }, { "offset": [0, 0, 20] }],
+      "checks": ["cpu_socket"],
+      "camera": "inside"
+    },
+    {
+      "id": "s_m2",
+      "partId": "m2_ssd",
+      "action": "insert",
+      "label": "M.2 SSD 꽂기",
+      "description": "30도 기울여 슬롯에 밀어 넣고 눌러 눕힌다",
+      "path": [
+        { "offset": [60, 0, 60], "rotation": [0, -30, 0] },
+        { "offset": [6, 0, 22], "rotation": [0, -30, 0] },
+        { "offset": [0, 0, 0], "rotation": [0, 0, 0] }
+      ],
+      "checks": ["m2_slot", "m2_notch"],
+      "camera": "m2_area"
+    },
+    {
+      "id": "s_heatsink",
+      "partId": "m2_heatsink",
+      "action": "screw_down",
+      "label": "방열판 덮기",
+      "path": [{ "offset": [0, 0, 80] }, { "offset": [0, 0, 10] }],
+      "blocks": ["m2_ssd"],
+      "screwOrder": ["heatsink_screw"],
+      "camera": "m2_area"
+    },
+    {
+      "id": "s_gpu",
+      "partId": "gpu",
+      "action": "insert",
+      "label": "그래픽카드 꽂기",
+      "description": "슬롯에 맞춰 수직으로 눌러 걸쇠가 딸깍 걸리게 한다",
+      "path": [{ "offset": [0, 0, 220] }, { "offset": [0, 0, 30] }],
+      "blocks": ["m2_ssd", "m2_heatsink"],
+      "checks": ["pcie_slot", "pcie_latch"],
+      "camera": "gpu_area"
+    },
+    {
+      "id": "s_panel",
+      "partId": "side_panel",
+      "action": "slide",
+      "label": "옆판 닫기",
+      "path": [{ "offset": [150, 0, 40] }, { "offset": [150, 0, 0] }],
+      "blocks": ["*"],
+      "screwOrder": ["panel_screw"],
+      "camera": "default"
+    }
+  ],
+  "views": {
+    "default": { "label": "전체", "position": [650, 380, 900], "target": [0, 0, 80] },
+    "front": { "label": "정면", "position": [0, 0, 1150], "target": [0, 0, 80] },
+    "top": { "label": "위", "position": [0, 1000, 320], "target": [0, 0, 80] },
+    "inside": { "label": "안쪽", "position": [320, 240, 620], "target": [-40, 40, 30] },
+    "gpu_area": { "label": "그래픽카드 쪽", "position": [260, -160, 560], "target": [-22, 5, 70] },
+    "m2_area": { "label": "M.2 자리", "position": [140, -90, 520], "target": [-50, 10, 10] }
+  },
+  "guides": [
+    {
+      "id": "ssd_not_detected",
+      "title": "SSD가 인식되지 않음",
+      "symptoms": ["SSD가 안 보여요", "부팅 드라이브가 없다고 나와요"],
+      "targetPartId": "m2_ssd",
+      "extraSteps": [
+        {
+          "id": "x_check_slot",
+          "at": "afterRemoval",
+          "label": "슬롯과 단자 확인",
+          "description": "슬롯에 먼지나 휘어진 핀이 없는지, SSD 금색 단자가 깨끗한지 본다",
+          "partId": "motherboard",
+          "checks": ["m2_slot"]
+        },
+        {
+          "id": "x_reseat",
+          "at": "beforeReinstall",
+          "label": "홈 방향 맞추기",
+          "description": "SSD 홈이 슬롯 돌기와 맞는지 확인하고 30도로 끝까지 밀어 넣는다",
+          "checks": ["m2_notch", "m2_screw_hole"]
+        }
+      ]
+    }
+  ]
+}
