@@ -29,7 +29,7 @@ test("accessibility tree has the landmarks and controls the design names", async
   const banner = page.getByRole("banner");
   await expect(banner.getByRole("combobox", { name: "제품" })).toBeVisible();
   await expect(banner.getByRole("heading", { level: 1, name: "How Does This Even Work?" })).toBeVisible();
-  await expect(banner.getByRole("button", { name: "메뉴" })).toBeVisible();
+  await expect(banner.getByRole("button", { name: "처음부터 다시" })).toBeVisible();
 
   const main = page.getByRole("main");
   await expect(main.getByRole("region", { name: "3D 보기" })).toBeVisible();

@@ -117,8 +117,7 @@ test("view menu, explode and camera owner", async ({ page }) => {
 test("start over clears this device", async ({ page }) => {
   await openStudio(page, "/studio/pc?step=s_gpu");
   await expect(procedure(page)).toContainText(pos(indexOf("s_gpu")));
-  await page.getByRole("button", { name: "메뉴" }).click();
-  await page.getByRole("menuitem", { name: "처음부터 다시 시작" }).click();
+  await page.getByRole("button", { name: "처음부터 다시" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "지우고 다시 시작" }).click();
   await page.waitForLoadState("load");
   await page.goto("/studio/pc");

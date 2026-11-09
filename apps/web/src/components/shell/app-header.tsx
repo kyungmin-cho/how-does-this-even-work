@@ -1,6 +1,6 @@
 "use client";
 
-import { ListTreeIcon, MoreHorizontalIcon, RotateCcwIcon, ScanEyeIcon } from "lucide-react";
+import { ListTreeIcon, RotateCcwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -14,16 +14,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { resetEverything } from "@/lib/engine-bridge";
@@ -32,7 +24,7 @@ import { APP_NAME } from "@/lib/site";
 import { useAppStore } from "@/store";
 
 /**
- * One line, Notion-style: "app / product" as plain-text breadcrumbs, the menu on the right.
+ * One line, Notion-style: "app / product" as plain-text breadcrumbs, "start over" on the right.
  * `leading` holds a layout control at the far left (open the parts panel or drawer).
  */
 export function AppHeader({ phone = false, leading }: { phone?: boolean; leading?: ReactNode }) {
@@ -102,26 +94,14 @@ function AppMenu() {
   const setUi = useAppStore((s) => s.setUi);
   return (
     <>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="메뉴">
-            <MoreHorizontalIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-52">
-          {/* AR lives in @assembly/ar; it stays listed but off until that lands. */}
-          <DropdownMenuItem disabled>
-            <ScanEyeIcon /> AR로 보기
-            <Badge variant="secondary" className="ml-auto">
-              준비 중
-            </Badge>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setUi({ resetDialogOpen: true })}>
-            <RotateCcwIcon /> 처음부터 다시 시작
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setUi({ resetDialogOpen: true })}
+        title="대화, 진행 단계, 화면 배치를 지우고 처음부터 시작해요"
+      >
+        <RotateCcwIcon /> 처음부터 다시
+      </Button>
       <AlertDialog open={open} onOpenChange={(next) => setUi({ resetDialogOpen: next })}>
         <AlertDialogContent>
           <AlertDialogHeader>
