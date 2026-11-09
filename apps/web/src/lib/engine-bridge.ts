@@ -16,12 +16,26 @@ import { useAppStore, type Progress } from "@/store";
  * viewport (`attachViewport`), so the scene, camera and animation state survive.
  */
 
-let engine: Engine | null = null;
-let host: HTMLDivElement | null = null;
-let openedSlug: string | null = null;
-/** Product asked for before the viewport existed. */
-let pendingSlug: string | null = null;
-let deepLinkUsed = false;
+interface BridgeState {
+  engine: Engine | null;
+  host: HTMLDivElement | null;
+  openedSlug: string | null;
+  /** Product asked for before the viewport existed. */
+  pendingSlug: string | null;
+  deepLinkUsed: boolean;
+}
+
+/**
+ * Kept on globalThis, not in module variables: the dev bundler can load this module more
+ * than once (HMR, separate chunks), and every copy must see the same single engine.
+ */
+const shared: BridgeState = ((globalThis as { __hdtewBridge?: BridgeState }).__hdtewBridge ??= {
+  engine: null,
+  host: null,
+  openedSlug: null,
+  pendingSlug: null,
+  deepLinkUsed: false,
+});
 
 class EngineNotReady extends Error {
   constructor() {
@@ -30,12 +44,12 @@ class EngineNotReady extends Error {
 }
 
 function getEngine(): Engine {
-  if (!engine) throw new EngineNotReady();
-  return engine;
+  if (!shared.engine) throw new EngineNotReady();
+  return shared.engine;
 }
 
 export function engineReady(): boolean {
-  return engine !== null;
+  return shared.engine !== null;
 }
 
 /** Tests set localStorage "hdtew:e2e" = "1": faster animations, cheaper rendering. */
@@ -50,41 +64,43 @@ function testEngineOptions() {
 
 /** The viewer calls this with its slot element; returns a detach function. */
 export function attachViewport(slot: HTMLElement): () => void {
-  if (!host) {
-    host = document.createElement("div");
-    host.dataset.testid = "engine-host";
-    host.style.position = "absolute";
-    host.style.inset = "0";
+  if (!shared.host) {
+    shared.host = document.createElement("div");
+    shared.host.dataset.testid = "engine-host";
+    shared.host.style.position = "absolute";
+    shared.host.style.inset = "0";
   }
-  slot.appendChild(host);
-  if (!engine) {
-    engine = createEngine(host, { preserveDrawingBuffer: true, ...testEngineOptions() });
-    engine.on("statechange", onStateChange);
-    const slug = pendingSlug;
-    pendingSlug = null;
+  slot.appendChild(shared.host);
+  if (!shared.engine) {
+    shared.engine = createEngine(shared.host, { preserveDrawingBuffer: true, ...testEngineOptions() });
+    shared.engine.on("statechange", onStateChange);
+    const slug = shared.pendingSlug;
+    shared.pendingSlug = null;
     if (slug) openProduct(slug);
   }
-  const mine = host;
+  const mine = shared.host;
   return () => {
     if (mine.parentElement === slot) slot.removeChild(mine);
   };
 }
 
-/** PNG data URL of what the user sees right now, or null before the 3D view exists. */
+/** JPEG data URL of what the user sees right now, or null before the 3D view exists. */
 export function captureViewport(maxWidth = 1024): string | null {
-  const canvas = host?.querySelector("canvas");
+  const canvas = shared.host?.querySelector("canvas");
   if (!canvas || !canvas.width) return null;
   const scale = Math.min(1, maxWidth / canvas.width);
-  if (scale === 1) return canvas.toDataURL("image/png");
   const out = document.createElement("canvas");
   out.width = Math.round(canvas.width * scale);
   out.height = Math.round(canvas.height * scale);
-  out.getContext("2d")!.drawImage(canvas, 0, 0, out.width, out.height);
-  return out.toDataURL("image/png");
+  const ctx = out.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(canvas, 0, 0, out.width, out.height);
+  return out.toDataURL("image/jpeg", 0.8);
 }
 
 export function currentProduct(): Product | null {
-  return engine?.getProduct() ?? null;
+  return shared.engine?.getProduct() ?? null;
 }
 
 function onStateChange(scene: EngineState) {
@@ -92,7 +108,7 @@ function onStateChange(scene: EngineState) {
   store.setScene(scene);
   if (!scene.procedure && store.procedureItems) store.setProcedureItems(null);
   const slug = store.productSlug;
-  if (!slug || slug !== openedSlug || !scene.productId) return;
+  if (!slug || slug !== shared.openedSlug || !scene.productId) return;
   const progress: Progress = scene.procedure
     ? {
         mode: "service",
@@ -129,18 +145,18 @@ export function sendCommand(command: EngineCommand): CommandResult {
 
 /** Load a product and put it back where the user left it on this device. */
 export function openProduct(slug: string) {
-  if (!engine) {
-    pendingSlug = slug;
+  if (!shared.engine) {
+    shared.pendingSlug = slug;
     return;
   }
-  if (openedSlug === slug && engine.getProduct()) return;
+  if (shared.openedSlug === slug && shared.engine.getProduct()) return;
   const product = getProduct(slug);
   if (!product) return;
   const saved = useAppStore.getState().progress[slug];
-  openedSlug = null; // don't save the fresh load over the saved progress
+  shared.openedSlug = null; // don't save the fresh load over the saved progress
   getEngine().loadProduct(product);
-  openedSlug = slug;
-  if (!deepLinkUsed && applyDeepLink(product)) return;
+  shared.openedSlug = slug;
+  if (!shared.deepLinkUsed && applyDeepLink(product)) return;
   if (saved) restore(product, saved);
 }
 
@@ -158,7 +174,7 @@ function restore(product: Product, saved: Progress) {
 
 /** `?guide=<id>&step=<n>` (1-based) or `?step=<assembly step id>`. Read once per page load. */
 function applyDeepLink(product: Product): boolean {
-  deepLinkUsed = true;
+  shared.deepLinkUsed = true;
   if (typeof window === "undefined") return false;
   const params = new URLSearchParams(window.location.search);
   const guideId = params.get("guide");
@@ -213,10 +229,10 @@ export function startGuide(guideId: string, stepNumber = 1): CommandResult {
 export function exitProcedure() {
   const product = currentProduct();
   if (!product) return;
-  const slug = openedSlug;
-  openedSlug = null;
+  const slug = shared.openedSlug;
+  shared.openedSlug = null;
   getEngine().loadProduct(product);
-  openedSlug = slug;
+  shared.openedSlug = slug;
   if (slug) useAppStore.getState().setProgress(slug, { mode: "assembly", stepId: null });
 }
 

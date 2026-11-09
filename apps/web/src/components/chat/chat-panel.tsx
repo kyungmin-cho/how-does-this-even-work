@@ -1,6 +1,6 @@
 "use client";
 
-import type { UIMessage } from "ai";
+import { getToolName, isToolUIPart, type UIMessage } from "ai";
 import { CircleAlertIcon, MessageCircleQuestionIcon, RotateCcwIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -24,6 +24,7 @@ import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useStudioChat } from "@/components/chat/chat-provider";
+import { AskUserCard, ProcedureCard, ToolActivity } from "@/components/chat/tool-parts";
 import { useProduct } from "@/hooks/use-studio";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store";
@@ -177,17 +178,42 @@ export function ChatPanel({
 }
 
 function ChatMessage({ message, streaming }: { message: UIMessage; streaming: boolean }) {
+  const { answerQuestion } = useStudioChat();
   const fromUser = message.role === "user";
   const text = textOf(message);
-  if (!text && !streaming) return null;
-  return (
-    <Message from={message.role} role="article" aria-label={fromUser ? "나" : "에이전트"}>
-      <MessageContent>
-        {fromUser ? (
+  const hasTools = message.parts.some(isToolUIPart);
+  if (!text && !hasTools && !streaming) return null;
+  if (fromUser) {
+    return (
+      <Message from="user" role="article" aria-label="나">
+        <MessageContent>
           <p className="whitespace-pre-wrap">{text}</p>
-        ) : (
-          <MessageResponse isAnimating={streaming}>{text}</MessageResponse>
-        )}
+        </MessageContent>
+      </Message>
+    );
+  }
+  const lastTextIndex = message.parts.findLastIndex((p) => p.type === "text");
+  return (
+    <Message from="assistant" role="article" aria-label="에이전트">
+      <MessageContent className="w-full gap-1.5">
+        {message.parts.map((part, i) => {
+          if (part.type === "text") {
+            return part.text ? (
+              <MessageResponse key={i} isAnimating={streaming && i === lastTextIndex}>
+                {part.text}
+              </MessageResponse>
+            ) : null;
+          }
+          if (!isToolUIPart(part)) return null;
+          const name = getToolName(part);
+          if (name === "ask_user") return <AskUserCard key={part.toolCallId} part={part} onAnswer={answerQuestion} />;
+          return (
+            <div key={part.toolCallId} className="space-y-1.5">
+              <ToolActivity part={part} />
+              {name === "start_guide" && <ProcedureCard part={part} />}
+            </div>
+          );
+        })}
       </MessageContent>
     </Message>
   );
