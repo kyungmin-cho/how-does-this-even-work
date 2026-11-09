@@ -163,20 +163,25 @@ function ChatMessage({ message, streaming }: { message: UIMessage; streaming: bo
   const lastTextIndex = message.parts.findLastIndex((p) => p.type === "text");
   return (
     <Message from="assistant" role="article" aria-label="에이전트">
-      <MessageContent className="w-full gap-1.5">
+      <MessageContent className="w-full gap-1">
         {message.parts.map((part, i) => {
           if (part.type === "text") {
             return part.text ? (
-              <MessageResponse key={i} isAnimating={streaming && i === lastTextIndex}>
+              <MessageResponse key={i} className="py-1.5 leading-relaxed" isAnimating={streaming && i === lastTextIndex}>
                 {part.text}
               </MessageResponse>
             ) : null;
           }
           if (!isToolUIPart(part)) return null;
           const name = getToolName(part);
-          if (name === "ask_user") return <AskUserCard key={part.toolCallId} part={part} onAnswer={answerQuestion} />;
+          if (name === "ask_user")
+            return (
+              <div key={part.toolCallId} className="py-1.5">
+                <AskUserCard part={part} onAnswer={answerQuestion} />
+              </div>
+            );
           return (
-            <div key={part.toolCallId} className="space-y-1.5">
+            <div key={part.toolCallId} className="space-y-1">
               <ToolActivity part={part} />
               {name === "start_guide" && <ProcedureCard part={part} />}
             </div>
