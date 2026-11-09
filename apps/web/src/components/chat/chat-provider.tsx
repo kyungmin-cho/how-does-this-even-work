@@ -40,12 +40,15 @@ function forStorage(messages: UIMessage[]): UIMessage[] {
 
 const ChatContext = createContext<Chat | null>(null);
 
+/** Store key of the single conversation. */
+const CHAT_KEY = "studio";
+
 /**
- * One chat per product, created above the layouts so switching between the phone and
+ * One chat for the studio, created above the layouts so switching between the phone and
  * desktop layout (or hiding panels) never drops a streaming answer.
  * Messages are mirrored into the store, which persists them on this device.
  */
-export function ChatProvider({ slug, children }: { slug: string; children: ReactNode }) {
+export function ChatProvider({ children }: { children: ReactNode }) {
   const transport = useMemo(
     () =>
       new DefaultChatTransport<UIMessage>({
@@ -55,14 +58,15 @@ export function ChatProvider({ slug, children }: { slug: string; children: React
     [],
   );
 
-  // Read the saved messages only when the chat for this product is created.
-  const saved = useMemo(() => useAppStore.getState().chats[slug] ?? [], [slug]);
+  // One conversation across products: the agent can switch products (load_product) mid-turn,
+  // and the talk must continue. Saved messages are read once, when the chat is created.
+  const saved = useMemo(() => useAppStore.getState().chats[CHAT_KEY] ?? [], []);
 
   const router = useRouter();
   const addOutput = useRef<UseChatHelpers<UIMessage>["addToolOutput"] | null>(null);
 
   const chat = useChat<UIMessage>({
-    id: `chat:${slug}`,
+    id: `chat:${CHAT_KEY}`,
     messages: saved,
     transport,
     experimental_throttle: 50,
@@ -90,8 +94,8 @@ export function ChatProvider({ slug, children }: { slug: string; children: React
 
   const { messages, addToolOutput } = chat;
   useEffect(() => {
-    useAppStore.getState().setChat(slug, forStorage(messages));
-  }, [slug, messages]);
+    useAppStore.getState().setChat(CHAT_KEY, forStorage(messages));
+  }, [messages]);
 
   const answerQuestion = useCallback(
     (toolCallId: string, answer: string) => void addToolOutput({ tool: "ask_user", toolCallId, output: { answer } }),

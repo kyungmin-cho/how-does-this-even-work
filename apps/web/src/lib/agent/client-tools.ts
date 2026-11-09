@@ -2,7 +2,7 @@ import type { EngineState } from "@assembly/engine";
 import type { EngineCommand } from "@assembly/engine/commands";
 
 import { describeScene, featureLabel, partLabel, viewLabel } from "@/lib/describe";
-import { captureViewport, currentProduct, sendCommand, startGuide, type CommandResult } from "@/lib/engine-bridge";
+import { captureViewport, currentProduct, openProduct, sendCommand, startGuide, type CommandResult } from "@/lib/engine-bridge";
 import { isProductSlug } from "@/lib/products";
 import { useAppStore } from "@/store";
 
@@ -121,8 +121,12 @@ export async function runClientTool(name: ClientToolName, input: unknown, ctx: C
     case "load_product": {
       const slug = String(args.productId);
       if (!isProductSlug(slug)) return { ok: false, error: `unknown product "${slug}"` };
+      // Switch now (store + engine) so the very next request already names the new product;
+      // the route change only updates the address bar.
+      useAppStore.getState().setProductSlug(slug);
+      openProduct(slug);
       ctx.openProduct(slug);
-      return { ok: true, opened: slug, note: "다음 답부터 이 제품의 부품, 단계 ID를 쓰세요." };
+      return { ok: true, opened: slug, view: viewSummary(), note: "이제부터 이 제품의 부품, 단계, 지침서 ID를 쓰세요." };
     }
     case "ask_user":
       throw new Error("ask_user is answered by the user");

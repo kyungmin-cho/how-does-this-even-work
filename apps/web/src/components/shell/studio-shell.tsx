@@ -57,5 +57,5 @@ export function StudioShell() {
     );
   }
 
-  return <ChatProvider slug={slug}>{isPhone ? <PhoneLayout /> : <DesktopLayout />}</ChatProvider>;
+  return <ChatProvider>{isPhone ? <PhoneLayout /> : <DesktopLayout />}</ChatProvider>;
 }

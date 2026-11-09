@@ -1,6 +1,7 @@
 import type { Product } from "@assembly/engine/schema";
 
 import { describeProductForAgent } from "@/lib/describe";
+import { listProducts } from "@/lib/products";
 
 export const AGENT_MODEL = "claude-opus-5-5";
 export const AGENT_EFFORT = "medium" as const;
@@ -29,6 +30,8 @@ export function agentInstructions(product: Product, view?: unknown): string {
     "- cameraOwner가 user면 사용자가 직접 돌려 보는 중이다. set_view로 카메라를 뺏지 않는다.",
     "- capture_view는 글 상태(get_view_state)로 부족할 때만 쓴다.",
     "- 도구 인자는 아래 제품 정보의 ID만 쓴다.",
+    "- 사용자가 다른 제품 이야기를 하면 load_product로 그 제품을 열고, 그다음 그 제품의 지침서(search_guides, start_guide)로 이어 간다.",
+    `- 열 수 있는 제품: ${listProducts().map((p) => `${p.name} (${p.slug})`).join(", ")}`,
     "",
     describeProductForAgent(product),
     ...(view ? ["", "지금 화면(사용자가 보고 있는 상태):", JSON.stringify(view)] : []),
