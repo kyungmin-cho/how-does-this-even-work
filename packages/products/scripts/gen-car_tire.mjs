@@ -183,7 +183,7 @@ const assembly = [
       {
         id: "jack_wrong_point",
         label: "잭을 잭 포인트가 아닌 곳에 댐",
-        description: "문턱 홈이 아닌 바닥판에 잭을 대면 차체가 찌그러지거나 차가 기울어 잭에서 미끄러질 수 있다. 바퀴 가장 가까운 잭 포인트(홈 두 개 사이)에만 댄다.",
+        description: "잭은 바퀴 가장 가까운 잭 포인트(홈 두 개 사이)에만 댄다. 차의 다른 곳에는 대지 않는다.",
         // The engine draws a mistake on its step's part; the jack has no assembly step (it only comes in
         // with the guide), so the body's red copy is parked far above the frame and the jack moves via alsoMove.
         path: [kf([0, 6000, 0]), kf([0, 6000, 0], null, 2.5)],
@@ -223,7 +223,7 @@ const assembly = [
       {
         id: "nut_reversed",
         label: "너트를 거꾸로 끼움",
-        description: "테이퍼(좁은 쪽)가 바깥을 보게 끼우면 바퀴가 제대로 눌리지 않아 달리다 풀릴 수 있다. 좁은 쪽이 바퀴(안쪽)를 향하게 끼운다.",
+        description: "너트는 좁은 테이퍼 쪽이 바퀴(안쪽)를 향하게 끼운다. 넓은 쪽이 바퀴를 보면 거꾸로 끼운 것이다.",
         path: [kf([0, 0, 120], [0, 180, 0]), kf([0, 0, NUT_LEN], [0, 180, 0], 0.8), kf([0, 0, NUT_LEN], [0, 180, 0], 1.6)],
         violates: ["nut_1"],
         source: [q(SRC.hyundai, "The nuts should be installed with their tapered small diameter ends directed inward.")],
@@ -279,7 +279,7 @@ const guides = [
         partId: "triangle",
         action: "place",
         label: "안전삼각대 세우기",
-        description: "고속도로나 자동차 전용도로에서는 뒤에서 오는 차가 볼 수 있는 곳에 안전삼각대를 세운다. 밤에는 사방 500 m에서 보이는 붉은 섬광 신호도 함께 둔다. 갓길이 위험하면 차 밖 안전한 곳으로 피해 긴급출동을 부른다.",
+        description: "고속도로나 자동차 전용도로에서는 뒤에서 오는 차가 볼 수 있는 곳에 안전삼각대를 세운다. 밤에는 사방 500 m에서 보이는 붉은 섬광 신호도 함께 둔다.",
         path: [kf([0, 600, 0])],
         checks: ["triangle_face"],
         camera: "triangle_area",
@@ -342,7 +342,7 @@ const guides = [
         partId: "flat_tire",
         action: "remove_consumable",
         label: "펑크 난 바퀴 빼기",
-        description: "너트를 다 뺀 뒤 바퀴를 몸 쪽으로 똑바로 당겨 뺀다.",
+        description: "너트를 다 뺀 뒤 바퀴를 뺀다.",
         path: [kf([0, 0, 360])],
         checks: ["hub_face"],
         camera: "wheel",
@@ -354,7 +354,7 @@ const guides = [
         partId: "spare_wheel",
         action: "slide",
         label: "스페어 바퀴 끼우기",
-        description: "스페어 바퀴 구멍을 허브 볼트에 맞춰 끼운다. 임시용 스페어에는 휠 커버를 달지 않는다.",
+        description: "스페어 바퀴 구멍을 허브 볼트에 맞춰 끼운다.",
         path: [kf([0, 0, 360]), kf([0, 0, 60])],
         checks: ["hub_face"],
         camera: "wheel",
