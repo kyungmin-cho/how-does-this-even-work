@@ -479,8 +479,11 @@ def build_cooler():
             fin_stack(p, (50, 125, fin_z1 - fin_z0), 46, 0.45, M["alu"], axis="z")
             for sx in (-1, 1):  # folded fin edges give a solid look from the sides
                 p.box((0.5, 125, fin_z1 - fin_z0), (sx * 25, 0, 0), M["alu"])
-        p.box((52, 127, 3), (0, 0, fin_z1 + 1.5), M["gunmetal"], bevel=1.2)
-        p.box((30, 70, 0.4), (0, 0, fin_z1 + 3.1), M["alu_dark"], bevel=1.0)
+        p.box((52, 127, 3), (0, 0, fin_z1 + 1.5), M["alu"], bevel=1.2)
+        for yy in (-40, 40):
+            p.box((44, 1.2, 0.3), (0, yy, fin_z1 + 3.05), M["gunmetal"])
+        p.box((34, 56, 0.4), (0, 0, fin_z1 + 3.1), M["gunmetal"], bevel=2.0)
+        label_text(p, "TOWER 120", 5.5, (0, 0, fin_z1 + 3.45), M["alu"], depth=0.2, rot=(0, 0, 90))
     # 120 mm fan on the front face, blowing to the rear (-x)
     with p.group("#1f2328"):
         with p.at(axis_m("-x", (25 + 12.5, 0, (fin_z0 + fin_z1) / 2))):

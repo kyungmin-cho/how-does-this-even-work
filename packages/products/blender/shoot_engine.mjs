@@ -90,5 +90,12 @@ await page.evaluate(() => window.__engine.showStep("s_cooler"));
 await settle();
 await shot("07-step-cooler");
 
+for (const [step, mistake] of [["s_ram", "ram_notch_reversed"], ["s_cooler", "cooler_straight_pull"]]) {
+  await page.evaluate(([st, m]) => window.__engine.showMistake(st, m), [step, mistake]);
+  await settle(2200);
+  await shot(`08-mistake-${mistake}`);
+  await page.evaluate(() => window.__engine.clearMistake());
+}
+
 console.log("errors:", errors.length ? errors : "none");
 await browser.close();
