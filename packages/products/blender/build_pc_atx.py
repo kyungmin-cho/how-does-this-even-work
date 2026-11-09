@@ -494,12 +494,16 @@ def build_cooler():
 
 def build_ram():
     p = Part("ram")
+    p.children = []
     mats = dict(pcb=M["pcb"], chip=M["chip"], gold=M["gold"], spreader=M["ram_spreader"],
                 spreader2=M["ram_spreader2"], accent=M["ram_accent"])  # fmt: skip
-    for i, x in enumerate((-10, 10), 1):
-        with p.group("#e6e8eb"):
-            with p.at(xf((x, 0, 0))):
-                dimm_module(p, 133.35, 31.25, 133.35 / 2 + RAM_NOTCH_Y, mats)
+    for i, (x, slot) in enumerate(((-10, "a2"), (10, "b2")), 1):
+        c = Part(f"ram_{slot}")
+        with c.group("#e6e8eb"):
+            with c.at(xf((x, 0, 0))):
+                dimm_module(c, 133.35, 31.25, 133.35 / 2 + RAM_NOTCH_Y, mats)
+        p.boxes += c.boxes
+        p.children.append(c)
         p.feature(f"ram_notch_{i}", (x, RAM_NOTCH_Y, -15.625))
     return p
 
@@ -660,12 +664,19 @@ def build_gpu():
     with p.group("#2b2b2b"):
         # heatsink fins visible through the fan openings
         with p.at(xf((0, -15, zc))):
-            fin_stack(p, (250, 22, sz1 - sz0 - 6), 70, 0.5, M["alu_dark"], axis="x")
+            fin_stack(p, (250, 22, sz1 - sz0 - 3), 80, 0.5, M["alu"], axis="x")
         # end caps and side walls
         p.box((8, shy0 - shy1, sz1 - sz0), (-L / 2 + 6, (shy0 + shy1) / 2, zc), M["gpu_shroud"], bevel=2.0)
         p.box((8, shy0 - shy1, sz1 - sz0), (L / 2 - 4, (shy0 + shy1) / 2, zc), M["gpu_shroud"], bevel=2.0)
-        for z in (sz0 + 2, sz1 - 2):
-            p.box((L - 4, shy0 - shy1, 4), (1, (shy0 + shy1) / 2, z), M["gpu_shroud"], bevel=1.5)
+        p.box((L - 4, shy0 - shy1, 4), (1, (shy0 + shy1) / 2, sz0 + 2), M["gpu_shroud"], bevel=1.5)
+        # top edge (faces the glass): two rails and end blocks, fins show in between
+        for yy in (shy0 - 2.5, shy1 + 2.5):
+            p.box((L - 4, 5, 4), (1, yy, sz1 - 2), M["gpu_shroud"], bevel=1.5)
+        for xx, w in ((-L / 2 + 22, 40), (L / 2 - 30, 52)):
+            p.box((w, shy0 - shy1, 4), (xx, (shy0 + shy1) / 2, sz1 - 2), M["gpu_shroud"], bevel=1.5)
+        p.box((L - 100, 1.0, 0.6), (-6, shy1 + 0.6, sz1 + 0.1), M["gpu_accent"])
+        with p.at(xf((-L / 2 + 22, (shy0 + shy1) / 2, sz1 + 0.05))):
+            label_text(p, "GPU", 9, (0, 0, 0.1), M["gpu_accent"], depth=0.25, rot=(0, 0, 0))
         # bottom plate with round openings
         fan_x = (-62.0, 62.0)
         with p.at(xf((0, shy1 + 1.5, zc), (90, 0, 0))):
@@ -782,7 +793,19 @@ def main():
     objs = {}
     for pid in PART_IDS:
         part = parts[pid]
-        ob = part.finish(coll, world[pid])
+        kids = getattr(part, "children", None)
+        if kids:
+            part.bm.free()
+            ob = bpy.data.objects.new(pid, None)
+            ob.empty_display_size = 10
+            ob.location = world[pid]
+            coll.objects.link(ob)
+            for c in kids:
+                co = c.finish(coll)
+                co.parent = ob
+                co["_mesh_child"] = True
+        else:
+            ob = part.finish(coll, world[pid])
         objs[pid] = ob
         for fid, pos in part.features.items():
             e = bpy.data.objects.new(fid, None)
@@ -796,7 +819,8 @@ def main():
     layout = {"units": "mm", "source": "packages/products/blender/build_pc_atx.py", "parts": {}, "features": {}}
     for pid in PART_IDS:
         ob, part = objs[pid], parts[pid]
-        vs = [v.co for v in ob.data.vertices]
+        meshes = [ob] if ob.type == "MESH" else [c for c in ob.children if c.type == "MESH"]
+        vs = [v.co for m in meshes for v in m.data.vertices]
         lo = [min(v[i] for v in vs) for i in range(3)]
         hi = [max(v[i] for v in vs) for i in range(3)]
         layout["parts"][pid] = {
@@ -805,7 +829,7 @@ def main():
             "bounds": {"size": [round(hi[i] - lo[i], 2) for i in range(3)],
                        "center": [round((hi[i] + lo[i]) / 2, 2) for i in range(3)]},  # fmt: skip
             "boxes": part.boxes,
-            "triangles": sum(len(pl.vertices) - 2 for pl in ob.data.polygons),
+            "triangles": sum(len(pl.vertices) - 2 for m in meshes for pl in m.data.polygons),
         }
         for fid, pos in part.features.items():
             layout["features"][fid] = {"partId": pid, "position": [round(float(c), 3) for c in pos]}
@@ -894,7 +918,7 @@ def check_layout(layout):
 def export_glb(objs):
     os.makedirs(os.path.dirname(GLB_OUT), exist_ok=True)
     for ob in bpy.context.scene.objects:
-        ob.select_set(ob.type == "MESH")
+        ob.select_set(ob.type == "MESH" or ob.name in PART_IDS)
     bpy.context.view_layer.objects.active = objs["case"]
     bpy.ops.export_scene.gltf(
         filepath=GLB_OUT,
@@ -927,7 +951,10 @@ def verify_glb(path):
     print(f"[glb] nodes={len(gj.get('nodes', []))} meshes={len(gj.get('meshes', []))} "
           f"materials={len(gj.get('materials', []))}")  # fmt: skip
     for nd in gj["nodes"]:
-        if nd.get("name") in PART_IDS:
+        if nd.get("name") in PART_IDS and "mesh" not in nd:
+            kids = [gj["nodes"][k]["name"] for k in nd.get("children", [])]
+            print(f"   {nd['name']:<18} t={[round(v, 1) for v in nd.get('translation', [0, 0, 0])]} children={kids}")
+        elif nd.get("name") in PART_IDS:
             acc = gj["accessors"][gj["meshes"][nd["mesh"]]["primitives"][0]["attributes"]["POSITION"]]
             print(f"   {nd['name']:<18} t={[round(v, 1) for v in nd.get('translation', [0, 0, 0])]} "
                   f"min={[round(v, 1) for v in acc['min']]} max={[round(v, 1) for v in acc['max']]}")  # fmt: skip
