@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import sample from "../fixtures/sample.json";
-import { consumableVisible, planService, PlannerError, installedThrough } from "./planner";
+import { consumableVisible, itemPresentation, planService, PlannerError, installedThrough } from "./planner";
 import { parseGuide, parseProduct, ProductSchema } from "./schema";
 
 const product = parseProduct(sample);
@@ -232,6 +232,49 @@ describe("planService", () => {
       extraSteps: [{ id: "x_bad", at: "afterRemoval", partId: "gpu", action: "remove_consumable", label: "x" }],
     });
     expect(() => planService(product, all, "m2_ssd", g)).toThrow(/remove_consumable needs a consumable part/);
+  });
+});
+
+describe("itemPresentation (what stays on screen after an item)", () => {
+  const p = planService(product, all, "m2_ssd", guide);
+  const at = (stepId: string) => itemPresentation(product, p, p.items.findIndex((i) => i.stepId === stepId));
+
+  it("a removed part leaves a ghost and hands focus to what it was covering", () => {
+    expect(at("s_gpu")).toEqual({ focus: ["gpu", "m2_ssd", "m2_heatsink"], ghosts: ["gpu"] });
+    expect(at("s_heatsink")).toEqual({ focus: ["m2_heatsink", "m2_ssd"], ghosts: ["m2_heatsink"] });
+  });
+
+  it("a cable hands focus to the part it was attached to", () => {
+    expect(at("s_gpu_cable")).toEqual({ focus: ["gpu_power_cable", "gpu"], ghosts: ["gpu_power_cable"] });
+  });
+
+  it('a "*" cover hands focus to the next item instead of everything', () => {
+    expect(at("s_panel")).toEqual({ focus: ["side_panel", "gpu_power_cable"], ghosts: ["side_panel"] });
+  });
+
+  it("the target's own removal hands focus to the next item's part", () => {
+    expect(at("s_m2")).toEqual({ focus: ["m2_ssd", "motherboard"], ghosts: ["m2_ssd"] });
+  });
+
+  it("an extra step on a part that is out shows it as a ghost so its pins are visible", () => {
+    expect(at("x_reseat")).toEqual({ focus: ["m2_ssd"], ghosts: ["m2_ssd"] });
+  });
+
+  it("a wiped consumable is not drawn as a ghost", () => {
+    const g = parseGuide({
+      ...guide,
+      extraSteps: [
+        { id: "x_pad_on", at: "afterRemoval", partId: "thermal_pad", action: "apply", label: "on", path: [{ offset: [0, 0, 20] }] },
+        { id: "x_pad_wipe", at: "afterRemoval", partId: "thermal_pad", action: "remove_consumable", label: "wipe", highlightParts: ["thermal_pad", "motherboard"] },
+      ],
+    });
+    const q = planService(product, all, "m2_ssd", g);
+    const look = itemPresentation(product, q, q.items.findIndex((i) => i.stepId === "x_pad_wipe"));
+    expect(look).toEqual({ focus: ["thermal_pad", "motherboard"], ghosts: [] });
+  });
+
+  it("no item ends with an empty highlight unless the data asks for guidance only", () => {
+    p.items.forEach((it, i) => expect(itemPresentation(product, p, i).focus.length, it.stepId).toBeGreaterThan(0));
   });
 });
 

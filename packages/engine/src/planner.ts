@@ -76,6 +76,52 @@ export function consumableVisible(
   return visible;
 }
 
+/**
+ * What a procedure item shows once its motion is done.
+ * - focus: parts to highlight. A remove item never ends empty: [removed part, ...parts it was
+ *   covering or attached to that are still in]; for a "*" cover (or if nothing is revealed) the
+ *   next item's parts; then the procedure target. Other items: highlightPartIds.
+ * - ghosts: parts that are out but still needed on screen (the part just removed, highlighted parts
+ *   that are out, owners of pinned features that are out). Drawn faintly at their seat so pins show.
+ *   Consumables are never ghosts (once wiped they are gone).
+ */
+export function itemPresentation(
+  product: Product,
+  procedure: Procedure,
+  index: number,
+): { focus: string[]; ghosts: string[] } {
+  const item = procedure.items[index];
+  if (!item) return { focus: [], ghosts: [] };
+  const visible = (partId: string) =>
+    consumableVisible(product, procedure.extraSteps ?? [], procedure.targetPartId, item.installed, item.appliedExtras ?? [], partId);
+  let focus: string[];
+  if (item.kind === "remove") {
+    const step = product.assembly.find((s) => s.id === item.stepId);
+    const revealed: string[] = [];
+    const add = (id: string | undefined) => {
+      if (id && id !== item.partId && visible(id) && !revealed.includes(id)) revealed.push(id);
+    };
+    if (step && !step.blocks.includes("*")) step.blocks.forEach(add);
+    add(step?.attachedTo);
+    if (!revealed.length) {
+      const next = procedure.items[index + 1];
+      (next?.highlightPartIds ?? (next ? [next.partId] : [])).forEach(add);
+    }
+    if (!revealed.length) add(procedure.targetPartId);
+    focus = [item.partId, ...revealed];
+  } else {
+    focus = [...(item.highlightPartIds ?? [item.partId])];
+  }
+  const featureOwner = new Map(product.features.map((f) => [f.id, f.partId]));
+  const ghosts: string[] = [];
+  const consumable = new Set(product.parts.filter((p) => p.consumable).map((p) => p.id));
+  for (const id of [...focus, ...item.checks.map((c) => featureOwner.get(c)!).filter(Boolean)]) {
+    // A wiped consumable is gone, not "out": no ghost for it.
+    if (!visible(id) && !consumable.has(id) && !ghosts.includes(id)) ghosts.push(id);
+  }
+  return { focus, ghosts };
+}
+
 /** Assembly steps in fixed order, filtered to an installed set. */
 export function sortByAssembly(product: Product, stepIds: Iterable<string>): string[] {
   const set = new Set(stepIds);

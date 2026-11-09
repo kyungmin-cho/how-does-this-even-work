@@ -48,14 +48,14 @@ const off = engine.on("statechange", (s) => store.setState({ engine: s }));
 | `showStep(stepId)` | 조립 순서에서 그 단계까지 설치된 상태로. 그 부품 focus, 단계 checks에 핀, 단계 camera로 이동. 진행 중인 절차는 끝낸다. 절차의 extra 단계 ID면 `goTo`로 넘긴다 |
 | `playProcedure(proc, { autoplay?, startIndex = 0 })` | 절차의 시작 상태로 맞춘 뒤 `startIndex` 항목으로 |
 | `next()` / `prev()` | 한 항목 앞뒤. 더 갈 곳이 없으면 `false` |
-| `goTo(index)` | `-1`은 시작 상태. 범위 밖이면 RangeError |
+| `goTo(index)` | `-1`은 시작 상태. 범위 밖이면 RangeError. 항목이 끝난 뒤 보이는 모습은 `itemPresentation` 규칙(아래)을 따른다 |
 | `pause()` / `play()` | 자동 재생과 현재 애니메이션을 멈춤, 재개 |
 | `highlight(partIds, mode)` | `focus`(나머지 흐리게), `ghost`(반투명, 빠진 부품이면 제자리에 유령으로 보임), `error`(빨강), `ok`(초록), `none` |
 | `mark(featureId, label?)` / `clearMarks()` | 기능 지점에 HTML 핀. 라벨 기본값은 feature.label |
 | `setView(viewOrPartId)` | 시점 이름이면 그 프리셋, 부품 ID면 그 부품에 맞춰 부드럽게 이동. `cameraOwner = agent` |
 | `resumeGuide()` | `cameraOwner = agent`, 안내 시점(state.view)으로 복귀 |
 | `explode(0..1)` | 분해도. 각 부품이 첫 조립 경로의 시작 방향으로 벌어진다(최대 260mm) |
-| `showMistake(stepId, mistakeId)` / `clearMistake()` | 틀린 방법을 빨간 반투명 복제본으로 겹쳐 보여 준다(mistake.path를 반복 재생). `alsoMove` 부품도 빨간 복제본으로 동시에 움직이고 진짜 부품은 초록. 진짜 부품은 초록, 나머지는 흐리게, violates 지점에 ✕ 핀. 설치 상태와 절차 위치는 그대로 |
+| `showMistake(stepId, mistakeId)` / `clearMistake()` | 틀린 방법을 진한 빨강 복제본으로 보여 준다(mistake.path를 반복 재생). 맞는 자세는 옅은 초록(반투명, 진한 초록 외곽선). 두 자세가 거의 겹치는 실수(걸쇠, RAM 홈 반대)도 정지 화면에서 갈리도록, 빨강 복제본을 실수 경로 방향(경로가 회전뿐이면 단계의 빼는 방향)으로 부품 크기의 약 60%가 될 때까지 비켜 놓는다. `alsoMove` 부품도 같이 빨강으로 움직인다. 진짜 부품은 초록, 나머지는 흐리게, violates 지점에 ✕ 핀. 설치 상태와 절차 위치는 그대로 |
 | `peek(partIds[] ｜ featureId)` | 곁가지 질문용 잠깐 보기. 강조와 카메라만 바꾸고 절차 위치, 설치 상태, `view`는 그대로. 빠진 부품이면 유령으로 보인다 |
 | `resumeProcedure()` | 잠깐 보기와 실수 표시를 지우고 현재 단계(절차 항목 또는 showStep 단계)의 강조, 핀, 시점으로 돌아온다 |
 | `getState()` | 아래 `EngineState` |
@@ -85,6 +85,7 @@ interface EngineState {
   peek: { partIds: string[]; featureId: string | null } | null;   // 잠깐 보기 (절차 위치와 별개)
   mistake: { stepId: string; mistakeId: string } | null;
   assets?: { status: "none" | "loading" | "ready" | "error"; urls: string[]; glbParts: string[]; errors: string[] };
+  ghostPartIds?: string[];             // 빠져 있지만 제자리에 옅게 그리는 부품(방금 뺀 부품, 빠진 부품의 핀)
   // 실제 엔진은 항상 채운다. 선택 필드인 건 모델 없는 대역 엔진도 타입이 맞게 하려는 것
   animating: boolean;
   paused: boolean;
@@ -178,6 +179,10 @@ Blender에서 내보낼 때
 - 재질은 Principled BSDF(PBR) 그대로. 엔진이 부품마다 재질을 복제하고 원래 값을 기억해서 focus, ghost, error, ok, 실수 겹쳐 보기, 잠깐 보기가 상자와 똑같이 동작하고 `none`으로 원래대로 돌아온다.
 - 자식 노드가 있어도 된다(통째로 그 부품). 메시가 하나도 없는 노드는 무시하고 상자를 쓴다.
 
+강조, 흐림, 유령, 빠진 자리, 실수 색은 바로 바뀌지 않고 `styleSeconds`(기본 0.25초) 동안 색, 발광, 투명도, 외곽선이 함께 바뀐다(한 트윈을 공유하고 다음 명령이 오면 지금 값에서 새 목표로 이어 간다). 투명해지는 부품은 시작할 때, 불투명해지는 부품은 끝날 때 투명 설정을 바꾼다. 핀 라벨은 0.2초 CSS 투명도로 나타나고 사라지며, 다음 단계에도 남는 핀은 그대로 둔다. `applyState(..., { animate: false })`, 처음 불러올 때, GLB가 붙을 때, `prefers-reduced-motion`이면 바로 적용한다.
+
+애니메이션은 벽시계 기준이다(`gsap.ticker.lagSmoothing(0)`, 페이지 전역). 느린 프레임에서 단계가 기어가지 않고 건너뛴다. 불러온 뒤와 GLB가 붙은 뒤 한 번, 불투명/반투명 두 셰이더 변형과 실수 재질을 미리 컴파일해 첫 강조와 첫 실수 표시의 멈칫을 줄인다.
+
 렌더링: RoomEnvironment PMREM 환경광, ACES 톤 매핑, sRGB 출력, 안티앨리어싱, 그림자 하나(PCF, radius 5, 터치 기기 1024 / 그 밖 2048), 바닥 그림자 받이. pixelRatio 상한 2.
 
 테스트용 GLB: `pnpm --filter @assembly/engine make:glb`가 `apps/web/public/dev-engine/sample-parts.glb`(노드 `gpu`, `Heatsink_M2`)를 코드로 만든다.
@@ -213,6 +218,11 @@ interface Procedure { productId; targetPartId; guideId; initialInstalled: string
 - `"*"`는 그 단계보다 먼저 조립된 부품만 가린다. 그래서 `"*"` 덮개 둘이 서로를 가리지 않는다.
 
 `installedThrough(product, stepId)`: 조립 순서에서 그 단계까지의 설치 집합.
+
+`itemPresentation(product, procedure, index) → { focus, ghosts }`: 항목이 끝난 뒤 화면.
+- remove 항목은 빈 강조로 끝나지 않는다. focus = [뺀 부품, 그 부품이 가리던 것(blocks) 또는 붙어 있던 것(attachedTo) 중 아직 있는 것]. `"*"` 덮개이거나 드러난 것이 없으면 다음 항목의 부품, 그것도 없으면 절차 목표 부품.
+- ghosts = 빠져 있지만 화면에 필요한 부품(방금 뺀 부품, 빠진 채 강조되는 부품, 핀이 가리키는 기능 지점의 주인). 엔진은 이것을 제자리에 옅게 그려 핀이 보이게 한다. 방금 뺀 부품은 회색 외곽선, 그 밖은 파란 유령.
+- 빼는 동안에는 움직이는 부품이 강조된 채 경로를 따라 나가고, 끝나면 위 모습으로 바뀐다. `getState()`는 명령 즉시 끝난 뒤의 모습을 돌려준다.
 `consumableVisible(product, extraSteps, targetPartId, installed, appliedExtras, partId)`: 소모품이 보이는지(엔진과 같은 규칙).
 
 ## 개발

@@ -5,7 +5,7 @@ import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRe
 import { GLTFLoader, type GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
-import { installedThrough, sortByAssembly, type Procedure, type ProcedureItem, type ProcedureKind } from "./planner";
+import { installedThrough, itemPresentation, sortByAssembly, type Procedure, type ProcedureItem, type ProcedureKind } from "./planner";
 import { parseProduct, type BoxShape, type ExtraStep, type Keyframe, type Mistake, type Part, type Product, type Step } from "./schema";
 
 export type HighlightMode = "focus" | "ghost" | "error" | "ok" | "none";
@@ -44,6 +44,8 @@ export interface EngineState {
    * real engine; optional only so stand-in engines without models still type-check.
    */
   assets?: AssetsState;
+  /** Parts that are out but drawn faintly at their seat (just removed, or pinned while out). */
+  ghostPartIds?: string[];
   animating: boolean;
   paused: boolean;
 }
@@ -87,6 +89,8 @@ export interface EngineOptions {
   preserveDrawingBuffer?: boolean;
   /** Soft shadow from the key light onto the parts and the floor. Default true. */
   shadows?: boolean;
+  /** Seconds for highlight/opacity/color changes between steps (0 = instant). Default 0.25. */
+  styleSeconds?: number;
 }
 
 // One GLTFLoader request per URL for the whole page (engines, remounts and products share it).
@@ -195,12 +199,14 @@ interface PartRec {
 
 type AnyStep = Step | ExtraStep;
 
-type Style = "normal" | "dim" | "ghost" | "focus" | "error" | "ok";
+type Style = "normal" | "dim" | "ghost" | "departed" | "focus" | "error" | "ok" | "right";
 
 const DEG = Math.PI / 180;
 const RED = new THREE.Color("#ef4444");
 const GREEN = new THREE.Color("#22c55e");
 const BLUE = new THREE.Color("#3b82f6");
+const SLATE = new THREE.Color("#94a3b8");
+const WRONG_RED = new THREE.Color("#dc2626");
 const DEFAULT_SEGMENT = 0.45;
 const MAX_BATCH_SECONDS = 4;
 
@@ -212,6 +218,9 @@ const MARK_STYLE = {
 
 export function createEngine(container: HTMLElement, options: EngineOptions = {}): Engine {
   installControls();
+  // Step animations follow the wall clock: on a slow frame they jump ahead instead of crawling
+  // (gsap's default lag smoothing turns a 3 s frame into 33 ms, so a step could take minutes).
+  gsap.ticker.lagSmoothing(0);
   const timeScale = options.timeScale ?? 1;
   const autoplayDelay = options.autoplayDelay ?? 1.2;
 
@@ -299,9 +308,16 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   let applied = new Set<string>();
   let extraById = new Map<string, ExtraStep>();
   let peekState: { partIds: string[]; featureId: string | null } | null = null;
+  /** Parts that are out but drawn faintly at their seat (just removed, or pinned/highlighted while out). */
+  let ghostIds: string[] = [];
+  /** Of those, the part a remove item just took out (drawn fainter than a highlighted ghost). */
+  let departedIds: string[] = [];
+  /** Parts moving in the current step timeline: always drawn highlighted while they move. */
+  let movingParts = new Set<string>();
   let mistakeState: { stepId: string; mistakeId: string; partId: string; alsoParts: string[] } | null = null;
   let mistakeGroup: THREE.Group | null = null;
   let mistakeTl: gsap.core.Timeline | null = null;
+  let mistakeFade: gsap.core.Tween | null = null;
   let assets: AssetsState = { status: "none", urls: [], glbParts: [], errors: [] };
   let loadToken = 0;
 
@@ -364,6 +380,8 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   // ---------- building ----------
   function clearProduct() {
     interrupt(false);
+    styleTween?.kill();
+    styleTween = null;
     explodeTween?.kill();
     explodeTween = null;
     clearMarksInternal();
@@ -475,6 +493,50 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
   }
 
+  /**
+   * Compile shader variants before they are first needed, so the first highlight (opaque →
+   * transparent switches the OPAQUE define) and the first mistake view do not stall a frame.
+   * Runs once after load and again after GLB parts arrive, off the current frame.
+   */
+  let prewarmTimer: ReturnType<typeof setTimeout> | null = null;
+  function schedulePrewarm() {
+    if (prewarmTimer) clearTimeout(prewarmTimer);
+    prewarmTimer = setTimeout(() => {
+      prewarmTimer = null;
+      if (disposed || !product) return;
+      try {
+        prewarm();
+      } catch (e) {
+        console.warn("[engine] prewarm failed", e);
+      }
+    }, 0);
+  }
+
+  function prewarm() {
+    const recs = [...parts.values()].flatMap((p) => p.meshes.flatMap((m) => m.mats));
+    const roots = [...parts.values()].map((p) => [p.root, p.root.visible] as const);
+    for (const [r] of roots) r.visible = true;
+    const probe = new THREE.Mesh(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({ color: WRONG_RED, emissive: WRONG_RED, transparent: true, opacity: 0.8, depthWrite: false }),
+    );
+    productRoot.add(probe);
+    for (const r of recs) {
+      r.mat.transparent = !r.mat.transparent;
+      r.mat.needsUpdate = true;
+    }
+    renderer.compile(scene, camera);
+    for (const r of recs) {
+      r.mat.transparent = !r.mat.transparent;
+      r.mat.needsUpdate = true;
+    }
+    renderer.compile(scene, camera);
+    probe.removeFromParent();
+    probe.geometry.dispose();
+    (probe.material as THREE.Material).dispose();
+    for (const [r, v] of roots) r.visible = v;
+  }
+
   /** Fit the shadow camera and the floor to the product at rest. */
   function fitShadowAndFloor() {
     const box = new THREE.Box3();
@@ -541,7 +603,8 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       for (const e of errors) console.warn(`[engine] ${e} (drawing boxes instead)`);
       assets = { status: errors.length ? "error" : "ready", urls, glbParts, errors };
       fitShadowAndFloor();
-      refreshLook();
+      refreshLook(false);
+      schedulePrewarm();
       if (mistakeAgain) {
         try {
           showMistakeInternal(mistakeAgain.stepId, mistakeAgain.mistakeId, false);
@@ -578,6 +641,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     applied = new Set();
     extraById = new Map();
     peekState = null;
+    clearGhosts();
 
     // Ground grid under the product.
     const box = new THREE.Box3().setFromObject(productRoot);
@@ -588,13 +652,14 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     scene.add(grid);
     fitShadowAndFloor();
 
-    snap();
+    snap(false);
     view = null;
     const initial = "default" in p.views ? "default" : Object.keys(p.views)[0];
     if (initial) applyView(initial, false);
     else fitObject(productRoot, false);
     view = initial ?? null;
     loadAssets(p);
+    schedulePrewarm();
     emitState();
     return p;
   }
@@ -617,28 +682,31 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     return visible;
   }
 
-  /** Parts drawn even when not installed: ghost highlight, peek, mistake target. */
-  function forcedVisible(partId: string) {
+  /** Parts drawn even when not installed: ghost highlight, item ghosts, peek, mistake target. */
+  function forcedVisible(partId: string, withItemGhosts = true) {
     if (highlightState.mode === "ghost" && highlightState.partIds.includes(partId)) return true;
+    if (withItemGhosts && ghostIds.includes(partId)) return true;
     if (peekState?.partIds.includes(partId)) return true;
     return !!mistakeState && (mistakeState.partId === partId || mistakeState.alsoParts.includes(partId));
   }
 
-  /** Put every part exactly where the logical state says (no animation). */
-  function snap() {
+  /** Put every part exactly where the logical state says (poses at once; styles fade unless animate is false). */
+  function snap(animateStyle = true) {
     for (const [id, p] of parts) {
       p.anim.position.set(0, 0, 0);
       p.anim.rotation.set(0, 0, 0);
       p.exploded.position.copy(p.explodeVec).multiplyScalar(explodeAmount);
       p.root.visible = partInstalled(id) || forcedVisible(id);
     }
-    applyHighlight();
+    applyHighlight(animateStyle);
   }
 
   function styleFor(partId: string): Style {
     if (mistakeState) {
-      return partId === mistakeState.partId || mistakeState.alsoParts.includes(partId) ? "ok" : "dim";
+      return partId === mistakeState.partId || mistakeState.alsoParts.includes(partId) ? "right" : "dim";
     }
+    if (movingParts.has(partId)) return "focus";
+    if (ghostIds.includes(partId) && !partInstalled(partId)) return departedIds.includes(partId) ? "departed" : "ghost";
     if (peekState && peekState.partIds.includes(partId) && !partInstalled(partId)) return "ghost";
     const { mode, partIds } = highlightState;
     const hit = partIds.includes(partId);
@@ -656,27 +724,38 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
   }
 
-  function applyHighlight() {
-    for (const [id, p] of parts) {
-      const style = styleFor(id);
-      for (const m of p.meshes) styleMesh(m, style);
-    }
+  interface MatGoal {
+    r: MatRec;
+    color: THREE.Color | null;
+    emissive: THREE.Color | null;
+    ei: number;
+    opacity: number;
+    transparent: boolean;
+    depthWrite: boolean;
+  }
+  interface MeshGoal {
+    m: MeshRec;
+    style: Style;
+    mats: MatGoal[];
+    edgeOpacity: number;
+    edgeColor: THREE.Color;
+    anyTransparent: boolean;
   }
 
-  function styleMesh(m: MeshRec, style: Style) {
+  /** Target look of one mesh for a style (computed from the original material values). */
+  function meshGoal(m: MeshRec, style: Style): MeshGoal {
     let edgeOpacity = 0.35;
     let edgeColor = 0x111827;
     let anyTransparent = false;
-    for (const r of m.mats) {
-      const mat = r.mat;
-      if (r.color) mat.color?.copy(r.color);
-      if (r.emissive) mat.emissive?.copy(r.emissive);
-      if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = r.emissiveIntensity;
+    const mats = m.mats.map((r): MatGoal => {
+      const color = r.color?.clone() ?? null;
+      let emissive = r.emissive?.clone() ?? null;
+      let ei = r.emissiveIntensity;
       let opacity = r.opacity;
       const tint = (c: THREE.Color, amount: number, glow: number) => {
-        mat.color?.lerp(c, amount);
-        mat.emissive?.copy(c);
-        if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = glow;
+        color?.lerp(c, amount);
+        if (emissive) emissive = c.clone();
+        ei = glow;
       };
       switch (style) {
         case "dim":
@@ -688,6 +767,20 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
           tint(BLUE, 0, 0.25);
           edgeOpacity = 0.5;
           edgeColor = 0x1d4ed8;
+          break;
+        case "departed":
+          // Just taken out: a faint outline at its seat (pins stay visible on it).
+          opacity = Math.min(opacity, 0.1);
+          tint(SLATE, 0.5, 0);
+          edgeOpacity = 0.45;
+          edgeColor = 0x475569;
+          break;
+        case "right":
+          // The right pose in a mistake view: pale green so the solid red wrong pose stands out.
+          opacity = Math.min(opacity, 0.22);
+          tint(GREEN, 0.85, 0.2);
+          edgeOpacity = 1;
+          edgeColor = 0x16a34a;
           break;
         case "focus":
           tint(BLUE, 0, 0.3);
@@ -705,20 +798,144 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
           edgeColor = 0x166534;
           break;
       }
-      const transparent = r.transparent || opacity < 1;
-      if (mat.transparent !== transparent) mat.needsUpdate = true;
-      mat.transparent = transparent;
-      mat.opacity = opacity;
-      mat.depthWrite = opacity < 1 ? false : r.depthWrite;
       anyTransparent ||= opacity < 1;
+      return {
+        r,
+        color,
+        emissive,
+        ei,
+        opacity,
+        transparent: r.transparent || opacity < 1,
+        depthWrite: opacity < 1 ? false : r.depthWrite,
+      };
+    });
+    return { m, style, mats, edgeOpacity, edgeColor: new THREE.Color(edgeColor), anyTransparent };
+  }
+
+  /** Set a mesh to its goal right away (also the end of every style tween). */
+  function setGoal(g: MeshGoal) {
+    for (const mg of g.mats) {
+      const mat = mg.r.mat;
+      if (mg.color) mat.color?.copy(mg.color);
+      if (mg.emissive) mat.emissive?.copy(mg.emissive);
+      if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = mg.ei;
+      if (mat.transparent !== mg.transparent) mat.needsUpdate = true;
+      mat.transparent = mg.transparent;
+      mat.opacity = mg.opacity;
+      mat.depthWrite = mg.depthWrite;
     }
-    m.mesh.renderOrder = anyTransparent ? 1 : 0;
-    m.mesh.castShadow = !anyTransparent;
-    if (m.edges) {
-      m.edges.material.opacity = edgeOpacity;
-      m.edges.material.color.setHex(edgeColor);
+    g.m.mesh.renderOrder = g.anyTransparent ? 1 : 0;
+    g.m.mesh.castShadow = !g.anyTransparent;
+    if (g.m.edges) {
+      g.m.edges.material.opacity = g.edgeOpacity;
+      g.m.edges.material.color.copy(g.edgeColor);
     }
-    m.mesh.userData.style = style;
+    g.m.mesh.userData.style = g.style;
+  }
+
+  const styleSeconds = options.styleSeconds ?? 0.25;
+  const reducedMotion = typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+  let styleTween: gsap.core.Tween | null = null;
+
+  /**
+   * Restyle every part for the current state. Colors, emissive, opacity and outlines move over
+   * `styleSeconds` (one shared tween, replaced by the next call, so rapid commands never pile up).
+   * A part turning transparent switches on transparency at the start; one turning opaque switches
+   * it off at the end. `animate: false` and prefers-reduced-motion apply at once.
+   */
+  function applyHighlight(animate = true) {
+    styleTween?.kill();
+    styleTween = null;
+    const goals: MeshGoal[] = [];
+    for (const [id, p] of parts) {
+      const style = styleFor(id);
+      for (const m of p.meshes) goals.push(meshGoal(m, style));
+    }
+    if (!animate || styleSeconds <= 0 || reducedMotion?.matches) {
+      goals.forEach(setGoal);
+      return;
+    }
+    type Run = {
+      g: MeshGoal;
+      from: { color: THREE.Color | null; emissive: THREE.Color | null; ei: number; opacity: number }[];
+      edgeOpacity: number;
+      edgeColor: THREE.Color | null;
+    };
+    const runs: Run[] = [];
+    for (const g of goals) {
+      const from = g.mats.map((mg) => ({
+        color: mg.r.mat.color?.clone() ?? null,
+        emissive: mg.r.mat.emissive?.clone() ?? null,
+        ei: mg.r.mat.emissiveIntensity ?? 1,
+        opacity: mg.r.mat.opacity,
+      }));
+      const same =
+        g.mats.every(
+          (mg, i) =>
+            Math.abs(from[i]!.opacity - mg.opacity) < 1e-3 &&
+            Math.abs(from[i]!.ei - mg.ei) < 1e-3 &&
+            (!mg.color || !from[i]!.color || from[i]!.color!.equals(mg.color)) &&
+            (!mg.emissive || !from[i]!.emissive || from[i]!.emissive!.equals(mg.emissive)) &&
+            mg.r.mat.transparent === mg.transparent,
+        ) &&
+        (!g.m.edges ||
+          (Math.abs(g.m.edges.material.opacity - g.edgeOpacity) < 1e-3 && g.m.edges.material.color.equals(g.edgeColor)));
+      if (same) {
+        setGoal(g);
+        continue;
+      }
+      // Becoming transparent: switch it on now so the fade is visible.
+      let anyGoingTransparent = false;
+      for (const mg of g.mats) {
+        const mat = mg.r.mat;
+        if (mg.transparent && !mat.transparent) {
+          mat.transparent = true;
+          mat.needsUpdate = true;
+        }
+        if (!mg.depthWrite) mat.depthWrite = false;
+        anyGoingTransparent ||= mg.opacity < 1;
+      }
+      if (anyGoingTransparent) {
+        g.m.mesh.renderOrder = 1;
+        g.m.mesh.castShadow = false;
+      }
+      runs.push({
+        g,
+        from,
+        edgeOpacity: g.m.edges?.material.opacity ?? 0,
+        edgeColor: g.m.edges?.material.color.clone() ?? null,
+      });
+    }
+    if (!runs.length) return;
+    const proxy = { k: 0 };
+    const tmp = new THREE.Color();
+    styleTween = gsap.to(proxy, {
+      k: 1,
+      duration: styleSeconds,
+      ease: "power1.out",
+      onUpdate: () => {
+        const k = proxy.k;
+        for (const run of runs) {
+          run.g.mats.forEach((mg, i) => {
+            const f = run.from[i]!;
+            const mat = mg.r.mat;
+            if (mg.color && f.color) mat.color?.copy(tmp.copy(f.color).lerp(mg.color, k));
+            if (mg.emissive && f.emissive) mat.emissive?.copy(tmp.copy(f.emissive).lerp(mg.emissive, k));
+            if (mat.emissiveIntensity !== undefined) mat.emissiveIntensity = f.ei + (mg.ei - f.ei) * k;
+            mat.opacity = f.opacity + (mg.opacity - f.opacity) * k;
+          });
+          const e = run.g.m.edges;
+          if (e && run.edgeColor) {
+            e.material.opacity = run.edgeOpacity + (run.g.edgeOpacity - run.edgeOpacity) * k;
+            e.material.color.copy(tmp.copy(run.edgeColor).lerp(run.g.edgeColor, k));
+          }
+        }
+      },
+      onComplete: () => {
+        styleTween = null;
+        for (const run of runs) setGoal(run.g); // exact values; opaque parts drop transparency here
+      },
+    });
   }
 
   function pulse(t: number) {
@@ -744,6 +961,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     if (!tl) return;
     tl.kill();
     tl = null;
+    movingParts = new Set();
     snap();
     if (notify && product) emit("animationend", { installedStepIds: sortByAssembly(product!, installed), interrupted: true });
   }
@@ -809,7 +1027,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     installed = next;
     applied = nextApplied;
     if (!animate) {
-      snap();
+      snap(false);
       queueMicrotask(() => {
         if (!disposed) emit("animationend", { installedStepIds: sortByAssembly(prod, installed), interrupted: false });
         scheduleAutoplay();
@@ -830,12 +1048,15 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     applyHighlight();
     const wInst = new Set(prev);
     const wApp = new Set(prevApplied);
-    const visible = (partId: string) => partInstalled(partId, wInst, wApp) || forcedVisible(partId);
+    const visible = (partId: string) => partInstalled(partId, wInst, wApp) || forcedVisible(partId, false);
+    movingParts = new Set();
     const t = gsap.timeline({ paused: true });
     const move = (s: AnyStep, partId: string, kind: "install" | "remove", change: () => void) => {
       const before = visible(partId);
       change();
-      addStepMotion(t, s, partId, kind, before, visible(partId));
+      const after = visible(partId);
+      if (before !== after) movingParts.add(partId);
+      addStepMotion(t, s, partId, kind, before, after);
     };
     // Consumable extras move their part: apply → in, remove_consumable → out (reverse when undone).
     const wipes = (e: ExtraStep) => e.action === "remove_consumable";
@@ -852,6 +1073,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     if (t.duration() === 0) {
       t.kill();
+      movingParts = new Set();
       snap();
       queueMicrotask(() => {
         if (!disposed) emit("animationend", { installedStepIds: sortByAssembly(prod, installed), interrupted: false });
@@ -864,6 +1086,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     t.eventCallback("onComplete", () => {
       if (tl !== t) return;
       tl = null;
+      movingParts = new Set();
       snap();
       emit("animationend", { installedStepIds: sortByAssembly(prod, installed), interrupted: false });
       emitState();
@@ -948,11 +1171,29 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   // ---------- marks ----------
-  function clearMarksInternal() {
-    for (const m of marks.values()) {
-      m.obj.removeFromParent();
-      m.obj.element.remove();
+  const fadeLabels = () => styleSeconds > 0 && !reducedMotion?.matches;
+  const leavingTimers = new Set<ReturnType<typeof setTimeout>>();
+
+  /** Take a pin away, fading its label out (the element leaves the DOM after the fade). */
+  function dropMark(obj: CSS2DObject) {
+    const el = obj.element;
+    if (!fadeLabels()) {
+      obj.removeFromParent();
+      el.remove();
+      return;
     }
+    el.removeAttribute("data-feature-id");
+    el.style.opacity = "0";
+    const t = setTimeout(() => {
+      leavingTimers.delete(t);
+      obj.removeFromParent();
+      el.remove();
+    }, 220);
+    leavingTimers.add(t);
+  }
+
+  function clearMarksInternal() {
+    for (const m of marks.values()) dropMark(m.obj);
     marks.clear();
   }
 
@@ -975,6 +1216,15 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     const el = document.createElement("div");
     el.style.cssText = MARK_STYLE.wrap;
     el.dataset.featureId = featureId;
+    if (fadeLabels()) {
+      el.style.transition = "opacity 0.2s ease";
+      el.style.opacity = "0";
+      const t = setTimeout(() => {
+        leavingTimers.delete(t);
+        if (el.dataset.featureId) el.style.opacity = "1";
+      }, 20);
+      leavingTimers.add(t);
+    }
     const dot = document.createElement("span");
     dot.style.cssText = MARK_STYLE.dot;
     const span = document.createElement("span");
@@ -988,9 +1238,24 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     marks.set(featureId, { label: text, obj });
   }
 
+  /** Show exactly these pins (default labels). Pins that stay keep their element (no flicker). */
   function setMarks(featureIds: string[]) {
-    clearMarksInternal();
-    for (const id of featureIds) addMark(id);
+    const keep = new Set(featureIds);
+    for (const [id, m] of marks) {
+      if (!keep.has(id)) {
+        dropMark(m.obj);
+        marks.delete(id);
+      }
+    }
+    const old = new Map(marks);
+    marks.clear();
+    for (const id of featureIds) {
+      const had = old.get(id);
+      if (had) {
+        marks.set(id, had);
+        addMark(id); // refresh the label text to the default
+      } else addMark(id);
+    }
   }
 
   // ---------- public commands ----------
@@ -1022,6 +1287,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     clearMistakeInternal();
     peekState = null;
+    clearGhosts();
     procedure = null;
     procIndex = -1;
     autoplay = false;
@@ -1079,6 +1345,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     peekState = null;
     if (index === -1) {
       currentStepId = null;
+      clearGhosts();
       highlightState = { mode: "none", partIds: [] };
       transition(new Set(procedure.initialInstalled), true, new Set());
       clearMarksInternal();
@@ -1088,7 +1355,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     }
     const item = procedure.items[index]!;
     currentStepId = item.stepId;
-    highlightState = itemHighlight(item);
+    applyItemLook(index);
     transition(new Set(item.installed), true, new Set(item.appliedExtras ?? []));
     setMarks(item.checks);
     guideCamera(item.camera);
@@ -1170,10 +1437,19 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     emitState();
   }
 
-  /** Highlight for a procedure item (older procedures have no highlightPartIds). */
-  function itemHighlight(item: ProcedureItem): { mode: HighlightMode; partIds: string[] } {
-    const ids = (item.highlightPartIds ?? [item.partId]).filter((id) => parts.has(id));
-    return ids.length ? { mode: "focus", partIds: ids } : { mode: "none", partIds: [] };
+  /** Highlight and ghosts for a procedure item (see planner.itemPresentation). */
+  function applyItemLook(index: number) {
+    const item = procedure!.items[index]!;
+    const look = itemPresentation(product!, procedure!, index);
+    const focus = look.focus.filter((id) => parts.has(id));
+    highlightState = focus.length ? { mode: "focus", partIds: focus } : { mode: "none", partIds: [] };
+    ghostIds = look.ghosts.filter((id) => parts.has(id));
+    departedIds = item.kind === "remove" ? [item.partId] : [];
+  }
+
+  function clearGhosts() {
+    ghostIds = [];
+    departedIds = [];
   }
 
   // ---------- side looks: peek and mistakes ----------
@@ -1188,6 +1464,8 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   function clearMistakeInternal() {
     mistakeTl?.kill();
     mistakeTl = null;
+    mistakeFade?.kill();
+    mistakeFade = null;
     if (mistakeGroup) {
       // Geometry is shared with the real part; only the red material is ours.
       const first = mistakeGroup.getObjectByProperty("isMesh", true) as THREE.Mesh | undefined;
@@ -1199,15 +1477,32 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
   }
 
   /** Refresh styles/visibility without breaking a running step animation. */
-  function refreshLook() {
-    if (!tl) return snap();
-    applyHighlight();
+  function refreshLook(animateStyle = true) {
+    if (!tl) return snap(animateStyle);
+    applyHighlight(animateStyle);
     for (const [id, p] of parts) if (forcedVisible(id)) p.root.visible = true;
   }
 
   function showMistake(stepId: string, mistakeId: string) {
     requireProduct();
     showMistakeInternal(stepId, mistakeId, true);
+  }
+
+  /**
+   * Extra offset for the red copies so a wrong pose that is almost the right one (latch not
+   * pressed, RAM flipped) does not sit on top of the green one: push it along the mistake's own
+   * direction (or the step's way out) until the two are apart by about 60% of the part's size.
+   */
+  function mistakeShift(step: AnyStep, mistake: Mistake, partId: string): THREE.Vector3 {
+    const last = mistake.path[mistake.path.length - 1]!;
+    const own = new THREE.Vector3(...last.offset);
+    const dir = own.lengthSq() > 1 ? own.clone().normalize() : new THREE.Vector3(...(step.path[0]?.offset ?? [0, 0, 1])).normalize();
+    if (dir.lengthSq() < 0.5) dir.set(0, 0, 1);
+    const size = new THREE.Box3().setFromObject(parts.get(partId)!.body).getSize(new THREE.Vector3());
+    const extent = Math.abs(size.x * dir.x) + Math.abs(size.y * dir.y) + Math.abs(size.z * dir.z);
+    const want = Math.max(extent * 0.6, 20);
+    const have = own.dot(dir);
+    return dir.multiplyScalar(Math.max(0, want - have));
   }
 
   function showMistakeInternal(stepId: string, mistakeId: string, moveCamera: boolean) {
@@ -1223,18 +1518,24 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     clearMistakeInternal();
     peekState = null;
     for (const a of mistake.alsoMove) if (!parts.has(a.partId)) throw new Error(`unknown alsoMove part "${a.partId}"`);
+    clearGhosts();
     mistakeState = { stepId, mistakeId, partId, alsoParts: mistake.alsoMove.map((a) => a.partId) };
 
     // Red translucent copies at the wrong pose (the step's part, plus parts dragged along);
     // the real parts stay in place, green. Same geometry as the real part (boxes or GLB).
     const red = new THREE.MeshStandardMaterial({
-      color: RED,
-      emissive: RED,
-      emissiveIntensity: 0.4,
+      color: WRONG_RED,
+      emissive: WRONG_RED,
+      emissiveIntensity: 0.35,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.82,
       depthWrite: false,
     });
+    const shift = mistakeShift(step, mistake, partId);
+    if (styleSeconds > 0 && !reducedMotion?.matches) {
+      red.opacity = 0;
+      mistakeFade = gsap.to(red, { opacity: 0.82, duration: styleSeconds, ease: "power1.out" });
+    }
     const group = new THREE.Group();
     group.userData.mistake = mistakeId;
     productRoot.add(group);
@@ -1244,7 +1545,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     for (const mv of moving) {
       const part = parts.get(mv.partId)!;
       const root = new THREE.Group();
-      root.position.copy(part.root.position).add(part.exploded.position);
+      root.position.copy(part.root.position).add(part.exploded.position).add(shift);
       const anim = new THREE.Group();
       const body = new THREE.Group();
       body.rotation.copy(part.body.rotation);
@@ -1302,6 +1603,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       throw new Error(`unknown part or feature "${target}"`);
     }
     clearMistakeInternal();
+    clearGhosts();
     peekState = { partIds, featureId };
     highlightState = { mode: "focus", partIds };
     refreshLook();
@@ -1320,10 +1622,12 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     let hp: string[] = [];
     let checks: string[] = [];
     let cam: string | null = null;
+    clearGhosts();
     if (procedure && procIndex >= 0) {
       const it = procedure.items[procIndex]!;
       ({ checks, camera: cam } = it);
-      hp = itemHighlight(it).partIds;
+      applyItemLook(procIndex);
+      hp = highlightState.partIds;
     } else if (currentStepId && stepById.has(currentStepId)) {
       const st = stepById.get(currentStepId)!;
       hp = [st.partId];
@@ -1377,6 +1681,7 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
       peek: peekState && { partIds: [...peekState.partIds], featureId: peekState.featureId },
       mistake: mistakeState && { stepId: mistakeState.stepId, mistakeId: mistakeState.mistakeId },
       assets: structuredClone(assets),
+      ghostPartIds: [...ghostIds],
       animating: tl !== null,
       paused: tl?.paused() ?? false,
     };
@@ -1400,6 +1705,9 @@ export function createEngine(container: HTMLElement, options: EngineOptions = {}
     product = null;
     listeners.clear();
     loadToken++;
+    if (prewarmTimer) clearTimeout(prewarmTimer);
+    for (const t of leavingTimers) clearTimeout(t);
+    leavingTimers.clear();
     renderer.setAnimationLoop(null);
     ro.disconnect();
     envTexture.dispose();
