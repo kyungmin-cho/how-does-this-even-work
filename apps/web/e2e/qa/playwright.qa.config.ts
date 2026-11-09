@@ -28,6 +28,5 @@ export default defineConfig({
     url: `${baseURL}/dev/engine`,
     reuseExistingServer: true,
     timeout: 180_000,
-    env: { AGENT_MOCK: "1" },
   },
 });

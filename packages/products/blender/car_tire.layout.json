@@ -1,0 +1,937 @@
+{
+ "units": "mm",
+ "source": "packages/products/blender/build_car_tire.py",
+ "parts": {
+  "ground": {
+   "position": [
+    -1500,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     6800.0,
+     21.0,
+     3500.0
+    ],
+    "center": [
+     -100.0,
+     -9.5,
+     150.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      6800,
+      20,
+      3500
+     ],
+     "position": [
+      -100,
+      -10,
+      150
+     ],
+     "color": "#3b3e44"
+    },
+    {
+     "size": [
+      6800,
+      1,
+      100
+     ],
+     "position": [
+      -100,
+      0.5,
+      1500
+     ],
+     "color": "#e8e2c8"
+    }
+   ],
+   "triangles": 24
+  },
+  "body": {
+   "position": [
+    -1275,
+    0,
+    0
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     4240.0,
+     1501.0,
+     1860.0
+    ],
+    "center": [
+     15.0,
+     699.5,
+     0.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      4150,
+      270,
+      1750
+     ],
+     "position": [
+      0,
+      815,
+      0
+     ],
+     "color": "#b9c3cf"
+    },
+    {
+     "size": [
+      2700,
+      500,
+      1440
+     ],
+     "position": [
+      -525,
+      1200,
+      0
+     ],
+     "color": "#2b3440"
+    },
+    {
+     "size": [
+      1890,
+      530,
+      1750
+     ],
+     "position": [
+      0,
+      415,
+      0
+     ],
+     "color": "#b9c3cf"
+    },
+    {
+     "size": [
+      470,
+      530,
+      1750
+     ],
+     "position": [
+      1840,
+      415,
+      0
+     ],
+     "color": "#b9c3cf"
+    },
+    {
+     "size": [
+      470,
+      530,
+      1750
+     ],
+     "position": [
+      -1840,
+      415,
+      0
+     ],
+     "color": "#b9c3cf"
+    },
+    {
+     "size": [
+      3210,
+      530,
+      1080
+     ],
+     "position": [
+      0,
+      415,
+      0
+     ],
+     "color": "#4a4f57"
+    },
+    {
+     "size": [
+      634,
+      634,
+      195
+     ],
+     "position": [
+      -1275,
+      317,
+      699.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      634,
+      634,
+      195
+     ],
+     "position": [
+      1275,
+      317,
+      -699.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      634,
+      634,
+      195
+     ],
+     "position": [
+      -1275,
+      317,
+      -699.5
+     ],
+     "color": "#1c1d20"
+    }
+   ],
+   "triangles": 22832
+  },
+  "hub": {
+   "position": [
+    0,
+    317,
+    690
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     321.0,
+     280.0,
+     188.0
+    ],
+    "center": [
+     -20.5,
+     0.0,
+     -56.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      80,
+      80,
+      60
+     ],
+     "position": [
+      0,
+      0,
+      -120
+     ],
+     "color": "#4b5563"
+    },
+    {
+     "size": [
+      280,
+      280,
+      28
+     ],
+     "position": [
+      0,
+      0,
+      -76
+     ],
+     "color": "#8b8f96"
+    },
+    {
+     "size": [
+      140,
+      140,
+      62
+     ],
+     "position": [
+      0,
+      0,
+      -31
+     ],
+     "color": "#6b7280"
+    },
+    {
+     "size": [
+      40,
+      120,
+      50
+     ],
+     "position": [
+      -162,
+      0,
+      -75
+     ],
+     "color": "#9b2c2c"
+    }
+   ],
+   "triangles": 1528
+  },
+  "flat_tire": {
+   "position": [
+    0,
+    317,
+    696
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     634.0,
+     634.0,
+     228.57
+    ],
+    "center": [
+     0.0,
+     0.0,
+     4.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      300,
+      300,
+      12
+     ],
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "color": "#c4c8ce"
+    },
+    {
+     "size": [
+      634,
+      127,
+      195
+     ],
+     "position": [
+      0,
+      253.5,
+      3.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      634,
+      127,
+      195
+     ],
+     "position": [
+      0,
+      -253.5,
+      3.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      127,
+      380,
+      195
+     ],
+     "position": [
+      -253.5,
+      0,
+      3.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      127,
+      380,
+      195
+     ],
+     "position": [
+      253.5,
+      0,
+      3.5
+     ],
+     "color": "#1c1d20"
+    }
+   ],
+   "triangles": 6528
+  },
+  "spare_wheel": {
+   "position": [
+    0,
+    317,
+    696
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     634.0,
+     634.0,
+     143.5
+    ],
+    "center": [
+     0.0,
+     0.0,
+     1.75
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      300,
+      300,
+      12
+     ],
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "color": "#9ca3af"
+    },
+    {
+     "size": [
+      634,
+      127,
+      135
+     ],
+     "position": [
+      0,
+      253.5,
+      1.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      634,
+      127,
+      135
+     ],
+     "position": [
+      0,
+      -253.5,
+      1.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      127,
+      380,
+      135
+     ],
+     "position": [
+      -253.5,
+      0,
+      1.5
+     ],
+     "color": "#1c1d20"
+    },
+    {
+     "size": [
+      127,
+      380,
+      135
+     ],
+     "position": [
+      253.5,
+      0,
+      1.5
+     ],
+     "color": "#1c1d20"
+    }
+   ],
+   "triangles": 7252
+  },
+  "wheel_nuts": {
+   "position": [
+    0,
+    317,
+    702
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     118.11,
+     115.45,
+     22.6
+    ],
+    "center": [
+     0.0,
+     4.77,
+     11.3
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      22,
+      22,
+      22
+     ],
+     "position": [
+      0,
+      50,
+      11
+     ],
+     "color": "#d1d5db"
+    },
+    {
+     "size": [
+      22,
+      22,
+      22
+     ],
+     "position": [
+      47.553,
+      15.451,
+      11
+     ],
+     "color": "#d1d5db"
+    },
+    {
+     "size": [
+      22,
+      22,
+      22
+     ],
+     "position": [
+      29.389,
+      -40.451,
+      11
+     ],
+     "color": "#d1d5db"
+    },
+    {
+     "size": [
+      22,
+      22,
+      22
+     ],
+     "position": [
+      -29.389,
+      -40.451,
+      11
+     ],
+     "color": "#d1d5db"
+    },
+    {
+     "size": [
+      22,
+      22,
+      22
+     ],
+     "position": [
+      -47.553,
+      15.451,
+      11
+     ],
+     "color": "#d1d5db"
+    }
+   ],
+   "triangles": 1020
+  },
+  "wheel_cover": {
+   "position": [
+    0,
+    317,
+    757
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     370.0,
+     370.0,
+     63.0
+    ],
+    "center": [
+     0.0,
+     0.0,
+     -0.5
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      370,
+      370,
+      66
+     ],
+     "position": [
+      0,
+      0,
+      0
+     ],
+     "color": "#aeb4bc"
+    }
+   ],
+   "triangles": 1382
+  },
+  "jack": {
+   "position": [
+    -480,
+    0,
+    830
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     246.0,
+     150.0,
+     100.0
+    ],
+    "center": [
+     -8.0,
+     75.0,
+     0.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      180,
+      20,
+      100
+     ],
+     "position": [
+      0,
+      10,
+      0
+     ],
+     "color": "#3f4652"
+    },
+    {
+     "size": [
+      160,
+      120,
+      50
+     ],
+     "position": [
+      0,
+      80,
+      0
+     ],
+     "color": "#4b5563"
+    },
+    {
+     "size": [
+      60,
+      10,
+      40
+     ],
+     "position": [
+      0,
+      145,
+      0
+     ],
+     "color": "#2f3540"
+    }
+   ],
+   "triangles": 792
+  },
+  "wrench": {
+   "position": [
+    300,
+    0,
+    1000
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     378.0,
+     37.1,
+     36.0
+    ],
+    "center": [
+     21.0,
+     20.55,
+     0.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      350,
+      22,
+      20
+     ],
+     "position": [
+      25,
+      11,
+      0
+     ],
+     "color": "#6b7280"
+    },
+    {
+     "size": [
+      40,
+      40,
+      50
+     ],
+     "position": [
+      -150,
+      20,
+      0
+     ],
+     "color": "#4b5563"
+    }
+   ],
+   "triangles": 264
+  },
+  "chock": {
+   "position": [
+    -2550,
+    0,
+    -700
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     914.0,
+     110.0,
+     120.0
+    ],
+    "center": [
+     0.0,
+     55.0,
+     0.0
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      140,
+      110,
+      120
+     ],
+     "position": [
+      387,
+      55,
+      0
+     ],
+     "color": "#e0a21a"
+    },
+    {
+     "size": [
+      140,
+      110,
+      120
+     ],
+     "position": [
+      -387,
+      55,
+      0
+     ],
+     "color": "#e0a21a"
+    }
+   ],
+   "triangles": 32
+  },
+  "triangle": {
+   "position": [
+    -4300,
+    0,
+    700
+   ],
+   "rotation": [
+    0,
+    0,
+    0
+   ],
+   "bounds": {
+    "size": [
+     300.0,
+     423.0,
+     443.61
+    ],
+    "center": [
+     0.0,
+     211.5,
+     -0.03
+    ]
+   },
+   "boxes": [
+    {
+     "size": [
+      300,
+      20,
+      120
+     ],
+     "position": [
+      0,
+      10,
+      0
+     ],
+     "color": "#374151"
+    },
+    {
+     "size": [
+      20,
+      400,
+      440
+     ],
+     "position": [
+      0,
+      220,
+      0
+     ],
+     "color": "#dc2626"
+    }
+   ],
+   "triangles": 172
+  }
+ },
+ "features": {
+  "jack_point": {
+   "partId": "body",
+   "position": [
+    795,
+    150,
+    830
+   ]
+  },
+  "hazard_lamp": {
+   "partId": "body",
+   "position": [
+    2075,
+    640,
+    760
+   ]
+  },
+  "hub_face": {
+   "partId": "hub",
+   "position": [
+    0,
+    60,
+    0
+   ]
+  },
+  "puncture": {
+   "partId": "flat_tire",
+   "position": [
+    158,
+    -275,
+    4
+   ]
+  },
+  "nut_1": {
+   "partId": "wheel_nuts",
+   "position": [
+    0,
+    50,
+    22
+   ]
+  },
+  "nut_2": {
+   "partId": "wheel_nuts",
+   "position": [
+    47.553,
+    15.451,
+    22
+   ]
+  },
+  "nut_3": {
+   "partId": "wheel_nuts",
+   "position": [
+    29.389,
+    -40.451,
+    22
+   ]
+  },
+  "nut_4": {
+   "partId": "wheel_nuts",
+   "position": [
+    -29.389,
+    -40.451,
+    22
+   ]
+  },
+  "nut_5": {
+   "partId": "wheel_nuts",
+   "position": [
+    -47.553,
+    15.451,
+    22
+   ]
+  },
+  "cover_edge": {
+   "partId": "wheel_cover",
+   "position": [
+    0,
+    185,
+    3
+   ]
+  },
+  "jack_saddle": {
+   "partId": "jack",
+   "position": [
+    0,
+    150,
+    0
+   ]
+  },
+  "wrench_socket": {
+   "partId": "wrench",
+   "position": [
+    -150,
+    40,
+    0
+   ]
+  },
+  "chock_front": {
+   "partId": "chock",
+   "position": [
+    387,
+    110,
+    0
+   ]
+  },
+  "triangle_face": {
+   "partId": "triangle",
+   "position": [
+    -10,
+    250,
+    0
+   ]
+  }
+ }
+}

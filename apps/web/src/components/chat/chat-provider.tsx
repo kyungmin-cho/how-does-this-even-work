@@ -8,15 +8,6 @@ import { useAppStore } from "@/store";
 
 type Chat = UseChatHelpers<UIMessage>;
 
-/** Tests set localStorage "hdtew:mock-agent" = "1" to get the fixed reply (ignored in production). */
-function wantsMock(): boolean {
-  try {
-    return window.localStorage.getItem("hdtew:mock-agent") === "1";
-  } catch {
-    return false;
-  }
-}
-
 const ChatContext = createContext<Chat | null>(null);
 
 /**
@@ -29,7 +20,7 @@ export function ChatProvider({ slug, children }: { slug: string; children: React
     () =>
       new DefaultChatTransport<UIMessage>({
         api: "/api/chat",
-        body: () => ({ productSlug: useAppStore.getState().productSlug, mock: wantsMock() }),
+        body: () => ({ productSlug: useAppStore.getState().productSlug }),
       }),
     [],
   );

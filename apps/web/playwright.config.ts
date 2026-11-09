@@ -2,8 +2,6 @@ import { defineConfig, devices } from "@playwright/test";
 
 const PORT = Number(process.env.PORT ?? 3100);
 const baseURL = `http://localhost:${PORT}`;
-/** LIVE_AGENT=1 talks to the real model; otherwise /api/chat returns a fixed reply. */
-const live = process.env.LIVE_AGENT === "1";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -35,6 +33,5 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
-    env: { AGENT_MOCK: live ? "0" : "1" },
   },
 });

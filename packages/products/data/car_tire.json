@@ -1,0 +1,1607 @@
+{
+  "id": "car_tire",
+  "name": "스페어 타이어 교체 (일반 해치백)",
+  "units": "mm",
+  "assets": {
+    "glb": "/models/car_tire.glb"
+  },
+  "parts": [
+    {
+      "id": "ground",
+      "label": "도로 갓길",
+      "description": "차를 세운 평평하고 단단한 갓길 바닥(배경)",
+      "position": [
+        -1500,
+        0,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              6800,
+              20,
+              3500
+            ],
+            "position": [
+              -100,
+              -10,
+              150
+            ],
+            "color": "#3b3e44"
+          },
+          {
+            "size": [
+              6800,
+              1,
+              100
+            ],
+            "position": [
+              -100,
+              0.5,
+              1500
+            ],
+            "color": "#e8e2c8"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "body",
+      "label": "차체 (해치백)",
+      "description": "상표 없는 일반 해치백. 앞바퀴 뒤 문턱 아래에 잭 포인트(홈 두 개)가 있다",
+      "position": [
+        -1275,
+        0,
+        0
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              4150,
+              270,
+              1750
+            ],
+            "position": [
+              0,
+              815,
+              0
+            ],
+            "color": "#b9c3cf"
+          },
+          {
+            "size": [
+              2700,
+              500,
+              1440
+            ],
+            "position": [
+              -525,
+              1200,
+              0
+            ],
+            "color": "#2b3440"
+          },
+          {
+            "size": [
+              1890,
+              530,
+              1750
+            ],
+            "position": [
+              0,
+              415,
+              0
+            ],
+            "color": "#b9c3cf"
+          },
+          {
+            "size": [
+              470,
+              530,
+              1750
+            ],
+            "position": [
+              1840,
+              415,
+              0
+            ],
+            "color": "#b9c3cf"
+          },
+          {
+            "size": [
+              470,
+              530,
+              1750
+            ],
+            "position": [
+              -1840,
+              415,
+              0
+            ],
+            "color": "#b9c3cf"
+          },
+          {
+            "size": [
+              3210,
+              530,
+              1080
+            ],
+            "position": [
+              0,
+              415,
+              0
+            ],
+            "color": "#4a4f57"
+          },
+          {
+            "size": [
+              634,
+              634,
+              195
+            ],
+            "position": [
+              -1275,
+              317,
+              699.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              634,
+              634,
+              195
+            ],
+            "position": [
+              1275,
+              317,
+              -699.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              634,
+              634,
+              195
+            ],
+            "position": [
+              -1275,
+              317,
+              -699.5
+            ],
+            "color": "#1c1d20"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "hub",
+      "label": "허브와 볼트 5개",
+      "description": "브레이크 디스크와 허브, 바퀴를 거는 볼트 5개",
+      "position": [
+        0,
+        317,
+        690
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              80,
+              80,
+              60
+            ],
+            "position": [
+              0,
+              0,
+              -120
+            ],
+            "color": "#4b5563"
+          },
+          {
+            "size": [
+              280,
+              280,
+              28
+            ],
+            "position": [
+              0,
+              0,
+              -76
+            ],
+            "color": "#8b8f96"
+          },
+          {
+            "size": [
+              140,
+              140,
+              62
+            ],
+            "position": [
+              0,
+              0,
+              -31
+            ],
+            "color": "#6b7280"
+          },
+          {
+            "size": [
+              40,
+              120,
+              50
+            ],
+            "position": [
+              -162,
+              0,
+              -75
+            ],
+            "color": "#9b2c2c"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "flat_tire",
+      "label": "펑크 난 바퀴",
+      "description": "바람이 빠져 아래가 눌린 앞 왼쪽 바퀴(알로이 휠)",
+      "position": [
+        0,
+        317,
+        696
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              300,
+              300,
+              12
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#c4c8ce"
+          },
+          {
+            "size": [
+              634,
+              127,
+              195
+            ],
+            "position": [
+              0,
+              253.5,
+              3.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              634,
+              127,
+              195
+            ],
+            "position": [
+              0,
+              -253.5,
+              3.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              127,
+              380,
+              195
+            ],
+            "position": [
+              -253.5,
+              0,
+              3.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              127,
+              380,
+              195
+            ],
+            "position": [
+              253.5,
+              0,
+              3.5
+            ],
+            "color": "#1c1d20"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "spare_wheel",
+      "label": "스페어 바퀴 (임시용)",
+      "description": "트렁크 바닥에 있던 폭이 좁은 임시용 스페어 바퀴(철 휠)",
+      "position": [
+        0,
+        317,
+        696
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              300,
+              300,
+              12
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#9ca3af"
+          },
+          {
+            "size": [
+              634,
+              127,
+              135
+            ],
+            "position": [
+              0,
+              253.5,
+              1.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              634,
+              127,
+              135
+            ],
+            "position": [
+              0,
+              -253.5,
+              1.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              127,
+              380,
+              135
+            ],
+            "position": [
+              -253.5,
+              0,
+              1.5
+            ],
+            "color": "#1c1d20"
+          },
+          {
+            "size": [
+              127,
+              380,
+              135
+            ],
+            "position": [
+              253.5,
+              0,
+              1.5
+            ],
+            "color": "#1c1d20"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "wheel_nuts",
+      "label": "휠 너트 5개",
+      "description": "볼트에 끼우는 너트. 좁은 테이퍼 쪽이 바퀴(안쪽)를 향한다",
+      "position": [
+        0,
+        317,
+        702
+      ],
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              22,
+              22,
+              22
+            ],
+            "position": [
+              0,
+              50,
+              11
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              22,
+              22,
+              22
+            ],
+            "position": [
+              47.553,
+              15.451,
+              11
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              22,
+              22,
+              22
+            ],
+            "position": [
+              29.389,
+              -40.451,
+              11
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              22,
+              22,
+              22
+            ],
+            "position": [
+              -29.389,
+              -40.451,
+              11
+            ],
+            "color": "#d1d5db"
+          },
+          {
+            "size": [
+              22,
+              22,
+              22
+            ],
+            "position": [
+              -47.553,
+              15.451,
+              11
+            ],
+            "color": "#d1d5db"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "wheel_cover",
+      "label": "휠 커버",
+      "description": "바퀴 가운데를 덮는 덮개(있는 차만)",
+      "position": [
+        0,
+        317,
+        757
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              370,
+              370,
+              66
+            ],
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "color": "#aeb4bc"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "jack",
+      "label": "시저 잭",
+      "description": "차에 실린 접이식 잭. 잭 포인트에만 댄다",
+      "position": [
+        -480,
+        0,
+        830
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              180,
+              20,
+              100
+            ],
+            "position": [
+              0,
+              10,
+              0
+            ],
+            "color": "#3f4652"
+          },
+          {
+            "size": [
+              160,
+              120,
+              50
+            ],
+            "position": [
+              0,
+              80,
+              0
+            ],
+            "color": "#4b5563"
+          },
+          {
+            "size": [
+              60,
+              10,
+              40
+            ],
+            "position": [
+              0,
+              145,
+              0
+            ],
+            "color": "#2f3540"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "wrench",
+      "label": "휠 렌치",
+      "description": "너트를 풀고 조이는 L자 렌치",
+      "position": [
+        300,
+        0,
+        1000
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              350,
+              22,
+              20
+            ],
+            "position": [
+              25,
+              11,
+              0
+            ],
+            "color": "#6b7280"
+          },
+          {
+            "size": [
+              40,
+              40,
+              50
+            ],
+            "position": [
+              -150,
+              20,
+              0
+            ],
+            "color": "#4b5563"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "chock",
+      "label": "고임목 2개",
+      "description": "잭을 대는 바퀴의 대각선 바퀴(뒤 오른쪽) 앞뒤에 괴는 쐐기",
+      "position": [
+        -2550,
+        0,
+        -700
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              140,
+              110,
+              120
+            ],
+            "position": [
+              387,
+              55,
+              0
+            ],
+            "color": "#e0a21a"
+          },
+          {
+            "size": [
+              140,
+              110,
+              120
+            ],
+            "position": [
+              -387,
+              55,
+              0
+            ],
+            "color": "#e0a21a"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "triangle",
+      "label": "안전삼각대",
+      "description": "뒤에서 오는 차가 볼 수 있는 곳에 세우는 삼각대(그림은 가깝게 그림)",
+      "position": [
+        -4300,
+        0,
+        700
+      ],
+      "consumable": true,
+      "geometry": {
+        "kind": "boxes",
+        "boxes": [
+          {
+            "size": [
+              300,
+              20,
+              120
+            ],
+            "position": [
+              0,
+              10,
+              0
+            ],
+            "color": "#374151"
+          },
+          {
+            "size": [
+              20,
+              400,
+              440
+            ],
+            "position": [
+              0,
+              220,
+              0
+            ],
+            "color": "#dc2626"
+          }
+        ]
+      },
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "jack_point",
+      "partId": "body",
+      "position": [
+        795,
+        150,
+        830
+      ],
+      "kind": "marker",
+      "label": "잭 포인트(홈 두 개 사이)"
+    },
+    {
+      "id": "hazard_lamp",
+      "partId": "body",
+      "position": [
+        2075,
+        640,
+        760
+      ],
+      "kind": "indicator",
+      "label": "비상등"
+    },
+    {
+      "id": "hub_face",
+      "partId": "hub",
+      "position": [
+        0,
+        60,
+        0
+      ],
+      "kind": "marker",
+      "label": "허브 면"
+    },
+    {
+      "id": "puncture",
+      "partId": "flat_tire",
+      "position": [
+        158,
+        -275,
+        4
+      ],
+      "kind": "marker",
+      "label": "펑크 자리"
+    },
+    {
+      "id": "nut_1",
+      "partId": "wheel_nuts",
+      "position": [
+        0,
+        50,
+        22
+      ],
+      "kind": "screw_hole",
+      "label": "너트 1"
+    },
+    {
+      "id": "nut_2",
+      "partId": "wheel_nuts",
+      "position": [
+        47.553,
+        15.451,
+        22
+      ],
+      "kind": "screw_hole",
+      "label": "너트 2"
+    },
+    {
+      "id": "nut_3",
+      "partId": "wheel_nuts",
+      "position": [
+        29.389,
+        -40.451,
+        22
+      ],
+      "kind": "screw_hole",
+      "label": "너트 3"
+    },
+    {
+      "id": "nut_4",
+      "partId": "wheel_nuts",
+      "position": [
+        -29.389,
+        -40.451,
+        22
+      ],
+      "kind": "screw_hole",
+      "label": "너트 4"
+    },
+    {
+      "id": "nut_5",
+      "partId": "wheel_nuts",
+      "position": [
+        -47.553,
+        15.451,
+        22
+      ],
+      "kind": "screw_hole",
+      "label": "너트 5"
+    },
+    {
+      "id": "cover_edge",
+      "partId": "wheel_cover",
+      "position": [
+        0,
+        185,
+        3
+      ],
+      "kind": "notch",
+      "label": "커버 가장자리"
+    },
+    {
+      "id": "jack_saddle",
+      "partId": "jack",
+      "position": [
+        0,
+        150,
+        0
+      ],
+      "kind": "notch",
+      "label": "잭 머리 홈"
+    },
+    {
+      "id": "wrench_socket",
+      "partId": "wrench",
+      "position": [
+        -150,
+        40,
+        0
+      ],
+      "kind": "connector",
+      "label": "렌치 소켓"
+    },
+    {
+      "id": "chock_front",
+      "partId": "chock",
+      "position": [
+        387,
+        110,
+        0
+      ],
+      "kind": "marker",
+      "label": "앞 고임목"
+    },
+    {
+      "id": "triangle_face",
+      "partId": "triangle",
+      "position": [
+        -10,
+        250,
+        0
+      ],
+      "kind": "indicator",
+      "label": "삼각대 반사면"
+    }
+  ],
+  "assembly": [
+    {
+      "id": "s_ground",
+      "partId": "ground",
+      "action": "place",
+      "label": "평평한 갓길",
+      "description": "단단하고 평평한 곳, 차가 다니는 길에서 떨어진 곳",
+      "path": [
+        {
+          "offset": [
+            0,
+            -200,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_body",
+      "partId": "body",
+      "action": "place",
+      "label": "차 세우기",
+      "description": "평평하고 단단한 곳에 세운다. 잭은 바퀴 가장 가까운 잭 포인트(홈 두 개)에만 댄다",
+      "path": [
+        {
+          "offset": [
+            0,
+            600,
+            0
+          ]
+        }
+      ],
+      "camera": "side_low",
+      "mistakes": [
+        {
+          "id": "jack_wrong_point",
+          "label": "잭을 잭 포인트가 아닌 곳에 댐",
+          "description": "문턱 홈이 아닌 바닥판에 잭을 대면 차체가 찌그러지거나 차가 기울어 잭에서 미끄러질 수 있다. 바퀴 가장 가까운 잭 포인트(홈 두 개 사이)에만 댄다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                6000,
+                0
+              ]
+            },
+            {
+              "offset": [
+                0,
+                6000,
+                0
+              ],
+              "duration": 2.5
+            }
+          ],
+          "violates": [
+            "jack_point"
+          ],
+          "alsoMove": [
+            {
+              "partId": "jack",
+              "path": [
+                {
+                  "offset": [
+                    -700,
+                    0,
+                    -160
+                  ]
+                },
+                {
+                  "offset": [
+                    -700,
+                    0,
+                    -160
+                  ],
+                  "rotation": [
+                    0,
+                    0,
+                    9
+                  ],
+                  "duration": 0.9
+                },
+                {
+                  "offset": [
+                    -700,
+                    0,
+                    -160
+                  ],
+                  "rotation": [
+                    0,
+                    0,
+                    9
+                  ],
+                  "duration": 1.6
+                }
+              ]
+            }
+          ],
+          "source": [
+            {
+              "url": "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html",
+              "quote": "Never jack at any other position or part of the vehicle."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_hub",
+      "partId": "hub",
+      "action": "place",
+      "label": "허브와 볼트",
+      "description": "바퀴를 거는 허브와 볼트 5개",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            300
+          ]
+        }
+      ],
+      "camera": "wheel"
+    },
+    {
+      "id": "s_wheel",
+      "partId": "flat_tire",
+      "action": "slide",
+      "label": "바퀴 끼우기",
+      "description": "바퀴 구멍을 허브 볼트 5개에 맞춰 똑바로 끼운다",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            360
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            60
+          ]
+        }
+      ],
+      "checks": [
+        "hub_face"
+      ],
+      "camera": "wheel"
+    },
+    {
+      "id": "s_nuts",
+      "partId": "wheel_nuts",
+      "action": "screw_down",
+      "label": "휠 너트 5개 (하나 건너 하나)",
+      "description": "뺄 때: 바퀴가 땅에서 뜬 뒤에 끝까지 풀어 뺀다. 끼울 때: 좁은 테이퍼 쪽이 바퀴를 향하게 손으로 조인다. 잭을 내린 뒤 하나 건너 하나(1-3-5-2-4) 순서로 단단히 조인다.",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            120
+          ]
+        },
+        {
+          "offset": [
+            0,
+            0,
+            30
+          ]
+        }
+      ],
+      "blocks": [
+        "flat_tire",
+        "spare_wheel"
+      ],
+      "screwOrder": [
+        "nut_1",
+        "nut_3",
+        "nut_5",
+        "nut_2",
+        "nut_4"
+      ],
+      "camera": "nuts",
+      "source": [
+        {
+          "url": "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html",
+          "quote": "The nuts should be installed with their tapered small diameter ends directed inward."
+        },
+        {
+          "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+          "quote": "Go around the wheel tightening every other nut until they are all tight."
+        }
+      ],
+      "mistakes": [
+        {
+          "id": "nut_reversed",
+          "label": "너트를 거꾸로 끼움",
+          "description": "테이퍼(좁은 쪽)가 바깥을 보게 끼우면 바퀴가 제대로 눌리지 않아 달리다 풀릴 수 있다. 좁은 쪽이 바퀴(안쪽)를 향하게 끼운다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                120
+              ],
+              "rotation": [
+                0,
+                180,
+                0
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                22
+              ],
+              "rotation": [
+                0,
+                180,
+                0
+              ],
+              "duration": 0.8
+            },
+            {
+              "offset": [
+                0,
+                0,
+                22
+              ],
+              "rotation": [
+                0,
+                180,
+                0
+              ],
+              "duration": 1.6
+            }
+          ],
+          "violates": [
+            "nut_1"
+          ],
+          "source": [
+            {
+              "url": "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html",
+              "quote": "The nuts should be installed with their tapered small diameter ends directed inward."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "s_cover",
+      "partId": "wheel_cover",
+      "action": "press",
+      "label": "휠 커버",
+      "description": "있는 차만. 커버를 바퀴 가운데에 맞춰 눌러 끼운다",
+      "path": [
+        {
+          "offset": [
+            0,
+            0,
+            150
+          ]
+        }
+      ],
+      "camera": "wheel",
+      "source": [
+        {
+          "url": "https://ownersmanual.kia.com/full_webhelp/ON/2024/en_US/topics/t00647.html",
+          "quote": "pull out the wheel cover. (if equipped)"
+        }
+      ]
+    }
+  ],
+  "views": {
+    "default": {
+      "label": "전체",
+      "position": [
+        2900,
+        1900,
+        4300
+      ],
+      "target": [
+        -1300,
+        350,
+        300
+      ]
+    },
+    "wheel": {
+      "label": "앞 왼쪽 바퀴",
+      "position": [
+        1100,
+        700,
+        2300
+      ],
+      "target": [
+        0,
+        317,
+        700
+      ]
+    },
+    "nuts": {
+      "label": "휠 너트",
+      "position": [
+        380,
+        520,
+        1450
+      ],
+      "target": [
+        0,
+        317,
+        720
+      ]
+    },
+    "jack_area": {
+      "label": "잭 포인트",
+      "position": [
+        -150,
+        260,
+        2000
+      ],
+      "target": [
+        -480,
+        120,
+        830
+      ]
+    },
+    "chock_area": {
+      "label": "고임목(뒤 오른쪽)",
+      "position": [
+        -300,
+        1900,
+        -3900
+      ],
+      "target": [
+        -2550,
+        100,
+        -700
+      ]
+    },
+    "side_low": {
+      "label": "옆에서 본 문턱",
+      "position": [
+        500,
+        420,
+        2500
+      ],
+      "target": [
+        -850,
+        130,
+        760
+      ]
+    },
+    "triangle_area": {
+      "label": "뒤쪽 삼각대",
+      "position": [
+        -6300,
+        1500,
+        2800
+      ],
+      "target": [
+        -3800,
+        300,
+        300
+      ]
+    }
+  },
+  "guides": [
+    {
+      "id": "guide_flat_tire",
+      "title": "펑크 난 타이어를 스페어로 교체",
+      "symptoms": [
+        "타이어가 펑크 났어요",
+        "바퀴 바람이 빠졌어요",
+        "스페어 타이어로 바꾸고 싶어요",
+        "잭을 어디에 대야 해요?"
+      ],
+      "targetPartId": "wheel_nuts",
+      "source": [
+        "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+        "https://ownersmanual.kia.com/full_webhelp/BDm/2024/en_US/topics/t00582.html",
+        "https://ownersmanual.kia.com/full_webhelp/ON/2024/en_US/topics/t00647.html",
+        "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html",
+        "https://law.go.kr/LSW/lumLsLinkPop.do?chrClsCd=010202&lspttninfSeq=110363"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_ft_park",
+          "at": "beforeRemoval",
+          "partId": "body",
+          "label": "평평한 곳에 세우고 비상등",
+          "description": "차가 다니는 길에서 떨어진 평평하고 단단한 곳에 세운다. 비상등을 켜고 주차 브레이크를 당기고, P(수동은 R)에 둔 뒤 시동을 끈다.",
+          "highlightParts": [],
+          "checks": [
+            "hazard_lamp"
+          ],
+          "camera": "default",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "level, firm ground away from traffic"
+            },
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/BDm/2024/en_US/topics/t00582.html",
+              "quote": "R (Reverse) with manual transmission or P (Park) with automatic transmission."
+            }
+          ]
+        },
+        {
+          "id": "x_ft_triangle",
+          "at": "beforeRemoval",
+          "partId": "triangle",
+          "action": "place",
+          "label": "안전삼각대 세우기",
+          "description": "고속도로나 자동차 전용도로에서는 뒤에서 오는 차가 볼 수 있는 곳에 안전삼각대를 세운다. 밤에는 사방 500 m에서 보이는 붉은 섬광 신호도 함께 둔다. 갓길이 위험하면 차 밖 안전한 곳으로 피해 긴급출동을 부른다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                600,
+                0
+              ]
+            }
+          ],
+          "checks": [
+            "triangle_face"
+          ],
+          "camera": "triangle_area",
+          "source": [
+            {
+              "url": "https://law.go.kr/LSW/lumLsLinkPop.do?chrClsCd=010202&lspttninfSeq=110363",
+              "quote": "사방 500미터 지점에서 식별할 수 있는 적색의 섬광신호ㆍ전기제등 또는 불꽃신호"
+            }
+          ]
+        },
+        {
+          "id": "x_ft_chock",
+          "at": "beforeRemoval",
+          "partId": "chock",
+          "action": "place",
+          "label": "대각선 바퀴에 고임목",
+          "description": "잭을 대는 바퀴(앞 왼쪽)의 대각선 바퀴(뒤 오른쪽) 앞과 뒤에 고임목을 괸다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                300,
+                0
+              ]
+            }
+          ],
+          "checks": [
+            "chock_front"
+          ],
+          "camera": "chock_area",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "that is diagonally opposite the jack position."
+            }
+          ]
+        },
+        {
+          "id": "x_ft_cover_off",
+          "at": "beforeRemoval",
+          "partId": "wheel_cover",
+          "action": "remove_consumable",
+          "label": "휠 커버 떼기",
+          "description": "휠 커버가 있으면 떼어 낸다(없는 차는 건너뛴다).",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                150
+              ]
+            }
+          ],
+          "camera": "wheel",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/ON/2024/en_US/topics/t00647.html",
+              "quote": "pull out the wheel cover. (if equipped)"
+            }
+          ]
+        },
+        {
+          "id": "x_ft_loosen",
+          "at": "beforeRemoval",
+          "partId": "wrench",
+          "action": "place",
+          "label": "땅에 닿은 채 너트 한 바퀴씩 풀기",
+          "description": "차를 들기 전에 렌치로 너트를 한 바퀴씩만 푼다. 바퀴가 땅에서 뜰 때까지 너트를 빼지 않는다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                400,
+                0
+              ]
+            }
+          ],
+          "highlightParts": [
+            "wheel_nuts",
+            "wrench"
+          ],
+          "checks": [
+            "nut_1",
+            "nut_2",
+            "nut_3",
+            "nut_4",
+            "nut_5"
+          ],
+          "camera": "nuts",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "but do not remove any nut until the tire has been raised off the ground."
+            }
+          ]
+        },
+        {
+          "id": "x_ft_jack",
+          "at": "beforeRemoval",
+          "partId": "jack",
+          "action": "lift",
+          "label": "잭 포인트에 잭 대고 들기",
+          "description": "바퀴 가장 가까운 잭 포인트(문턱 아래 홈 두 개 사이)에 잭 머리 홈을 맞춘다. 다른 곳에 대지 않는다. 타이어가 땅에서 살짝 뜰 때까지만 올리고, 차 밑에 몸을 넣지 않는다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                420
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                40
+              ]
+            }
+          ],
+          "checks": [
+            "jack_point",
+            "jack_saddle"
+          ],
+          "camera": "jack_area",
+          "source": [
+            {
+              "url": "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html",
+              "quote": "Never jack at any other position or part of the vehicle."
+            },
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "Never place any portion of your body under a vehicle that is supported by a jack."
+            }
+          ]
+        },
+        {
+          "id": "x_ft_flat_off",
+          "at": "afterRemoval",
+          "partId": "flat_tire",
+          "action": "remove_consumable",
+          "label": "펑크 난 바퀴 빼기",
+          "description": "너트를 다 뺀 뒤 바퀴를 몸 쪽으로 똑바로 당겨 뺀다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                360
+              ]
+            }
+          ],
+          "checks": [
+            "hub_face"
+          ],
+          "camera": "wheel",
+          "source": [
+            "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html"
+          ]
+        },
+        {
+          "id": "x_ft_spare",
+          "at": "beforeReinstall",
+          "partId": "spare_wheel",
+          "action": "slide",
+          "label": "스페어 바퀴 끼우기",
+          "description": "스페어 바퀴 구멍을 허브 볼트에 맞춰 끼운다. 임시용 스페어에는 휠 커버를 달지 않는다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                0,
+                360
+              ]
+            },
+            {
+              "offset": [
+                0,
+                0,
+                60
+              ]
+            }
+          ],
+          "checks": [
+            "hub_face"
+          ],
+          "camera": "wheel",
+          "source": [
+            "https://ownersmanual.hyundai.com/full_webhelp/NX4a/2026/en_US/topic_sbm_1j3_5yb.html"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guide_recheck_nuts",
+      "title": "바퀴를 바꾼 뒤 너트 다시 조이기",
+      "symptoms": [
+        "스페어로 바꾸고 조금 달렸어요",
+        "타이어 교체 후 너트 점검",
+        "바퀴 너트가 풀렸는지 걱정돼요"
+      ],
+      "targetPartId": "wheel_cover",
+      "source": [
+        "https://ownersmanual.kia.com/docview/webhelp/doc/95a815bd-421d-4b5d-bb13-90bc4478ecd5/topics/chapter7_7_4.html",
+        "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+        "https://ownersmanual.kia.com/full_webhelp/ON/2024/en_US/topics/t00647.html"
+      ],
+      "extraSteps": [
+        {
+          "id": "x_rc_park",
+          "at": "beforeRemoval",
+          "partId": "body",
+          "label": "평평한 곳에 세우기",
+          "description": "평평하고 단단한 곳에 세우고 주차 브레이크를 당긴 뒤 시동을 끈다.",
+          "highlightParts": [],
+          "checks": [
+            "hazard_lamp"
+          ],
+          "camera": "default",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "level, firm ground away from traffic"
+            }
+          ]
+        },
+        {
+          "id": "x_rc_tighten",
+          "at": "afterRemoval",
+          "partId": "wrench",
+          "action": "place",
+          "label": "하나 건너 하나 순서로 다시 조이기",
+          "description": "바퀴를 바꿨으면 50 km쯤 달린 뒤 너트를 하나 건너 하나(1-3-5-2-4) 순서로 다시 조인다. 정해진 힘(토크)은 내 차 설명서를 따른다.",
+          "path": [
+            {
+              "offset": [
+                0,
+                400,
+                0
+              ]
+            }
+          ],
+          "highlightParts": [
+            "wheel_nuts",
+            "wrench"
+          ],
+          "screwOrder": [
+            "nut_1",
+            "nut_3",
+            "nut_5",
+            "nut_2",
+            "nut_4"
+          ],
+          "camera": "nuts",
+          "source": [
+            {
+              "url": "https://ownersmanual.kia.com/docview/webhelp/doc/95a815bd-421d-4b5d-bb13-90bc4478ecd5/topics/chapter7_7_4.html",
+              "quote": "Check and tighten the wheel lug nuts after driving over 50 km if tires are replaced."
+            },
+            {
+              "url": "https://ownersmanual.kia.com/full_webhelp/MQ4A/2025/en_US/topics/t00736.html",
+              "quote": "Go around the wheel tightening every other nut until they are all tight."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
