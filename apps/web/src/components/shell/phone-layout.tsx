@@ -77,11 +77,12 @@ export function PhoneLayout() {
             className={expanded ? "hidden" : undefined}
             onSend={() => setUi({ sheet: "peek" })}
             header={
-              <div className="flex shrink-0 items-center justify-between border-b px-3 py-1">
+              <div className="flex shrink-0 items-center justify-between pr-1.5 pl-3">
                 <span className="text-xs font-medium text-muted-foreground">대화</span>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
+                  className="text-muted-foreground"
                   aria-label={sheet === "peek" ? "대화 펼치기" : "대화 접기"}
                   onClick={toggleSheet}
                 >
