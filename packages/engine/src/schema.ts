@@ -18,10 +18,21 @@ export const BoxShapeSchema = z.object({
 });
 export type BoxShape = z.infer<typeof BoxShapeSchema>;
 
-/** Part geometry. Only "boxes" is rendered today; "gltf" is a reserved slot (drawn as a placeholder). */
+/**
+ * Part geometry.
+ * - boxes: drawn from boxes. If the product has assets.glb and that file has a node named
+ *   like the part ID, the GLB node is used instead (boxes stay as the fallback).
+ * - gltf: a node from a GLB file. The node's origin and axes must match the part's local frame
+ *   (mm, Y-up). `node` defaults to the part ID. `boxes` is drawn while loading and if loading fails.
+ */
 export const GeometrySchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("boxes"), boxes: z.array(BoxShapeSchema).min(1) }),
-  z.object({ kind: z.literal("gltf"), url: z.string().min(1), node: z.string().optional() }),
+  z.object({
+    kind: z.literal("gltf"),
+    url: z.string().min(1),
+    node: z.string().optional(),
+    boxes: z.array(BoxShapeSchema).optional(),
+  }),
 ]);
 export type Geometry = z.infer<typeof GeometrySchema>;
 
@@ -185,6 +196,17 @@ const ProductBaseSchema = z.object({
   views: z.record(z.string(), ViewSchema).default({}),
   /** Troubleshooting guides that ship with the product (optional). */
   guides: z.array(GuideSchema).default([]),
+  /**
+   * Product-wide model file. Any part whose ID (or gltf `node`) matches a node name in this GLB
+   * is drawn from the GLB; everything else, or everything if loading fails, is drawn from boxes.
+   * `scale` multiplies GLB nodes (1 = the file is already in mm).
+   */
+  assets: z
+    .object({
+      glb: z.string().min(1).optional(),
+      scale: z.number().positive().default(1),
+    })
+    .optional(),
 });
 
 function dupes(ids: string[]): string[] {
