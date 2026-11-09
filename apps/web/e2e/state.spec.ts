@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { esc, partLabel, pc, pos } from "./support/product";
 import { isPhone, openStudio, partsTree, procedure, viewport } from "./support/studio";
+
+const steps0 = pc.assembly;
+const indexOf = (stepId: string) => steps0.findIndex((s) => s.id === stepId);
 
 test("keyboard alone walks the assembly steps", async ({ page }) => {
   await openStudio(page);
@@ -9,90 +13,100 @@ test("keyboard alone walks the assembly steps", async ({ page }) => {
 
   await next.focus();
   await page.keyboard.press("Enter");
-  await expect(steps).toContainText("1/7");
-  await expect(steps).toContainText("케이스 놓기");
+  await expect(steps).toContainText(pos(0));
+  await expect(steps).toContainText(steps0[0].label);
   await page.keyboard.press("Enter");
-  await expect(steps).toContainText("2/7");
-  await expect(viewport(page)).toHaveAccessibleName(/메인보드 강조/);
+  await expect(steps).toContainText(pos(1));
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(`${esc(partLabel(steps0[1].partId))} 강조`));
 
   await steps.getByRole("button", { name: "이전 단계" }).press("Enter");
-  await expect(steps).toContainText("1/7");
+  await expect(steps).toContainText(pos(0));
 });
 
 test("peeking at a part keeps the step, and 원래 단계로 returns", async ({ page }, info) => {
-  await openStudio(page, "/studio/pc?step=s_heatsink");
+  const step = steps0.find((s) => s.partId !== "gpu" && indexOf(s.id) > 1)!;
+  const gpu = partLabel("gpu");
+  await openStudio(page, `/studio/pc?step=${step.id}`);
   const steps = procedure(page);
-  await expect(steps).toContainText("4/7");
+  await expect(steps).toContainText(pos(indexOf(step.id)));
 
   const tree = await partsTree(page, info);
-  await tree.getByRole("treeitem", { name: "그래픽카드", exact: true }).click();
-  const peek = steps.getByRole("status").filter({ hasText: "잠깐 보는 중: 그래픽카드" });
+  await tree.getByRole("treeitem", { name: gpu, exact: true }).click();
+  const peek = steps.getByRole("status").filter({ hasText: `잠깐 보는 중: ${gpu}` });
   await expect(peek).toBeVisible();
-  await expect(viewport(page)).toHaveAccessibleName(/그래픽카드 강조/);
-  await expect(steps).toContainText("4/7");
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(`${esc(gpu)} 강조`));
+  await expect(steps).toContainText(pos(indexOf(step.id)));
 
   await steps.getByRole("button", { name: "원래 단계로" }).click();
   await expect(peek).toHaveCount(0);
-  await expect(viewport(page)).toHaveAccessibleName(/M\.2 방열판 강조/);
-  await expect(steps).toContainText("4/7");
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(`${esc(partLabel(step.partId))} 강조`));
+  await expect(steps).toContainText(pos(indexOf(step.id)));
 });
 
 test("parts tree supports arrow keys and shows check points", async ({ page }, info) => {
+  const i = pc.parts.findIndex((p, k) => k > 0 && pc.features.some((f) => f.partId === p.id));
+  const part = pc.parts[i];
+  const feature = pc.features.find((f) => f.partId === part.id)!;
   await openStudio(page);
   const tree = await partsTree(page, info);
-  const board = tree.getByRole("treeitem", { name: "메인보드" });
+  const row = tree.getByRole("treeitem", { name: part.label, exact: true });
 
-  await tree.getByRole("treeitem", { name: "케이스" }).focus();
+  await tree.getByRole("treeitem", { name: pc.parts[i - 1].label, exact: true }).focus();
   await page.keyboard.press("ArrowDown");
-  await expect(board).toBeFocused();
-  await expect(board).toHaveAttribute("aria-expanded", "false");
+  await expect(row).toBeFocused();
+  await expect(row).toHaveAttribute("aria-expanded", "false");
   await page.keyboard.press("ArrowRight");
-  await expect(board).toHaveAttribute("aria-expanded", "true");
+  await expect(row).toHaveAttribute("aria-expanded", "true");
   await page.keyboard.press("ArrowRight");
-  const slot = tree.getByRole("treeitem", { name: "PCIe x16 슬롯" });
-  await expect(slot).toBeFocused();
+  const point = tree.getByRole("treeitem", { name: feature.label, exact: true });
+  await expect(point).toBeFocused();
   await page.keyboard.press("Enter");
-  await expect(slot).toHaveAttribute("aria-selected", "true");
-  await expect(viewport(page)).toHaveAccessibleName(/확인할 곳 PCIe x16 슬롯/);
+  // On phones choosing a part closes the drawer, so the row is gone.
+  if (!isPhone(info)) await expect(point).toHaveAttribute("aria-selected", "true");
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(`확인할 곳 ${esc(feature.label)}`));
 });
 
 test("progress survives a reload on this device", async ({ page }) => {
+  const i = indexOf("s_gpu");
   await openStudio(page, "/studio/pc?step=s_gpu");
-  await expect(procedure(page)).toContainText("5/7");
+  await expect(procedure(page)).toContainText(pos(i));
   await procedure(page).getByRole("button", { name: "다음 단계" }).click();
-  await expect(procedure(page)).toContainText("6/7");
+  await expect(procedure(page)).toContainText(pos(i + 1));
 
   await page.goto("/studio/pc");
-  await expect(procedure(page)).toContainText("6/7");
-  await expect(procedure(page)).toContainText("보조 전원 꽂기");
+  await expect(procedure(page)).toContainText(pos(i + 1));
+  await expect(procedure(page)).toContainText(steps0[i + 1].label);
 });
 
 test("a guide deep link opens the service procedure", async ({ page }) => {
-  await openStudio(page, "/studio/pc?guide=ssd_not_detected&step=2");
+  const guide = pc.guides[0];
+  await openStudio(page, `/studio/pc?guide=${guide.id}&step=2`);
   const steps = procedure(page);
-  await expect(steps.getByRole("heading", { level: 2, name: "SSD가 인식되지 않음" })).toBeVisible();
-  await expect(steps).toContainText(/^.*2\/\d+/);
+  await expect(steps.getByRole("heading", { level: 2, name: guide.title })).toBeVisible();
+  await expect(steps).toContainText(/2\/\d+/);
   await steps.getByRole("button", { name: "조립 순서로 돌아가기" }).click();
   await expect(steps.getByRole("heading", { level: 2, name: "조립 순서" })).toBeVisible();
 });
 
 test("a common mistake shows as an alert and can be cleared", async ({ page }) => {
-  await openStudio(page, "/studio/pc?step=s_m2");
+  const step = steps0.find((s) => s.mistakes?.length)!;
+  await openStudio(page, `/studio/pc?step=${step.id}`);
   const steps = procedure(page);
   await steps.getByRole("button", { name: /^흔한 실수 보기:/ }).click();
   const alert = steps.getByRole("alert");
-  await expect(alert).toContainText("흔한 실수:");
+  await expect(alert).toContainText(`흔한 실수: ${step.mistakes![0].label}`);
   await expect(viewport(page)).toHaveAccessibleName(/흔한 실수를 겹쳐 보는 중/);
   await alert.getByRole("button", { name: "맞는 방법만 보기" }).click();
   await expect(steps.getByRole("alert")).toHaveCount(0);
 });
 
 test("view menu, explode and camera owner", async ({ page }) => {
+  const [, view] = Object.entries(pc.views).find(([name]) => name !== "default")!;
   await openStudio(page);
   const toolbar = page.getByRole("toolbar", { name: "보기 조작" });
   await toolbar.getByRole("button", { name: /^시점:/ }).click();
-  await page.getByRole("menuitemradio", { name: "정면" }).click();
-  await expect(viewport(page)).toHaveAccessibleName(/정면/);
+  await page.getByRole("menuitemradio", { name: view.label!, exact: true }).click();
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(esc(view.label!)));
 
   await page.locator("[data-testid=engine-host] canvas").dispatchEvent("wheel");
   await expect(page.getByRole("status").filter({ hasText: "직접 돌려 보는 중" })).toBeVisible();
@@ -102,7 +116,7 @@ test("view menu, explode and camera owner", async ({ page }) => {
 
 test("start over clears this device", async ({ page }) => {
   await openStudio(page, "/studio/pc?step=s_gpu");
-  await expect(procedure(page)).toContainText("5/7");
+  await expect(procedure(page)).toContainText(pos(indexOf("s_gpu")));
   await page.getByRole("button", { name: "메뉴" }).click();
   await page.getByRole("menuitem", { name: "처음부터 다시 시작" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "지우고 다시 시작" }).click();

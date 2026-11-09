@@ -38,6 +38,16 @@ export function engineReady(): boolean {
   return engine !== null;
 }
 
+/** Tests set localStorage "hdtew:e2e" = "1": faster animations, cheaper rendering. */
+function testEngineOptions() {
+  try {
+    if (window.localStorage.getItem("hdtew:e2e") === "1") return { timeScale: 8, maxPixelRatio: 1 };
+  } catch {
+    // storage blocked: normal speed
+  }
+  return {};
+}
+
 /** The viewer calls this with its slot element; returns a detach function. */
 export function attachViewport(slot: HTMLElement): () => void {
   if (!host) {
@@ -48,7 +58,7 @@ export function attachViewport(slot: HTMLElement): () => void {
   }
   slot.appendChild(host);
   if (!engine) {
-    engine = createEngine(host, { preserveDrawingBuffer: true });
+    engine = createEngine(host, { preserveDrawingBuffer: true, ...testEngineOptions() });
     engine.on("statechange", onStateChange);
     const slug = pendingSlug;
     pendingSlug = null;

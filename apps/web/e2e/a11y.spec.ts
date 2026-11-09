@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { esc, partLabel, pc } from "./support/product";
 import { chat, isPhone, openStudio, partsTree, procedure, viewport } from "./support/studio";
 
 test.describe("sitemap", () => {
@@ -32,7 +33,7 @@ test("accessibility tree has the landmarks and controls the design names", async
 
   const main = page.getByRole("main");
   await expect(main.getByRole("region", { name: "3D 보기" })).toBeVisible();
-  await expect(viewport(page)).toHaveAccessibleName(/테스트용 미니 PC/);
+  await expect(viewport(page)).toHaveAccessibleName(new RegExp(esc(pc.name)));
   await expect(page.getByRole("toolbar", { name: "보기 조작" })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "안내 시점으로 보는 중" })).toBeVisible();
 
@@ -50,7 +51,7 @@ test("accessibility tree has the landmarks and controls the design names", async
   await expect(form.getByRole("button", { name: "보내기" })).toBeDisabled();
 
   const tree = await partsTree(page, info);
-  await expect(tree.getByRole("treeitem", { name: "그래픽카드", exact: true })).toBeVisible();
+  await expect(tree.getByRole("treeitem", { name: partLabel("gpu"), exact: true })).toBeVisible();
 
   if (isPhone(info)) {
     await page.keyboard.press("Escape");

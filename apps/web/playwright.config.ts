@@ -11,6 +11,9 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
+  // Real WebGL (SwiftShader) is slow, and several sessions share this machine.
+  timeout: 120_000,
+  expect: { timeout: 20_000 },
   use: {
     baseURL,
     headless: true,
