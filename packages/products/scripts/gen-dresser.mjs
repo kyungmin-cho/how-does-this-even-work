@@ -7,7 +7,9 @@
 //
 // Pipeline: this script is the source of part origins and coarse boxes. blender/build_dresser.py reads the
 // JSON, models the detailed mesh inside those boxes, and writes blender/dresser.layout.json. If that layout
-// exists, its boxes and feature positions are merged here and assets.glb is set. Run gen, Blender, gen again.
+// exists, its boxes and feature positions are merged here and assets.glb is set.
+// After changing boxes or features: `gen --no-layout`, then Blender, then gen (a plain gen keeps the old layout's
+// boxes). Steps, paths, mistakes, guides and views can be changed with a plain gen.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const out = process.argv[2] ?? new URL("../data/dresser.json", import.meta.url).pathname;
@@ -405,7 +407,7 @@ const views = {
   rails: { label: "레일", position: [-420, 820, 1650], target: [200, 430, 40] },
   front: { label: "서랍", position: [900, 700, 1700], target: [0, 450, 100] },
   back: { label: "뒤판", position: [-1300, 1000, -1300], target: [0, 450, -100] },
-  anchor: { label: "벽 고정", position: [700, 1450, 450], target: [0, 890, -215] },
+  anchor: { label: "벽 고정", position: [850, 1650, 750], target: [0, 880, -225] },
   side: { label: "옆에서 (넘어짐)", position: [2300, 1250, 1300], target: [0, 520, 150] },
 };
 

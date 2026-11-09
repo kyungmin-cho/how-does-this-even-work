@@ -118,8 +118,15 @@ test("dresser: assembled, guide steps and mistakes", async ({ page, isMobile }) 
   for (const [stepId, mistakeId] of mistakes) {
     await page.evaluate(([s, m]) => window.__engine!.showMistake(s, m), [stepId, mistakeId] as const);
     expect((await state(page)).mistake).toEqual({ stepId, mistakeId });
-    await page.waitForTimeout(stepId === "s_tip_strap" ? 2600 : 2200); // camera glide + one pass of the wrong motion
+    await page.waitForTimeout(2200); // camera glide + one pass of the wrong motion
     await shot(page, `mistake-${mistakeId}`);
+    if (stepId === "s_tip_strap") {
+      // The tip-over loops (open drawers, then tilt); keep a few frames so one shows the tilt.
+      for (const [i, ms] of [400, 400, 400, 400].entries()) {
+        await page.waitForTimeout(ms);
+        await shot(page, `mistake-${mistakeId}-${i + 1}`);
+      }
+    }
     await page.evaluate(() => window.__engine!.clearMistake());
   }
 
