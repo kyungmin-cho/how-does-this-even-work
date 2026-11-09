@@ -121,38 +121,62 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
 
   const row = (n: Node, level: number) => {
     const open = expanded.includes(n.id);
+    const selected = isSelected(n);
+    const missing = n.kind === "part" && !installedParts.has(n.id);
     return (
       <Item
         size="xs"
-        variant={isSelected(n) ? "muted" : "default"}
-        className={cn("cursor-pointer flex-nowrap hover:bg-muted", level > 1 && "pl-8")}
+        variant={selected ? "muted" : "default"}
+        className={cn(
+          // px-1.75 + the list's px-1 + Item's 1px border puts the chevron column 12px in, on the
+          // panel title's line. Children step in by one chevron column (size-4 + gap-2).
+          "cursor-pointer flex-nowrap px-1.75 py-1.5",
+          selected ? "bg-muted" : "hover:bg-muted/50",
+          level > 1 && "pl-7.75",
+        )}
         onClick={(e) => {
           e.stopPropagation();
           setUi({ treeFocusId: n.id });
           pick(n);
         }}
       >
-        <ItemMedia>
+        <ItemMedia
+          onClick={
+            n.children.length > 0
+              ? (e) => {
+                  e.stopPropagation();
+                  toggle(n.id);
+                }
+              : undefined
+          }
+        >
           {n.children.length > 0 ? (
             <ChevronRightIcon
               aria-hidden
-              className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-90")}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggle(n.id);
-              }}
+              className={cn(
+                "size-4 text-muted-foreground/50 transition-[color,transform]",
+                "group-hover/item:text-foreground group-focus-visible/treeitem:text-foreground",
+                open && "rotate-90",
+              )}
             />
           ) : (
             <span aria-hidden className="size-4" />
           )}
         </ItemMedia>
-        <ItemContent className="min-w-0">
-          <ItemTitle className="w-full truncate font-normal">{n.label}</ItemTitle>
+        {/* basis-0 keeps a long name from widening the scroll area's table-sized viewport. */}
+        <ItemContent className="min-w-0 basis-0">
+          <ItemTitle className={cn("block w-full truncate font-normal", missing && "text-muted-foreground")}>
+            {n.label}
+          </ItemTitle>
         </ItemContent>
-        {n.kind === "part" && (n.id === currentPartId || !installedParts.has(n.id)) && (
+        {missing && (
+          <span id={`${domId(n.id)}-state`} className="sr-only">
+            빠져 있음
+          </span>
+        )}
+        {n.kind === "part" && n.id === currentPartId && (
           <ItemActions>
-            {n.id === currentPartId && <Badge variant="secondary">지금 단계</Badge>}
-            {!installedParts.has(n.id) && <Badge variant="outline">빠져 있음</Badge>}
+            <Badge variant="secondary">지금 단계</Badge>
           </ItemActions>
         )}
       </Item>
@@ -163,16 +187,19 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
     id: domId(node.id),
     "aria-level": level,
     "aria-label": node.label,
+    "aria-describedby": node.kind === "part" && !installedParts.has(node.id) ? `${domId(node.id)}-state` : undefined,
     tabIndex: node.id === activeId ? 0 : -1,
     onKeyDown: (e: KeyboardEvent) => onKeyDown(e, node),
     onFocus: (e: React.FocusEvent) => {
       if (e.target === e.currentTarget && focusId !== node.id) setUi({ treeFocusId: node.id });
     },
-    className: "rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring",
+    // The ring goes on this row's Item only, never around an expanded parent's child list.
+    className:
+      "group/treeitem rounded-md outline-none [&:focus-visible>[data-slot=item]]:ring-2 [&:focus-visible>[data-slot=item]]:ring-ring/50",
   });
 
   return (
-    <ul role="tree" aria-label="부품" className="space-y-0.5 p-2">
+    <ul role="tree" aria-label="부품" className="space-y-px px-1 pb-2">
       {tree.map((n) => {
         if (!n.children.length) {
           return (
@@ -187,7 +214,7 @@ export function PartsTree({ onPick }: { onPick?: () => void }) {
             <li role="treeitem" aria-expanded={open} aria-selected={isSelected(n)} {...itemProps(n, 1)}>
               {row(n, 1)}
               <CollapsibleContent asChild>
-                <ul role="group" className="space-y-0.5">
+                <ul role="group" className="mt-px space-y-px">
                   {n.children.map((c) => (
                     <li key={c.id} role="treeitem" aria-selected={isSelected(c)} {...itemProps(c, 2)}>
                       {row(c, 2)}
