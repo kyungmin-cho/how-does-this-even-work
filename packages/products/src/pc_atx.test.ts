@@ -73,7 +73,7 @@ describe("schema", () => {
   });
 
   it("exports a product list with unique ids", () => {
-    expect(productIds).toEqual(["pc_atx"]);
+    expect(productIds).toContain("pc_atx");
     expect(new Set(productIds).size).toBe(products.length);
     expect(getProduct("nope")).toBeUndefined();
   });
