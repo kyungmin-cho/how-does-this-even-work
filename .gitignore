@@ -25,3 +25,9 @@ playwright/.cache/
 npm-debug.log*
 .pnpm-debug.log*
 .vercel
+
+# generated images (local only, too big for git)
+packages/products/blender/previews/
+apps/web/e2e/__screens__/
+apps/web/e2e/qa/__screens__/
+apps/web/e2e/qa/out/
